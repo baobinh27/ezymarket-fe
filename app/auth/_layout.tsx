@@ -7,7 +7,6 @@ export default function AuthLayout() {
   // Tránh redirect sớm khi context chưa load xong
   if (loading) return null;
 
-  if (isLoggedIn) return <Redirect href="/home/home" />;
-  // return <Slot />;
+  if (isLoggedIn) return <Redirect href="/home" />;
   return (<Stack screenOptions={{ headerShown: false }} />);
 }
