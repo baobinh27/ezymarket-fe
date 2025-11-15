@@ -35,7 +35,7 @@ type ItemCardProps = {
 
 // CSS gradient for web
 const WebItemCard = styled.View<ItemCardProps>`
-  ${(props) => !props.isFirst && !props.isLast ? "border-radius: 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
+  ${(props) => !props.isFirst && !props.isLast && props.isInGroup ? "border-radius: 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
   ${(props) => props.isFirst ? "border-radius: 12px 12px 0 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
   ${(props) => props.isLast ? "border-radius: 0 0 12px 12px;" : ""}
   ${(props) => !props.isInGroup ? "border-radius: 12px;" : ""}
@@ -60,7 +60,7 @@ const MobileItemCard = styled(LinearGradient as any).attrs<ItemCardProps>(
     end: { x: 1, y: 1 },
   })
 )<ItemCardProps>`
-  ${(props) => !props.isFirst && !props.isLast ? "border-radius: 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
+  ${(props) => !props.isFirst && !props.isLast && props.isInGroup ? "border-radius: 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
   ${(props) => props.isFirst ? "border-radius: 12px 12px 0 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
   ${(props) => props.isLast ? "border-radius: 0 0 12px 12px;" : ""}
   ${(props) => !props.isInGroup ? "border-radius: 12px;" : ""}
