@@ -15,7 +15,7 @@ interface IButtonProps {
 
 const IBackground = styled(LinearGradient as any).attrs<{ variant?: "primary" | "secondary" | "tertiary" | "none" }>(
     (props) => ({
-        colors: props.variant === "primary" ? ["#46982D", "#82CD47"] : props.variant === "tertiary" ? ['#EEE', '#EEE'] : ["#FFF", "#FFF"],
+        colors: props.variant === "primary" ? ["#82CD47", "#46982D"] : props.variant === "tertiary" ? ['#EEE', '#EEE'] : ["#FFF", "#FFF"],
         start: { x: 0, y: 0 },
         end: { x: 1, y: 1 },
     })
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     },
     border: {
         borderWidth: 1,
-        borderColor: "#46982D",
+        borderColor: "#82CD47",
     },
     pressed: {
         opacity: 0.7,

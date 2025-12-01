@@ -5,62 +5,51 @@ import React, { useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
 import { authStyles as styles } from "./auth.styles";
 
-export default function RegisterScreen() {
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
+export default function ResetPasswordScreen() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // TODO: Kết nối API register/verify-email khi backend sẵn sàng
-  const handleRegister = async () => {
-    if (!email || !username || !password || password !== confirmPassword) return;
-    // Gọi API đăng ký ở đây
-    alert("Registered! Please check your email to verify your account.");
-    router.push("/auth/login");
+  // TODO: Kết nối API đặt lại mật khẩu mới khi backend sẵn sàng
+  const handleConfirm = async () => {
+    if (!password || !confirmPassword || password !== confirmPassword || submitting) {
+      return;
+    }
+    try {
+      setSubmitting(true);
+      // await resetPasswordApi({ password, confirmPassword });
+      router.replace("/auth/login");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const disabled =
+    !password || !confirmPassword || password !== confirmPassword || submitting;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Image
-          source={require("@/assets/images/EzyMarketLogo.png")}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <Pressable onPress={() => router.replace("/welcome")}>
+          <Image
+            source={require("@/assets/images/EzyMarketLogo.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </Pressable>
         <Text style={styles.title}>EzyMarket</Text>
-        <Text style={styles.subtitle}>Create an account</Text>
+        <Text style={styles.subtitleMain}>Forget Password</Text>
+        <Text style={styles.subtitle}>Enter your new password</Text>
       </View>
 
       <View style={styles.form}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="you@example.com"
-          placeholderTextColor="#9CA3AF"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <Text style={[styles.label, { marginTop: 16 }]}>Username</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          placeholderTextColor="#9CA3AF"
-          autoCapitalize="none"
-          keyboardType="default"
-          value={username}
-          onChangeText={setUsername}
-        />
-
-        <Text style={[styles.label, { marginTop: 16 }]}>Password</Text>
+        <Text style={styles.label}>Password</Text>
         <View style={styles.inputPasswordRow}>
           <TextInput
             style={styles.inputPassword}
-            placeholder="Enter your password"
+            placeholder="Enter your new password"
             placeholderTextColor="#9CA3AF"
             secureTextEntry={!showPassword}
             value={password}
@@ -82,7 +71,7 @@ export default function RegisterScreen() {
         <View style={styles.inputPasswordRow}>
           <TextInput
             style={styles.inputPassword}
-            placeholder="Confirm your password"
+            placeholder="Confirm your new password"
             placeholderTextColor="#9CA3AF"
             secureTextEntry={!showConfirmPassword}
             value={confirmPassword}
@@ -102,18 +91,13 @@ export default function RegisterScreen() {
 
         <IButton
           variant="primary"
-          onPress={handleRegister}
+          onPress={handleConfirm}
           style={styles.primaryButton}
         >
-          <Text style={styles.primaryButtonText}>Sign up</Text>
+          <Text style={styles.primaryButtonText}>
+            {submitting ? "Saving..." : "Confirm"}
+          </Text>
         </IButton>
-
-        <View style={styles.bottomRow}>
-          <Text style={styles.bottomText}>Already have an account ?</Text>
-          <Pressable onPress={() => router.push("/auth/login")}>
-            <Text style={styles.bottomLink}>Login</Text>
-          </Pressable>
-        </View>
       </View>
     </View>
   );
