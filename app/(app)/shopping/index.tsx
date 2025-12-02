@@ -1,5 +1,5 @@
 import IButton from "@/components/IButton";
-import ShoppingList from "@/components/ShoppingList";
+import ShoppingListCard from "@/components/shopping/ShoppingListCard";
 import { CardGroup, ItemCard, IText } from "@/components/styled";
 import { Octicons } from "@expo/vector-icons";
 import React from "react";
@@ -41,13 +41,13 @@ export default function ShoppingScreen() {
 
 
             <ItemCard primary>
-                <ShoppingList id={"0"} name={"My shopping list"} active />
+                <ShoppingListCard id={"0"} name={"My shopping list"} active />
             </ItemCard>
 
             <CardGroup>
                 {
                     shoppingLists.map((item) => {
-                        return <ItemCard key={item.id}><ShoppingList  id={item.id} name={item.name} /></ItemCard>
+                        return <ItemCard key={item.id}><ShoppingListCard  id={item.id} name={item.name} /></ItemCard>
                     })
                 }
             </CardGroup>

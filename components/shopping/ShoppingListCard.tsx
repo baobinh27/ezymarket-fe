@@ -2,22 +2,22 @@ import { Octicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { IText } from "./styled";
-interface ShoppingListProps {
+import { IText } from "../styled";
+interface ShoppingListCardProps {
   id: string;
   name: string;
   active?: boolean
 }
 
- export default function ShoppingList({
+ export default function ShoppingListCard({
     id,
     name,
     active
- } : ShoppingListProps) {
+ } : ShoppingListCardProps) {
     const router = useRouter();
     const handleListPress = (listId: string, listName: string) => {
         router.push({
-        pathname: "./(shopping)/[id]",
+        pathname: "/shopping/[id]",
         params: { id: listId, name: listName },
         });
     };
