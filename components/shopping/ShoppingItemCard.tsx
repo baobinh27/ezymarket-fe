@@ -20,50 +20,6 @@ export const ShoppingItemCard: React.FC<ShoppingItemProps> = ({
 }) => {
   return (
    <ItemCard >
-
-   
-        {/* <TouchableOpacity
-        onPress={() => {}}
-        style={{
-            width: 24,
-            height: 24,
-            borderRadius: 4,
-            borderWidth: 2,
-            borderColor: item.purchased ? "#4CAF50" : "#ccc",
-            backgroundColor: item.purchased ? "#4CAF50" : "transparent",
-            marginRight: 12,
-            justifyContent: "center",
-            alignItems: "center",
-        }}
-        >
-        {item.purchased && (
-            <IText bold color="white" size={14}>
-            ✓
-            </IText>
-        )}
-        </TouchableOpacity>
-
-        <View style={{ flex: 1 }}>
-        <IText
-            bold
-            color={item.purchased ? "#999" : "#000"}
-            size={16}
-            style={{
-            textDecorationLine: item.purchased ? "line-through" : "none",
-            }}
-        >
-            {item.name}
-        </IText>
-        <IText color="#999" size={12}>
-            {item.quantity} {item.unit}
-        </IText>
-        </View>
-
-        <TouchableOpacity onPress={() => {}}>
-        <IText color="#FF3B30" bold size={18}>
-            ✕
-        </IText>
-        </TouchableOpacity> */}
         <View style={{
             flexDirection: "row",
             alignItems: "center"
@@ -80,11 +36,7 @@ export const ShoppingItemCard: React.FC<ShoppingItemProps> = ({
             <IText size={11} >2 pieces</IText>
             <Octicons size={36} name="checkbox" color="black"/>
         </View>
-
-
-    </ItemCard>
-
-        
+    </ItemCard>      
   )
 }
 
