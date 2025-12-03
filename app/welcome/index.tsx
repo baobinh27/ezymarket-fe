@@ -1,9 +1,9 @@
 import IButton from "@/components/IButton";
 import { localStorage } from "@/utils/storage";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Image, Pressable, Text, View } from "react-native";
-import { welcomeStyles as styles } from "./welcome.styles";
+import styles from "./welcome.styles";
 
 const slides = [
   {
@@ -37,12 +37,12 @@ export default function WelcomeScreen() {
   const [index, setIndex] = useState(0);
 
   // Tự động chuyển slide sau 5s
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setIndex((prev) => (prev + 1) % slides.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+  // useEffect(() => {
+  //   const timer = setInterval(() => {
+  //     setIndex((prev) => (prev + 1) % slides.length);
+  //   }, 5000);
+  //   return () => clearInterval(timer);
+  // }, []);
 
   const handleFinishWelcome = async () => {
     await localStorage.set("hasShownWelcomePage", true);

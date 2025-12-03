@@ -4,7 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
-import { authStyles as styles } from "./auth.styles";
+import styles from "./auth.styles";
 
 export default function LoginScreen() {
   const auth = useAuth();
