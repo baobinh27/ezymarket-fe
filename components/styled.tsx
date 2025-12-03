@@ -22,7 +22,7 @@ type ITextProps = {
 export const IText = styled.Text<ITextProps>`
     font-family: ${(props: any) => (props.bold ? "Inter_700Bold" : props.semiBold ? "Inter_600SemiBold" : "Inter_400Regular")};
     font-size: ${(props: any) => (props.size ? props.size + 'px' : '14px')};
-    color: ${(props: any) => (props.color ? props.color : 'black')}
+    color: ${(props: any) => (props.color ? props.color : '#000000B4')}
 `
 
 type ItemCardProps = {
@@ -100,7 +100,8 @@ export const ItemCard: React.FC<ItemCardProps> = ({ primary, children, isFirst, 
 };
 
 type CardGroupProps = {
-  children: React.ReactElement<typeof ItemCard>[]
+  // children?: React.ReactElement<typeof ItemCard | boolean>[] | React.ReactElement<typeof ItemCard>;
+  children?: React.ReactNode;
   style?: object;
 };
 
