@@ -1,12 +1,6 @@
-import { Text, View } from "react-native";
+import { Redirect } from "expo-router";
 
 
-export default function MealsScreen() {
-    return (<View>
-        <Text>Meals go here</Text>
-        <Text>Meals go here</Text>
-        <Text>Meals go here</Text>
-        <Text>Meals go here</Text>
-        <Text></Text>
-    </View>)
+export default function Index() {
+    return (<Redirect href='/(app)/meals/planning' />)
 }

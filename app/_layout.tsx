@@ -1,8 +1,9 @@
 import { AuthProvider } from "@/services/auth/auth.context";
+import { SnackBarProvider } from "@/services/auth/snackbar.context";
 import { Inter_400Regular, Inter_600SemiBold, Inter_700Bold, useFonts } from "@expo-google-fonts/inter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Slot } from "expo-router";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StatusBar, View } from "react-native";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +26,10 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
-        <Slot />
+        <SnackBarProvider>
+          <StatusBar />
+          <Slot />
+        </SnackBarProvider>
       </QueryClientProvider>
     </AuthProvider>
   );
