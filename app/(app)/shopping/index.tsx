@@ -53,15 +53,23 @@ export default function ShoppingScreen() {
 
 
 
-            <ItemCard primary>
+            {/* <ItemCard primary>
                 <ShoppingListCard id={"0"} name={"My shopping list"} active />
-            </ItemCard>
+            </ItemCard> */}
 
             <CardGroup>
                 {
-                    shoppingLists.map((item) => {
-                        return <ItemCard key={item.id}><ShoppingListCard  id={item.id} name={item.name} /></ItemCard>
-                    })
+                  shoppingLists.map((item) => {
+                      return <ItemCard primary key={item.id}><ShoppingListCard  id={item.id} name={item.name} active/></ItemCard>
+                  })
+                }
+            </CardGroup>
+
+            <CardGroup>
+                {
+                  shoppingLists.map((item) => {
+                      return <ItemCard key={item.id}><ShoppingListCard  id={item.id} name={item.name} /></ItemCard>
+                  })
                 }
             </CardGroup>
 

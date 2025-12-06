@@ -27,12 +27,11 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
-    <GestureHandlerRootView>     
-      <BottomSheetModalProvider>
-        
+        <GestureHandlerRootView>     
+          <BottomSheetModalProvider>
             <Slot />
-    </BottomSheetModalProvider>
-   </GestureHandlerRootView>
+        </BottomSheetModalProvider>
+      </GestureHandlerRootView>
       </QueryClientProvider>
     </AuthProvider>
   );
