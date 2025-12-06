@@ -1,5 +1,6 @@
 import IButton from "@/components/IButton";
 import { useAuth } from "@/services/auth/auth.context";
+import { useSnackBar } from "@/services/auth/snackbar.context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -7,19 +8,25 @@ import { Image, Pressable, Text, TextInput, View } from "react-native";
 import styles from "./auth.styles";
 
 export default function LoginScreen() {
-  const auth = useAuth();
+  const { login, loading } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const { showSnackBar } = useSnackBar();
+
   const handleLogin = async () => {
-    if (!username || !password || submitting) return;
+    if (submitting) return;
+    if (!username || !password) {
+      showSnackBar("Please enter your credentials.", 'warning');
+      return;
+    }
     try {
       setSubmitting(true);
-      // Back-end đang login bằng email, tạm thời map username -> email cho demo
-      await auth.login(username.trim(), password);
-      router.replace("/home");
+      const { success, message } = await login(username.trim(), password);
+      showSnackBar(message, success ? 'success' : 'error');
+      if (success) router.replace("/");
     } finally {
       setSubmitting(false);
     }
@@ -85,7 +92,7 @@ export default function LoginScreen() {
           style={styles.primaryButton}
         >
           <Text style={styles.primaryButtonText}>
-            {submitting ? "Signing in..." : "Sign in"}
+            {loading ? "Signing in..." : "Sign in"}
           </Text>
         </IButton>
 

@@ -59,7 +59,7 @@ export const SnackBarProvider = ({ children }: { children: ReactNode }) => {
                 <View style={[styles.icon, { display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: colors[type] }]}>
                     <SnackBarIcon type={type} />
                 </View>
-                <IText style={styles.text}>{message}</IText>
+                <IText style={styles.text} numberOfLines={2} ellipsizeMode="tail" >{message}</IText>
             </Animated.View>
         </SnackBarContext.Provider>
     );
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
         bottom: 20,
         left: 20,
         right: 20,
-        // padding: 14,
+        paddingRight: 12,
         borderRadius: 8,
         elevation: 4,
         boxShadow: '0 0 5px rgba(0, 0, 0, 0.3)',
@@ -101,17 +101,19 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: 8,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        minHeight: 42
     },
     text: {
+        flex: 1,
         color: "#000000B4",
-        textAlign: "center",
-        fontSize: 14,
-        paddingVertical: 12
+        textAlign: "left",
+        fontSize: 13,
+        paddingVertical: 12,
     },
     icon: {
         color: 'white',
-        height: '100%',
+        alignSelf: "stretch", 
         paddingVertical: 7,
         width: 42,
     }

@@ -1,4 +1,6 @@
 import IButton from "@/components/IButton";
+import { useAuth } from "@/services/auth/auth.context";
+import { useSnackBar } from "@/services/auth/snackbar.context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
@@ -12,13 +14,29 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { register } = useAuth()
+  const { showSnackBar } = useSnackBar();
 
-  // TODO: Kết nối API register/verify-email khi backend sẵn sàng
+  // TODO: Username is used as phone here, revert this after BE change the API
   const handleRegister = async () => {
-    if (!email || !username || !password || password !== confirmPassword) return;
-    // Gọi API đăng ký ở đây
-    alert("Registered! Please check your email to verify your account.");
-    router.push("/auth/login");
+    if (!email || !username || !password) {
+      showSnackBar("Please enter your credentials.", 'warning');
+      return;
+    }
+    if (password !== confirmPassword) {
+      showSnackBar("Passwords do not match each other.", 'warning');
+      return;
+    }
+    
+    // router.push("/auth/login");
+    const { success, message } = await register(email, username, password);
+    if (success) {
+      showSnackBar(message, 'success', 5000);
+    } else {
+      showSnackBar(message, 'error')
+    }
+
+
   };
 
   return (

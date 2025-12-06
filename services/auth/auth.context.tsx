@@ -1,7 +1,8 @@
 // src/services/auth.context.tsx
-import { localStorage } from "@/utils/storage";
+import { loginRequest, registerRequest } from "@/api/auth";
+import { SecureStorage } from "@/utils/secureStorage";
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { loginApi } from "./auth.api";
+import axiosInstance from "../axios";
 
 type User = { id: string; name: string } | null;
 
@@ -9,8 +10,9 @@ type AuthContextType = {
   user: User;
   isLoggedIn: boolean;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ success: boolean, message: string }>;
   logout: () => Promise<void>;
+  register: (email: string, username: string, password: string) => Promise<{ success: boolean, message: string }>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,30 +25,116 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Load token khi app mở lại
   useEffect(() => {
     (async () => {
-      const saved = await localStorage.get("auth");
-      if (saved?.user) {
-        setUser(saved.user);
-        setIsLoggedIn(true);
+      const refresh = await SecureStorage.getItem("refreshToken");
+      if (!refresh) {
+        setIsLoggedIn(false);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      try {
+        // Gọi API refresh lần đầu
+        const res = await axiosInstance.post(
+          `/api/user/refreshToken`,
+          { refreshToken: refresh }
+        );
+        const { token } = res.data;
+        await SecureStorage.setItem("accessToken", token)
+        setUser(user);
+        setIsLoggedIn(true);
+      } catch (e) {
+        await SecureStorage.deleteItem("refreshToken");
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { token, user } = await loginApi({ email, password });
-    if (user) {
-      await localStorage.set("auth", { token, user });
+    setLoading(true);
+    try {
+      const { data } = await loginRequest(email, password);
+
+      const { user, token, refreshToken } = data;
+
+      await SecureStorage.setItem("accessToken", token)
+      await SecureStorage.setItem("refreshToken", refreshToken);
+
       setUser(user);
       setIsLoggedIn(true);
+
+      return {
+        success: true,
+        message: "Login success!"
+      }
+    } catch (error: any) {
+      const status = error?.response?.status;
+
+      if (status === 400 || status === 401) {
+        return {
+          success: false,
+          message: "Invalid credentials!",
+        };
+      }
+
+      if (status === 500) {
+        return {
+          success: false,
+          message: "Server internal error!",
+        };
+      }
+
+      return {
+        success: false,
+        message: "Something went wrong!",
+      };
+    } finally {
+      setLoading(false);
     }
-    
   };
 
   const logout = async () => {
+    await SecureStorage.deleteItem("accessToken");
+    await SecureStorage.deleteItem("refreshToken");
+
     setUser(null);
     setIsLoggedIn(false);
-    await localStorage.remove("auth");
   };
+
+  const register = async (email: string, username: string, password: string) => {
+    try {
+      const { data } = await registerRequest(email, "000000000000", password);
+
+      return {
+        success: true,
+        message: "Register success! Check your mail to verify your account!"
+      }
+    } catch (error: any) {
+      console.log(error);
+      
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message;
+
+      if (status === 400 || status === 401) {
+        return {
+          success: false,
+          message: message,
+        };
+      }
+
+      if (status === 500) {
+        return {
+          success: false,
+          message: message,
+        };
+      }
+
+      return {
+        success: false,
+        message: "Something went wrong!",
+      };
+    }
+  }
 
   return (
     <AuthContext.Provider
@@ -56,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         login,
         logout,
+        register
       }}
     >
       {children}
