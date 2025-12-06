@@ -1,12 +1,12 @@
+import IBottomSheetModal from "@/components/IBottomSheetModal";
 import IButton from "@/components/IButton";
-import { CreateOption, CreateShoppingListModal } from "@/components/shopping/CreateShoppingListModal";
+import CreateOptionCard, { createOptions } from "@/components/shopping/CreateOptionCard";
 import ShoppingListCard from "@/components/shopping/ShoppingListCard";
 import { CardGroup, ItemCard, IText } from "@/components/styled";
-import { MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
-import BottomSheet from '@gorhom/bottom-sheet';
+import { Octicons } from "@expo/vector-icons";
+import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import React, { useCallback, useRef } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 const shoppingLists = [
 { id: "1", name: "Weekly Groceries" },
@@ -20,45 +20,18 @@ const shoppingLists = [
 ];
 
 export default function ShoppingScreen() {
-  const bottomSheetRef = useRef<BottomSheet>(null);
-
-  const handleDismiss = useCallback(() => {
-    console.log('Sheet dismissed');
-  }, []);
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const handlePresentModalPress = useCallback(() => {
-    bottomSheetRef.current?.expand();
+    bottomSheetRef.current?.present();
   }, []);
 
   // const handleSheetChanges = useCallback((index: number) => {
   //   console.log('handleSheetChanges', index);
   // }, []);
 
-  const createOptions: CreateOption[] = [
-    {
-      id: "checklist",
-      title: "Shopping Checklist",
-      description: "This will create a shopping checklist to help you track your items while shopping.",
-      icon: <Octicons size={24} name="checklist" color="#46982D" />,
-      onPress: () => {
-        console.log("Create Shopping Checklist");
-        // Navigate to checklist creation
-      },
-    },
-    {
-      id: "receipt",
-      title: "Instant Receipt",
-      description: "Use this when you don't want to plan and already has the complete shopping receipt.",
-      icon: <MaterialCommunityIcons size={24} name="receipt" color="#46982D" />,
-      onPress: () => {
-        console.log("Create Instant Receipt");
-        // Navigate to receipt creation
-      },
-    },
-  ];
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
         <ScrollView
             contentContainerStyle={{
                 padding: 16,
@@ -91,13 +64,25 @@ export default function ShoppingScreen() {
                     })
                 }
             </CardGroup>
-        </ScrollView>
-        
-        <CreateShoppingListModal
-          bottomSheetRef={bottomSheetRef}
-          options={createOptions}
-        />
-    </GestureHandlerRootView>
+
+            <IBottomSheetModal 
+              ref={bottomSheetRef} 
+              title="Create"
+            >
+            <View style={styles.optionsContent}>
+
+              {createOptions.map((option, id) => (
+                <CreateOptionCard 
+                  key={id} 
+                  title={option.title} 
+                  description={option.description} 
+                  icon={option.icon}
+                  onPress={option.onPress} 
+                />)
+              )}
+            </View>
+          </IBottomSheetModal>    
+        </ScrollView>        
   );
 }
    
@@ -111,5 +96,9 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     alignItems: 'center',
+  },
+  optionsContent: {
+    gap: 12,
+    paddingBottom: 24,
   },
 });
