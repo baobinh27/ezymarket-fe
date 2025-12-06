@@ -1,0 +1,42 @@
+import { Octicons } from "@expo/vector-icons";
+import { View } from "react-native";
+import { ItemCard, ItemImage, IText } from "../styled";
+
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  quantity: string;
+  unit: string;
+  purchased: boolean;
+}
+
+interface ShoppingItemProps {
+  item: ShoppingItem
+}
+
+
+export const ShoppingItemCard: React.FC<ShoppingItemProps> = ({
+  item
+}) => {
+  return (
+   <ItemCard >
+        <View style={{
+            flexDirection: "row",
+            alignItems: "center"
+        }}>
+            <ItemImage  src="https://imgs.search.brave.com/ZyTalHbd6ylc6QNmPc_567ZkdaIA2fOjPirg0xv5rNY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cG5nYWxsLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvMjAxNi8w/NS9DYWJiYWdlLUZy/ZWUtUE5HLUltYWdl/LnBuZw" />
+            <IText semiBold>Cabbage</IText>
+        </View>
+
+        <View style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10
+        }}>
+            <IText size={11} >2 pieces</IText>
+            <Octicons size={36} name="checkbox" color="black"/>
+        </View>
+    </ItemCard>      
+  )
+}
+
