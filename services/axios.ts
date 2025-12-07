@@ -23,7 +23,7 @@ let refreshPromise: Promise<string | null> | null = null;
 async function refreshAccessToken() {
   if (!refreshPromise) {
     refreshPromise = (async () => {
-      const refreshToken = await SecureStorage.getItem("refresh_token");
+      const refreshToken = await SecureStorage.getItem("refreshToken");
       if (!refreshToken) return null;
 
       try {
@@ -44,7 +44,7 @@ async function refreshAccessToken() {
 
 // Attach access token automatically (if it has) when sending a request
 axiosInstance.interceptors.request.use(async (config) => {
-  const token = SecureStorage.getItem('accessToken');
+  const token = await SecureStorage.getItem('accessToken');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });

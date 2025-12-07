@@ -21,7 +21,7 @@ export default function ShoppingLayout() {
             headerShown: true,
             headerLeft: () => (
                 <Text style={{
-                    fontFamily: 'Inter',
+                    fontFamily: 'Inter_700Bold',
                     fontSize: 24,
                     fontWeight: '700',
                 }}>

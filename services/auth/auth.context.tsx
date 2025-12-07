@@ -38,8 +38,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           `/api/user/refreshToken`,
           { refreshToken: refresh }
         );
-        const { token } = res.data;
+        const { token, refreshToken } = res.data;
         await SecureStorage.setItem("accessToken", token)
+        await SecureStorage.setItem("refreshToken", refreshToken)
         setUser(user);
         setIsLoggedIn(true);
       } catch (e) {

@@ -1,7 +1,7 @@
 import IButton from "@/components/IButton";
 import IPopup from "@/components/IPopup";
+import WeekPicker from "@/components/meals/WeekPicker";
 import { CardGroup, ItemCard, IText } from "@/components/styled";
-import WeekPicker from "@/components/WeekPicker";
 import useGetAllFridges from "@/hooks/fridge/useGetAllFridges";
 import { useSnackBar } from "@/services/auth/snackbar.context";
 import { Entypo, Feather, MaterialCommunityIcons } from "@expo/vector-icons";

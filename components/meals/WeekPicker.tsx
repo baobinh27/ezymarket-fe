@@ -2,8 +2,8 @@ import { Entypo } from "@expo/vector-icons";
 import dayjs, { Dayjs } from "dayjs";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import IButton from "./IButton";
-import { IText } from "./styled";
+import IButton from "../IButton";
+import { IText } from "../styled";
 
 type WeekPickerProps = {
     currentDate: Dayjs,
@@ -20,7 +20,7 @@ const WeekPicker = ({ currentDate, onGoToday, onGoNextWeek, onGoPrevWeek, onDayP
     const startOfWeek = currentDate.startOf("week"); // Sunday
     const weekDays = [...Array(7)].map((_, i) => startOfWeek.add(i, "day"));
 
-    const isPlanning = React.useMemo(() => currentDate.isAfter(dayjs()), [currentDate])
+    const isPlanning = React.useMemo(() => selectedDate.isAfter(dayjs()), [selectedDate])
 
     const goToday = () => {
         // setCurrentDate(dayjs());

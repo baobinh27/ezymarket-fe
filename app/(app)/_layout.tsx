@@ -44,7 +44,7 @@ export default function AppLayout() {
                 headerShown: true,
                 headerTitleAlign: 'left',
                 headerTitleStyle: {
-                    fontFamily: 'Inter',
+                    fontFamily: 'Inter_700Bold',
                     fontSize: 24,
                     fontWeight: 700
                 },
