@@ -1,14 +1,138 @@
+import IButton from "@/components/IButton";
+import { useAuth } from "@/services/auth/auth.context";
+import { useSnackBar } from "@/services/auth/snackbar.context";
+import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Button, Text, View } from "react-native";
+import React, { useState } from "react";
+import { Image, Pressable, Text, TextInput, View } from "react-native";
+import styles from "./auth.styles";
 
 export default function RegisterScreen() {
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { register } = useAuth()
+  const { showSnackBar } = useSnackBar();
+
+  // TODO: Username is used as phone here, revert this after BE change the API
+  const handleRegister = async () => {
+    if (!email || !username || !password) {
+      showSnackBar("Please enter your credentials.", 'warning');
+      return;
+    }
+    if (password !== confirmPassword) {
+      showSnackBar("Passwords do not match each other.", 'warning');
+      return;
+    }
+    
+    // router.push("/auth/login");
+    const { success, message } = await register(email, username, password);
+    if (success) {
+      showSnackBar(message, 'success', 5000);
+    } else {
+      showSnackBar(message, 'error')
+    }
+
+
+  };
+
   return (
-    <View>
-      <Text>Register Screen</Text>
-      <Text>Register Screen</Text>
-      <Text>Register Screen</Text>
-      <Text>Register Screen</Text>
-      <Button title="Login" onPress={() => router.push("/auth/login")} />
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Image
+          source={require("@/assets/images/EzyMarketLogo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>EzyMarket</Text>
+        <Text style={styles.subtitle}>Create an account</Text>
+      </View>
+
+      <View style={styles.form}>
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="you@example.com"
+          placeholderTextColor="#9CA3AF"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={email}
+          onChangeText={setEmail}
+        />
+
+        <Text style={[styles.label, { marginTop: 16 }]}>Username</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          placeholderTextColor="#9CA3AF"
+          autoCapitalize="none"
+          keyboardType="default"
+          value={username}
+          onChangeText={setUsername}
+        />
+
+        <Text style={[styles.label, { marginTop: 16 }]}>Password</Text>
+        <View style={styles.inputPasswordRow}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="Enter your password"
+            placeholderTextColor="#9CA3AF"
+            secureTextEntry={!showPassword}
+            value={password}
+            onChangeText={setPassword}
+          />
+          <Pressable
+            style={styles.passwordIconButton}
+            onPress={() => setShowPassword((prev) => !prev)}
+          >
+            <Ionicons
+              name={showPassword ? "eye-off-outline" : "eye-outline"}
+              size={18}
+              color="#9CA3AF"
+            />
+          </Pressable>
+        </View>
+
+        <Text style={[styles.label, { marginTop: 16 }]}>Confirm password</Text>
+        <View style={styles.inputPasswordRow}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="Confirm your password"
+            placeholderTextColor="#9CA3AF"
+            secureTextEntry={!showConfirmPassword}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+          <Pressable
+            style={styles.passwordIconButton}
+            onPress={() => setShowConfirmPassword((prev) => !prev)}
+          >
+            <Ionicons
+              name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+              size={18}
+              color="#9CA3AF"
+            />
+          </Pressable>
+        </View>
+
+        <IButton
+          variant="primary"
+          onPress={handleRegister}
+          style={styles.primaryButton}
+        >
+          <Text style={styles.primaryButtonText}>Sign up</Text>
+        </IButton>
+
+        <View style={styles.bottomRow}>
+          <Text style={styles.bottomText}>Already have an account ?</Text>
+          <Pressable onPress={() => router.push("/auth/login")}>
+            <Text style={styles.bottomLink}>Login</Text>
+          </Pressable>
+        </View>
+      </View>
     </View>
   );
 }

@@ -27,7 +27,7 @@ export default function AppLayout() {
             icon: (color: string | OpaqueColorValue | undefined) => <MaterialCommunityIcons name="fridge-outline" size={24} color={color} />
         },
         {
-            name: 'meals/index',
+            name: 'meals',
             title: 'Meals',
             icon: (color: string | OpaqueColorValue | undefined) => <Ionicons name="restaurant-outline" size={20} color={color} />
         },
@@ -52,7 +52,14 @@ export default function AppLayout() {
                 tabBarActiveBackgroundColor: '#82CD47',
                 tabBarActiveTintColor: '#FFFFFF',
                 animation: 'shift',
+                tabBarStyle: {
+                    backgroundColor: "#ffffff",
+                    height: 64,
+                },
+                headerShadowVisible: false,
             }}
+            // Make the tab bar flush with bottom of screen
+            safeAreaInsets={{ bottom: 0 }}
         >
             {/* href=null: Hidden route */}
             <Tabs.Screen name="index" options={{ href: null }} />

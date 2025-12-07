@@ -1,36 +1,33 @@
 import IButton from "@/components/IButton";
-import { useAuth } from "@/services/auth/auth.context";
-import { useSnackBar } from "@/services/auth/snackbar.context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
-import styles from "./auth.styles";
+import { authStyles as styles } from "./auth.styles";
 
-export default function LoginScreen() {
-  const { login, loading } = useAuth();
-  const [username, setUsername] = useState("");
+export default function ResetPasswordScreen() {
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { showSnackBar } = useSnackBar();
-
-  const handleLogin = async () => {
-    if (submitting) return;
-    if (!username || !password) {
-      showSnackBar("Please enter your credentials.", 'warning');
+  // TODO: Kết nối API đặt lại mật khẩu mới khi backend sẵn sàng
+  const handleConfirm = async () => {
+    if (!password || !confirmPassword || password !== confirmPassword || submitting) {
       return;
     }
     try {
       setSubmitting(true);
-      const { success, message } = await login(username.trim(), password);
-      showSnackBar(message, success ? 'success' : 'error');
-      if (success) router.replace("/");
+      // await resetPasswordApi({ password, confirmPassword });
+      router.replace("/auth/login");
     } finally {
       setSubmitting(false);
     }
   };
+
+  const disabled =
+    !password || !confirmPassword || password !== confirmPassword || submitting;
 
   return (
     <View style={styles.container}>
@@ -43,25 +40,16 @@ export default function LoginScreen() {
           />
         </Pressable>
         <Text style={styles.title}>EzyMarket</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+        <Text style={styles.subtitleMain}>Forget Password</Text>
+        <Text style={styles.subtitle}>Enter your new password</Text>
       </View>
 
       <View style={styles.form}>
-        <Text style={styles.label}>Username</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          placeholderTextColor="#9CA3AF"
-          autoCapitalize="none"
-          value={username}
-          onChangeText={setUsername}
-        />
-
-        <Text style={[styles.label, { marginTop: 16 }]}>Password</Text>
+        <Text style={styles.label}>Password</Text>
         <View style={styles.inputPasswordRow}>
           <TextInput
             style={styles.inputPassword}
-            placeholder="Enter your password"
+            placeholder="Enter your new password"
             placeholderTextColor="#9CA3AF"
             secureTextEntry={!showPassword}
             value={password}
@@ -79,29 +67,37 @@ export default function LoginScreen() {
           </Pressable>
         </View>
 
-        <Pressable
-          style={styles.forgotWrapper}
-          onPress={() => router.push("/auth/forgot-password")}
-        >
-          <Text style={styles.forgotText}>Forgot password?</Text>
-        </Pressable>
+        <Text style={[styles.label, { marginTop: 16 }]}>Confirm password</Text>
+        <View style={styles.inputPasswordRow}>
+          <TextInput
+            style={styles.inputPassword}
+            placeholder="Confirm your new password"
+            placeholderTextColor="#9CA3AF"
+            secureTextEntry={!showConfirmPassword}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
+          <Pressable
+            style={styles.passwordIconButton}
+            onPress={() => setShowConfirmPassword((prev) => !prev)}
+          >
+            <Ionicons
+              name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+              size={18}
+              color="#9CA3AF"
+            />
+          </Pressable>
+        </View>
 
         <IButton
           variant="primary"
-          onPress={handleLogin}
+          onPress={handleConfirm}
           style={styles.primaryButton}
         >
           <Text style={styles.primaryButtonText}>
-            {loading ? "Signing in..." : "Sign in"}
+            {submitting ? "Saving..." : "Confirm"}
           </Text>
         </IButton>
-
-        <View style={styles.bottomRow}>
-          <Text style={styles.bottomText}>Don&apos;t have an account ?</Text>
-          <Pressable onPress={() => router.push("/auth/register")}>
-            <Text style={styles.bottomLink}>Sign up</Text>
-          </Pressable>
-        </View>
       </View>
     </View>
   );
