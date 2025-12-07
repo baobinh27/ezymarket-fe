@@ -17,7 +17,7 @@ export default function AppLayout() {
             icon: (color: string | OpaqueColorValue | undefined) => <Octicons size={20} name="home" color={color} />
         },
         {
-            name: 'shopping/index',
+            name: 'shopping',
             title: 'Shopping',
             icon: (color: string | OpaqueColorValue | undefined) => <Octicons size={20} name="checklist" color={color} />
         },
@@ -70,6 +70,7 @@ export default function AppLayout() {
                     name={tab.name}
                     options={{
                         title: tab.title,
+                        headerShown: tab.name !== "shopping",
                         tabBarIcon: ({ color }) => tab.icon(color),
                     }}
 
