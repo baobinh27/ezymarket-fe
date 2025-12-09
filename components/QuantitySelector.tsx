@@ -6,15 +6,19 @@ import IButton from "./IButton";
 type QuantitySelectorProps = {
     state: number,
     maxState?: number,
-    setState: React.Dispatch<React.SetStateAction<number>>,
+    setState: (value: number) => void,
 }
 
 const QuantitySelector = ({ state, maxState, setState }: QuantitySelectorProps) => {
 
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const currentValueRef = useRef(state);
+
+    currentValueRef.current = state;
 
     const handleInputChange = (text: string) => {
-        setState(text === "" ? 0 : Math.min(maxState ? maxState : Infinity, Math.max(0, parseInt(text))));
+        const newValue = text === "" ? 0 : Math.min(maxState ? maxState : Infinity, Math.max(0, parseInt(text)));
+        setState(newValue);
     }
 
     const startHolding = ({ isPlus }: { isPlus: boolean }) => {
@@ -22,11 +26,13 @@ const QuantitySelector = ({ state, maxState, setState }: QuantitySelectorProps) 
 
         if (isPlus) {
             intervalRef.current = setInterval(() => {
-                setState(prev => Math.max(0, maxState ? Math.min(maxState, prev + 1) : prev + 1))
+                const newValue = Math.max(0, maxState ? Math.min(maxState, currentValueRef.current + 1) : currentValueRef.current + 1);
+                setState(newValue);
             }, delay);
         } else {
             intervalRef.current = setInterval(() => {
-                setState(prev => Math.min(maxState ? maxState : Infinity, Math.max(0, prev - 1)))
+                const newValue = Math.min(maxState ? maxState : Infinity, Math.max(0, currentValueRef.current - 1));
+                setState(newValue);
             }, delay);
         }
     };
@@ -40,7 +46,10 @@ const QuantitySelector = ({ state, maxState, setState }: QuantitySelectorProps) 
 
     return <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <IButton
-            onPress={() => setState(prev => Math.min(maxState ? maxState : Infinity, Math.max(0, prev - 1)))}
+            onPress={() => {
+                const newValue = Math.min(maxState ? maxState : Infinity, Math.max(0, state - 1));
+                setState(newValue);
+            }}
             onLongPress={() => startHolding({ isPlus: false })}
             onPressOut={stopHolding}
             style={style.left}
@@ -53,7 +62,10 @@ const QuantitySelector = ({ state, maxState, setState }: QuantitySelectorProps) 
             value={state.toString()} onChangeText={(text) => handleInputChange(text)}
         />
         <IButton
-            onPress={() => setState(prev => Math.max(0, maxState ? Math.min(maxState, prev + 1) : prev + 1))}
+            onPress={() => {
+                const newValue = Math.max(0, maxState ? Math.min(maxState, state + 1) : state + 1);
+                setState(newValue);
+            }}
             onLongPress={() => startHolding({ isPlus: true })}
             onPressOut={stopHolding}
             style={style.right}
@@ -67,7 +79,7 @@ const style = StyleSheet.create({
     left: {
         backgroundColor: 'white',
         width: 20,
-        height: 20,
+        height: 25,
         paddingLeft: 2,
         borderTopLeftRadius: 5,
         borderBottomLeftRadius: 5,
@@ -75,7 +87,7 @@ const style = StyleSheet.create({
     right: {
         backgroundColor: 'white',
         width: 20,
-        height: 20,
+        height: 25,
         paddingRight: 2,
         borderTopRightRadius: 5,
         borderBottomRightRadius: 5,
@@ -85,7 +97,7 @@ const style = StyleSheet.create({
         minWidth: 26,
         maxWidth: 42,
         paddingHorizontal: 4,
-        height: 20,
+        height: 25,
         textAlign: 'center',
         marginHorizontal: 1,
         fontSize: 11,

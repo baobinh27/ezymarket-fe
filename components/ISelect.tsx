@@ -55,7 +55,6 @@ export default function ISelect({
     itemStyle,
     itemTextStyle,
     searchInputStyle,
-
     extraModalContent,
 
     error,

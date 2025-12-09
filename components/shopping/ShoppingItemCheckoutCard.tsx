@@ -8,7 +8,7 @@ export interface CheckoutItem {
   name: string;
   quantity: string;
   unit: string;
-  saved?: boolean;
+  isPurchased?: boolean;
   costPerUnit?: string;
   total?: string;
   expiresIn?: string;
@@ -158,7 +158,7 @@ export const ShoppingItemCheckoutCard: React.FC<ShoppingItemCheckoutCardProps> =
     backgroundColor: "#f5f5f5",
     borderRadius: 12,
     padding: 12,
-    marginBottom: 12,
+    // marginBottom: 12,
     },
     itemHeader: {
         flexDirection: "row",

@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, username: string, password: string) => {
     try {
-      const { data } = await registerRequest(email, "000000000000", password);
+      const { data } = await registerRequest(email, "098765432134", password);
 
       return {
         success: true,

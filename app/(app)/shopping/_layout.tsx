@@ -1,7 +1,10 @@
 import CheckoutHeader from "@/components/shopping/CheckoutHeader";
+import CreateShoppingListHeader from "@/components/shopping/CreateShoppingListHeader";
 import ShoppingDetailHeader from "@/components/shopping/ShoppingDetailHeader";
+import { IText } from "@/components/styled";
+import { Octicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import { Text } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
 export default function ShoppingLayout() {
   const router = useRouter();
@@ -44,9 +47,40 @@ export default function ShoppingLayout() {
       />
       <Stack.Screen
         name="[id]"
+        options={({ route }) => ({
+            header: (props) => <ShoppingDetailHeader {...props} items={(route.params as any)?.items} />
+        })}
+      />
+      <Stack.Screen
+        name="saved/[id]"
         options={{
-            header: (props) => <ShoppingDetailHeader {...props} />
+            title: "",
+            headerShown: true,
+            headerLeft: () => (
+              <TouchableOpacity onPress={() => router.back()}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Octicons size={24} name="chevron-left" color="black" />
+                  <IText color="black" semiBold size={16}>
+                    Back
+                  </IText>
+                </View>
+              </TouchableOpacity>
+            )
         }}
+      />
+      <Stack.Screen
+        name="create"
+        options={({ navigation }) => ({
+            headerShown: true,
+            header: (props) => (
+              <CreateShoppingListHeader 
+                {...props} 
+                onConfirm={() => {
+                  navigation.goBack();
+                }}
+              />
+            ),
+        })}
       />
     </Stack>
   );

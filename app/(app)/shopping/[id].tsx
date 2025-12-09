@@ -1,7 +1,7 @@
 import { ShoppingItem, ShoppingItemCard } from "@/components/shopping/ShoppingItemCard";
 import { IText } from "@/components/styled";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
+import { useEffect, useState } from "react";
 import { FlatList, ScrollView, StyleSheet } from "react-native";
 
 export default function ShoppingListDetailScreen() {
@@ -10,16 +10,22 @@ export default function ShoppingListDetailScreen() {
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const name = Array.isArray(params.name) ? params.name[0] : params.name;
   const [items, setItems] = useState<ShoppingItem[]>([
-    { id: "1", name: "Milk", quantity: "2", unit: "L", purchased: false },
-    { id: "2", name: "Bread", quantity: "1", unit: "loaf", purchased: false },
-    { id: "3", name: "Eggs", quantity: "12", unit: "pieces", purchased: false },
+    { id: "1", name: "Milk", quantity: "2", unit: "L", isPurchased: false },
+    { id: "2", name: "Bread", quantity: "1", unit: "loaf", isPurchased: false },
+    { id: "3", name: "Eggs", quantity: "12", unit: "pieces", isPurchased: false },
   ]);
   const [newItemName, setNewItemName] = useState("");
+
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setParams({ items } as any);
+  }, [items]);
 
   const handleTogglePurchased = (itemId: string) => {
     setItems(
       items.map((item) =>
-        item.id === itemId ? { ...item, purchased: !item.purchased } : item
+        item.id === itemId ? { ...item, isPurchased: !item.isPurchased } : item
       )
     );
   };
@@ -35,14 +41,14 @@ export default function ShoppingListDetailScreen() {
         name: newItemName,
         quantity: "1",
         unit: "piece",
-        purchased: false,
+        isPurchased: false,
       };
       setItems([...items, newItem]);
       setNewItemName("");
     }
   };
 
-  const purchasedCount = items.filter((i) => i.purchased).length;
+  const purchasedCount = items.filter((i) => i.isPurchased).length;
 
   return (
     <ScrollView
@@ -64,7 +70,10 @@ export default function ShoppingListDetailScreen() {
                 gap: 16
             }}
             renderItem={({ item }) => (
-                <ShoppingItemCard item={item} />
+                <ShoppingItemCard 
+                  item={item} 
+                  onToggle={handleTogglePurchased}
+                />
             )}
         />
     </ScrollView>

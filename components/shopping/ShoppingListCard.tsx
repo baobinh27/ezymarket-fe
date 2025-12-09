@@ -16,10 +16,17 @@ interface ShoppingListCardProps {
  } : ShoppingListCardProps) {
     const router = useRouter();
     const handleListPress = (listId: string, listName: string) => {
-        router.push({
-        pathname: "/shopping/[id]",
-        params: { id: listId, name: listName },
-        });
+        if (active) {
+            router.push({
+                pathname: "/shopping/[id]",
+                params: { id: listId, name: listName },
+            });
+        } else {
+            router.push({
+                pathname: "/shopping/saved/[id]",
+                params: { id: listId, name: listName },
+            });
+        }
     };
     return (
         <TouchableOpacity
@@ -43,7 +50,7 @@ interface ShoppingListCardProps {
                         
                     }}>
                         {active && (<View style={styles.indicator}><IText size={10} color="#46982D">Active</IText></View>)}
-                        <IText size={16} bold color={active ? "white" : "black"}>{name}</IText>
+                        <IText size={16} semiBold color={active ? "white" : "#000000B4"}>{name}</IText>
                         
                     </View>
                     

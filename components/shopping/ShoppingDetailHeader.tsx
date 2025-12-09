@@ -4,16 +4,19 @@ import { Octicons } from "@expo/vector-icons";
 import { NativeStackHeaderProps } from "@react-navigation/native-stack";
 import { TouchableOpacity, View } from "react-native";
 
-interface ShoppingDetailHeaderProps extends NativeStackHeaderProps {}
+interface ShoppingDetailHeaderProps extends NativeStackHeaderProps {
+  items?: any[];
+}
 
-export default function ShoppingDetailHeader({ navigation, route }: ShoppingDetailHeaderProps) {
+export default function ShoppingDetailHeader({ navigation, route, items }: ShoppingDetailHeaderProps) {
   const params = route.params as { id?: string; name?: string };
 
   const handleCheckout = () => {
     navigation.push('checkout/[id]', { 
       id: params.id, 
-      name: params.name 
-    } as never);
+      name: params.name,
+      items: JSON.stringify(items || [])
+    });
   };
 
   return (
