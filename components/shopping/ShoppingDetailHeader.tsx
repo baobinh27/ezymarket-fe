@@ -4,16 +4,19 @@ import { Octicons } from "@expo/vector-icons";
 import { NativeStackHeaderProps } from "@react-navigation/native-stack";
 import { TouchableOpacity, View } from "react-native";
 
-interface ShoppingDetailHeaderProps extends NativeStackHeaderProps {}
+interface ShoppingDetailHeaderProps extends NativeStackHeaderProps {
+  items?: any[];
+}
 
-export default function ShoppingDetailHeader({ navigation, route }: ShoppingDetailHeaderProps) {
+export default function ShoppingDetailHeader({ navigation, route, items }: ShoppingDetailHeaderProps) {
   const params = route.params as { id?: string; name?: string };
 
   const handleCheckout = () => {
-    navigation.push("checkout/[id]", {
+    navigation.push('checkout/[id]', {
       id: params.id,
       name: params.name,
-    } as never);
+      items: JSON.stringify(items || [])
+    });
   };
 
   return (
@@ -47,7 +50,7 @@ export default function ShoppingDetailHeader({ navigation, route }: ShoppingDeta
         <IButton
           variant="secondary"
           style={{ borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14 }}
-          onPress={() => {}}
+          onPress={() => { }}
         >
           <IText color="#46982D" semiBold>
             Edit

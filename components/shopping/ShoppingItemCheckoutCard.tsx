@@ -8,7 +8,7 @@ export interface CheckoutItem {
   name: string;
   quantity: string;
   unit: string;
-  saved?: boolean;
+  isPurchased?: boolean;
   costPerUnit?: string;
   total?: string;
   expiresIn?: string;
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     borderRadius: 12,
     padding: 12,
-    marginBottom: 12,
+    // marginBottom: 12,
   },
   itemHeader: {
     flexDirection: "row",
@@ -192,7 +192,23 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 11,
     paddingVertical: 8,
+
   },
+
+  amountInput: {
+    backgroundColor: 'white',
+    paddingVertical: 4,
+    paddingHorizontal: 2,
+    textAlign: 'center',
+    fontSize: 11,
+    borderRadius: 5,
+    minWidth: 40,
+  },
+  unitContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5
+  }
 
   amountInput: {
     backgroundColor: "white",

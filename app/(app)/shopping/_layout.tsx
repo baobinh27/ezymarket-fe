@@ -35,13 +35,18 @@ export default function ShoppingLayout() {
         name="checkout/[id]"
         options={{
           headerShown: true,
-          header: () => <CheckoutHeader onBack={() => router.back()} onSave={() => {}} />,
+          header: () => (
+            <CheckoutHeader
+              onBack={() => router.back()}
+              onSave={() => { }}
+            />
+          ),
         }}
       />
       <Stack.Screen
         name="[id]"
         options={{
-          header: (props) => <ShoppingDetailHeader {...props} />,
+          header: (props) => <ShoppingDetailHeader {...props} />
         }}
       />
     </Stack>

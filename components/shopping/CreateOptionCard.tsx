@@ -1,8 +1,10 @@
-import { Octicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
-import { IText } from "../styled";
+import { Octicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { IText } from '../styled';
+
 
 interface CreateOptionCardProps {
   title: string;
@@ -11,20 +13,45 @@ interface CreateOptionCardProps {
   onPress: () => void;
 }
 
+export const useCreateOptions = (onDismiss?: () => void) => {
+  const router = useRouter();
+
+  return [
+    {
+      title: "Shopping Checklist",
+      description: "This will create a shopping checklist to help you track your items while shopping.",
+      icon: <Octicons size={28} name="checklist" color="#46982D" />,
+      onPress: () => {
+        onDismiss?.();
+        router.push('/shopping/create');
+      },
+    },
+    {
+      title: "Instant Receipt",
+      description: "Use this when you don't want to plan and already has the complete shopping receipt.",
+      icon: <Octicons size={28} name="zap" color="#46982D" />,
+      onPress: () => {
+        onDismiss?.();
+        console.log("Create Instant Receipt");
+      },
+    },
+  ];
+};
+
 export const createOptions = [
   {
     title: "Shopping Checklist",
     description:
       "This will create a shopping checklist to help you track your items while shopping.",
     icon: <Octicons size={28} name="checklist" color="#46982D" />,
-    onPress: () => {},
+    onPress: () => { },
   },
   {
     title: "Instant Receipt",
     description:
       "Use this when you don't want to plan and already has the complete shopping receipt.",
     icon: <Octicons size={28} name="zap" color="#46982D" />,
-    onPress: () => {},
+    onPress: () => { },
   },
 ];
 
