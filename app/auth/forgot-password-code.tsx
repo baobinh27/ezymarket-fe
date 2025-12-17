@@ -1,16 +1,27 @@
 import IButton from "@/components/IButton";
-import { router } from "expo-router";
+import { useForgotPasswordRequest } from "@/hooks/auth/useForgotPassword";
+import { useAuth } from "@/services/auth/auth.context";
+import { useSnackBar } from "@/services/auth/snackbar.context";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useMemo, useRef, useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
-import { authStyles as styles } from "./auth.styles";
+import styles from "./auth.styles";
 
 export default function ForgotPasswordCodeScreen() {
+  const { email } = useLocalSearchParams<{ email: string }>();
+  const { setOtp } = useAuth();
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [submitting, setSubmitting] = useState(false);
 
-  const inputsRef = useRef<Array<TextInput | null>>([]);
+  const inputsRef = useRef<(TextInput | null)[]>([]);
 
   const code = useMemo(() => digits.join(""), [digits]);
+
+  const {
+    mutateAsync: sendForgotPasswordRequest,
+    isPending,
+  } = useForgotPasswordRequest();
+  const { showSnackBar } = useSnackBar();
 
   const handleChangeDigit = (value: string, index: number) => {
     const char = value.slice(-1);
@@ -41,13 +52,28 @@ export default function ForgotPasswordCodeScreen() {
     }
   };
 
-  // TODO: Kết nối API verify mã OTP khi backend sẵn sàng
+  const handleSendCode = async () => {
+    try {
+      if (!email) {
+        showSnackBar("Something went wrong. Please try again.", 'error');
+        return;
+      }
+      await sendForgotPasswordRequest({ email });
+      showSnackBar('New code has been sent. Please check your emails.', 'info')
+    } catch (e: any) {
+      showSnackBar(e.message, 'error')
+    }
+  };
+
   const handleVerify = async () => {
     if (code.length !== 6 || submitting) return;
     try {
       setSubmitting(true);
-      // await verifyForgotPasswordCodeApi({ code });
-      router.push("/auth/reset-password");
+      setOtp(code);
+      router.push({
+        pathname: "/auth/reset-password",
+        params: { email: email },
+      });
     } finally {
       setSubmitting(false);
     }
@@ -66,7 +92,8 @@ export default function ForgotPasswordCodeScreen() {
         <Text style={styles.title}>EzyMarket</Text>
         <Text style={styles.subtitleMain}>Forget Password</Text>
         <Text style={styles.subtitle}>
-          Check your emails and enter the 6-digit verification code
+          Check your emails and enter the 6-digit verification code. The code
+          expires in 10 minutes.
         </Text>
       </View>
 
@@ -98,14 +125,12 @@ export default function ForgotPasswordCodeScreen() {
           </Text>
         </IButton>
 
-        <Pressable
-          style={styles.backWrapper}
-          onPress={() => router.replace("/auth/forgot-password")}
-        >
-          <Text style={styles.backText}>Email not received? Send another code</Text>
+        <Pressable style={styles.backWrapper} onPress={handleSendCode}>
+          <Text style={styles.backText}>
+            Email not received? {isPending ? "Sending..." : "Send another code"}
+          </Text>
         </Pressable>
       </View>
     </View>
   );
 }
-

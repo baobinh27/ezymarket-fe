@@ -1,33 +1,54 @@
 import IButton from "@/components/IButton";
+import { useForgotPasswordVerify } from "@/hooks/auth/useForgotPassword";
+import { useAuth } from "@/services/auth/auth.context";
+import { useSnackBar } from "@/services/auth/snackbar.context";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
-import { authStyles as styles } from "./auth.styles";
+import styles from "./auth.styles";
 
 export default function ResetPasswordScreen() {
+  const { email } = useLocalSearchParams<{ email: string }>();
+  const { otp } = useAuth();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  // const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  const { showSnackBar } = useSnackBar();
+  const { mutateAsync: verify, isPending } = useForgotPasswordVerify();
+
   // TODO: Kết nối API đặt lại mật khẩu mới khi backend sẵn sàng
   const handleConfirm = async () => {
-    if (!password || !confirmPassword || password !== confirmPassword || submitting) {
+    if (
+      !password ||
+      !confirmPassword ||
+      isPending
+    ) {
+      return;
+    }
+    if (password !== confirmPassword ) {
+      showSnackBar("Passwords don't match.", 'error');
       return;
     }
     try {
-      setSubmitting(true);
+      if (!otp) {
+        showSnackBar("Missing OTP! Please try again.", 'error');
+        return;
+      }
       // await resetPasswordApi({ password, confirmPassword });
-      router.replace("/auth/login");
-    } finally {
-      setSubmitting(false);
+      await verify({ email: email, otp: otp, newPassword: password });
+      showSnackBar("Password change success! Redirect in 2 seconds...", "success");
+      setTimeout(() => router.replace("/auth/login"), 2000);
+    } catch (e: any) {
+      showSnackBar(`${e.message}`, "error");
     }
   };
 
-  const disabled =
-    !password || !confirmPassword || password !== confirmPassword || submitting;
+  // const disabled =
+  //   !password || !confirmPassword || password !== confirmPassword || isPending;
 
   return (
     <View style={styles.container}>
@@ -95,7 +116,7 @@ export default function ResetPasswordScreen() {
           style={styles.primaryButton}
         >
           <Text style={styles.primaryButtonText}>
-            {submitting ? "Saving..." : "Confirm"}
+            {isPending ? "Saving..." : "Confirm"}
           </Text>
         </IButton>
       </View>

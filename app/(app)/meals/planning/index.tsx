@@ -1,12 +1,12 @@
 import IButton from "@/components/IButton";
-import IPopup from "@/components/IPopup";
+import AddItemModal from "@/components/meals/AddItemModal";
 import WeekPicker from "@/components/meals/WeekPicker";
 import { CardGroup, ItemCard, IText } from "@/components/styled";
-import useGetAllFridges from "@/hooks/fridge/useGetAllFridges";
 import { useSnackBar } from "@/services/auth/snackbar.context";
 import { Entypo, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import dayjs, { Dayjs } from "dayjs";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 
 enum Meals {
@@ -71,7 +71,8 @@ type MealDay = {
 
 const MealPlanning = () => {
     const [isExpanded, setIsExpanded] = useState<MealEditType>({ breakfast: false, lunch: false, dinner: false, snacks: false });
-    const [showAddItemModal, setShowAddItemModal] = useState(false);
+    // const [showAddItemModal, setShowAddItemModal] = useState(false);
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
     const [selectedDate, setSelectedDate] = useState(dayjs())
     const [mealDay, setMealDay] = useState<MealDay>({ breakfast: [], lunch: [], dinner: [], snacks: [] });
 
@@ -82,6 +83,38 @@ const MealPlanning = () => {
         setMealDay(mockData);
         setIsExpanded({ breakfast: false, lunch: false, dinner: false, snacks: false })
     }, [selectedDate])
+
+    const mealDayUI = useMemo(() => [
+        {
+            key: Meals.Breakfast,
+            label: "Breakfast",
+            icon: <Feather name="sunrise" size={24} />,
+            expandedKey: "breakfast",
+            data: mealDay.breakfast,
+        },
+        {
+            key: Meals.Lunch,
+            label: "Lunch",
+            icon: <Feather name="sun" size={24} />,
+            expandedKey: "lunch",
+            data: mealDay.lunch,
+        },
+        {
+            key: Meals.Dinner,
+            label: "Dinner",
+            icon: <Feather name="moon" size={24} />,
+            expandedKey: "dinner",
+            data: mealDay.dinner,
+        },
+        {
+            key: Meals.Snacks,
+            label: "Snacks",
+            icon: <Feather name="sunrise" size={24} />,
+            expandedKey: "snacks",
+            data: mealDay.snacks,
+        },
+    ] as const, [mealDay]);
+
 
     const handleGoToday = () => {
         setSelectedDate(dayjs());
@@ -115,16 +148,19 @@ const MealPlanning = () => {
         }));
     }
 
-    const handleOpenModal = () => {
-        setShowAddItemModal(true)
-    }
+    const handleOpenModal = useCallback(() => {
+        bottomSheetRef.current?.present();
+    }, []);
 
-    const handleCloseModal = () => {
-        setShowAddItemModal(false);
-    }
+    // const handleCloseModal = () => {
+    //     setShowAddItemModal(false);
+    // }
 
     return <View style={{ height: '100%' }}>
-        <AddItemModal visible={showAddItemModal} onClose={handleCloseModal} />
+        <AddItemModal 
+            ref={bottomSheetRef}
+        />
+
         <WeekPicker
             currentDate={selectedDate}
             onGoNextWeek={handleGoNextWeek}
@@ -138,7 +174,65 @@ const MealPlanning = () => {
                 gap: 16,
             }}
         >
-            <CardGroup>
+            {mealDayUI.map((meal) => (
+                <CardGroup key={meal.key}>
+                    <ItemCard>
+                        <View style={styles.mealName}>
+                            <View style={styles.iconSquare}>{meal.icon}</View>
+                            <IText semiBold>{meal.label}</IText>
+                        </View>
+
+                        <IButton
+                            variant="primary"
+                            onPress={() => handleExpand(meal.key)}
+                            style={styles.iconButton}
+                        >
+                            {isExpanded[meal.expandedKey] ? (
+                                <MaterialCommunityIcons name="playlist-check" size={24} color="white" />
+                            ) : (
+                                <Feather name="edit-3" size={24} color="white" />
+                            )}
+                        </IButton>
+                    </ItemCard>
+
+                    {isExpanded[meal.expandedKey] && (
+                        <ItemCard>
+                            <View style={{ flexDirection: "column", gap: 8, width: "100%" }}>
+                                {meal.data.map((foodItem, index) => (
+                                    <View key={index} style={styles.foodItem}>
+                                        <IButton style={styles.iconButton}>
+                                            <Entypo name="plus" size={24} color="#000000B4" />
+                                        </IButton>
+
+                                        <View style={{ flexDirection: "column", gap: 4 }}>
+                                            <IText semiBold>{foodItem.name}</IText>
+                                            <IText size={11}>
+                                                {foodItem.quantity} {foodItem.unit}
+                                            </IText>
+                                        </View>
+
+                                        <IButton
+                                            style={[styles.iconButton, styles.placeEnd]}
+                                            onPress={() => handleDeleteFoodItem(meal.key, index)}
+                                        >
+                                            <Feather name="trash-2" size={24} color="#000000B4" />
+                                        </IButton>
+                                    </View>
+                                ))}
+
+                                <View style={styles.foodItem}>
+                                    <IButton style={styles.iconButton} onPress={handleOpenModal}>
+                                        <Entypo name="plus" size={24} color="#000000B4" />
+                                    </IButton>
+                                    <IText size={12}>Add a dish or an item</IText>
+                                </View>
+                            </View>
+                        </ItemCard>
+                    )}
+                </CardGroup>
+            ))}
+
+            {/* <CardGroup>
                 <ItemCard>
                     <View style={styles.mealName}>
                         <Feather style={styles.iconSquare} name="sunrise" size={24} />
@@ -347,45 +441,9 @@ const MealPlanning = () => {
                         <IText size={12}>Add a dish or an item</IText>
                     </View>
                 </View></ItemCard>}
-            </CardGroup>
-
+            </CardGroup> */}
         </ScrollView>
-
     </View>
-}
-
-type AddItemModalProps = {
-    visible: boolean,
-    onClose: () => void
-}
-
-const AddItemModal = ({ visible, onClose }: AddItemModalProps) => {
-    const { data: fridges, isLoading, isError, refetch: fetchFridges } = useGetAllFridges({ enabled: false });
-
-    useEffect(() => {
-        const fetch = async () => {
-            if (visible) await fetchFridges()
-        }
-        fetch();
-    }, [visible, fetchFridges])
-
-    return <IPopup
-        visible={visible}
-        onCancel={onClose}
-        onDone={onClose}
-    >
-        {isLoading && <IText>Loading...</IText>}
-        {!isLoading && <IText>{fridges}</IText>}
-        <ItemCard>
-            <IText>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Perferendis quos labore consequatur, ratione odit et illum exercitationem aperiam soluta pariatur alias nemo voluptate necessitatibus, harum numquam magni obcaecati impedit eius.</IText>
-        </ItemCard>
-        <ItemCard>
-            <IText>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Perferendis quos labore consequatur, ratione odit et illum exercitationem aperiam soluta pariatur alias nemo voluptate necessitatibus, harum numquam magni obcaecati impedit eius.</IText>
-        </ItemCard>
-        <ItemCard>
-            <IText>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Perferendis quos labore consequatur, ratione odit et illum exercitationem aperiam soluta pariatur alias nemo voluptate necessitatibus, harum numquam magni obcaecati impedit eius.</IText>
-        </ItemCard>
-    </IPopup>
 }
 
 const styles = StyleSheet.create({
@@ -414,15 +472,6 @@ const styles = StyleSheet.create({
     placeEnd: {
         position: 'absolute',
         right: 0
-    }
-})
-
-const modal = StyleSheet.create({
-    overlay: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#0000004B'
     }
 })
 

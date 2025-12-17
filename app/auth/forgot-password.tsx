@@ -1,4 +1,6 @@
 import IButton from "@/components/IButton";
+import { useForgotPasswordRequest } from "@/hooks/auth/useForgotPassword";
+import { useSnackBar } from "@/services/auth/snackbar.context";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
@@ -6,19 +8,26 @@ import styles from "./auth.styles";
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+
+  const { showSnackBar } = useSnackBar();
+  const { mutateAsync: sendForgotPasswordRequest, isPending } =
+    useForgotPasswordRequest();
 
   // TODO: Kết nối API forgot-password của backend khi sẵn sàng
   const handleSubmit = async () => {
-    if (!email || submitting) return;
+    if (!email || isPending) return;
+    if (!email.match(/^\S+@\S+\.\S+$/)) {
+      showSnackBar("Invalid email!", "error");
+      return;
+    }
     try {
-      setSubmitting(true);
-      // Gọi API gửi email reset ở đây
-      // await forgotPasswordApi({ email });
-      // Sau khi gửi email thành công, điều hướng sang bước nhập mã
-      router.push("/auth/forgot-password-code");
-    } finally {
-      setSubmitting(false);
+      await sendForgotPasswordRequest({ email });
+      router.push({
+        pathname: "/auth/forgot-password-code",
+        params: { email: email },
+      });
+    } catch (e) {
+      showSnackBar(`${e}`, "error");
     }
   };
 
@@ -55,7 +64,7 @@ export default function ForgotPasswordScreen() {
           style={styles.primaryButton}
         >
           <Text style={styles.primaryButtonText}>
-            {submitting ? "Sending..." : "Confirm"}
+            {isPending ? "Sending..." : "Confirm"}
           </Text>
         </IButton>
 
@@ -69,4 +78,3 @@ export default function ForgotPasswordScreen() {
     </View>
   );
 }
-

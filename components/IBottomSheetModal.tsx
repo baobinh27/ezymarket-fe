@@ -11,6 +11,7 @@ interface BottomSheetModalProps {
   title: string;
   snapPoints?: (string | number)[];
   onClose?: () => void;
+  onChange?: (index: number) => void;
   showCancelButton?: boolean;
 }
 
@@ -45,12 +46,14 @@ interface BottomSheetModalProps {
  * ```
  */
 
+// eslint-disable-next-line react/display-name
 const IBottomSheetModal = forwardRef<Ref, BottomSheetModalProps>(
   ({ 
     children, 
     title, 
     snapPoints = ['50%'], 
     onClose, 
+    onChange = (index) => {},
     showCancelButton = true 
   }, ref) => {
     
@@ -80,6 +83,7 @@ const IBottomSheetModal = forwardRef<Ref, BottomSheetModalProps>(
         backdropComponent={renderBackdrop} 
         enablePanDownToClose={true}
         onDismiss={handleClose}
+        onChange={onChange}
 		enableDynamicSizing={false}
 		enableOverDrag={false}
       >

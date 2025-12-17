@@ -9,7 +9,9 @@ type User = { id: string; name: string } | null;
 type AuthContextType = {
   user: User;
   isLoggedIn: boolean;
+  otp: string | null;
   loading: boolean;
+  setOtp: (otp: string | null) => void,
   login: (email: string, password: string) => Promise<{ success: boolean, message: string }>;
   logout: () => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<{ success: boolean, message: string }>;
@@ -21,6 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [otp, setOtp] = useState<string | null>(null);
 
   // Load token khi app mở lại
   useEffect(() => {
@@ -43,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await SecureStorage.setItem("refreshToken", refreshToken)
         setUser(user);
         setIsLoggedIn(true);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         await SecureStorage.deleteItem("refreshToken");
       } finally {
@@ -142,7 +146,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         isLoggedIn,
+        otp,
         loading,
+        setOtp,
         login,
         logout,
         register

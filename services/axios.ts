@@ -1,6 +1,6 @@
 import { getAccessToken } from '@/api/auth';
 import { SecureStorage } from '@/utils/secureStorage';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Constants from 'expo-constants';
 
 type Extra = {
@@ -30,6 +30,7 @@ async function refreshAccessToken() {
         const res = await getAccessToken(refreshToken);
         const newAccess = res.data.token;
         return newAccess;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {
         return null;
       } finally {
@@ -69,5 +70,49 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<any>) => {
+    // Không có response → lỗi network / timeout
+    if (!error.response) {
+      return Promise.reject({
+        status: 0,
+        message: "Network error. Please check your connection.",
+        raw: error,
+      });
+    }
+
+    const { status, data } = error.response;
+
+    // Backend trả { message: string }
+    const message =
+      typeof data?.message === "string"
+        ? data.message
+        : "Something went wrong";
+
+    // Xử lý theo status
+    switch (status) {
+      case 400:
+        return Promise.reject({
+          status,
+          message,
+        });
+
+      case 429:
+        return Promise.reject({
+          status,
+          message,
+        });
+
+      default:
+        return Promise.reject({
+          status,
+          message: "Unexpected server error",
+        });
+    }
+  }
+);
+
 
 export default axiosInstance;
