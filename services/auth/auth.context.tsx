@@ -1,7 +1,13 @@
 // src/services/auth.context.tsx
 import { loginRequest, registerRequest } from "@/api/auth";
 import { SecureStorage } from "@/utils/secureStorage";
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import axiosInstance from "../axios";
 
 type User = { id: string; name: string } | null;
@@ -11,10 +17,17 @@ type AuthContextType = {
   isLoggedIn: boolean;
   otp: string | null;
   loading: boolean;
-  setOtp: (otp: string | null) => void,
-  login: (email: string, password: string) => Promise<{ success: boolean, message: string }>;
+  setOtp: (otp: string | null) => void;
+  login: (
+    email: string,
+    password: string
+  ) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
-  register: (email: string, username: string, password: string) => Promise<{ success: boolean, message: string }>;
+  register: (
+    email: string,
+    username: string,
+    password: string
+  ) => Promise<{ success: boolean; message: string }>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -37,18 +50,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         // Gọi API refresh lần đầu
-        const res = await axiosInstance.post(
-          `/api/user/refreshToken`,
+        const { refreshToken, token } = (await axiosInstance.post(
+          `/api/user/token/refresh`,
           { refreshToken: refresh }
-        );
-        const { token, refreshToken } = res.data;
-        await SecureStorage.setItem("accessToken", token)
-        await SecureStorage.setItem("refreshToken", refreshToken)
+        )) as { refreshToken: string; token: string };
+
+        await SecureStorage.setItem("accessToken", token);
+        await SecureStorage.setItem("refreshToken", refreshToken);
         setUser(user);
         setIsLoggedIn(true);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (e) {
         await SecureStorage.deleteItem("refreshToken");
+        await SecureStorage.deleteItem("accessToken");
       } finally {
         setLoading(false);
       }
@@ -58,11 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { data } = await loginRequest(email, password);
+      const { user, token, refreshToken } = await loginRequest(email, password);
 
-      const { user, token, refreshToken } = data;
-
-      await SecureStorage.setItem("accessToken", token)
+      await SecureStorage.setItem("accessToken", token);
       await SecureStorage.setItem("refreshToken", refreshToken);
 
       setUser(user);
@@ -70,8 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return {
         success: true,
-        message: "Login success!"
-      }
+        message: "Login success!",
+      };
     } catch (error: any) {
       const status = error?.response?.status;
 
@@ -106,17 +118,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoggedIn(false);
   };
 
-  const register = async (email: string, username: string, password: string) => {
+  const register = async (
+    email: string,
+    username: string,
+    password: string
+  ) => {
     try {
       const { data } = await registerRequest(email, "000000000000", password);
 
       return {
         success: true,
-        message: "Register success! Check your mail to verify your account!"
-      }
+        message: "Register success! Check your mail to verify your account!",
+      };
     } catch (error: any) {
       console.log(error);
-      
+
       const status = error?.response?.status;
       const message = error?.response?.data?.message;
 
@@ -139,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         message: "Something went wrong!",
       };
     }
-  }
+  };
 
   return (
     <AuthContext.Provider
@@ -151,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setOtp,
         login,
         logout,
-        register
+        register,
       }}
     >
       {children}

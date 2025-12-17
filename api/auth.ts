@@ -1,6 +1,6 @@
 import axiosInstance from "@/services/axios";
 
-export const loginRequest = async (email: string, password: string) => {
+export const loginRequest = async (email: string, password: string): Promise<any> => {
   return axiosInstance.post('/api/user/login', { email, password });
 };
 
