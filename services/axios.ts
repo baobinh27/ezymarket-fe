@@ -39,7 +39,8 @@ type Extra = {
   BASE_API: string;
 };
 
-const { BASE_API } = Constants.expoConfig?.extra as Extra;
+const { BASE_API='http://localhost:5001' } = Constants.expoConfig?.extra as Extra;
+console.log(BASE_API);
 
 const axiosInstance = axios.create({
   baseURL: BASE_API,

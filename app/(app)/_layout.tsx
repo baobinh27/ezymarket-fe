@@ -63,6 +63,8 @@ export default function AppLayout() {
         >
             {/* href=null: Hidden route */}
             <Tabs.Screen name="index" options={{ href: null }} />
+            {/* Ẩn dictionary route khỏi tab bar và header */}
+            <Tabs.Screen name="profile/dictionary" options={{ href: null, headerShown: false }} />
 
             {tabs.map((tab) => (
                 <Tabs.Screen

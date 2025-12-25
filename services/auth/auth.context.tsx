@@ -10,7 +10,7 @@ import {
 } from "react";
 import axiosInstance from "../axios";
 
-type User = { id: string; name: string } | null;
+type User = { id: string; name: string; role?: string } | null;
 
 type AuthContextType = {
   user: User;
