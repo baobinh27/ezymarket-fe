@@ -1,0 +1,225 @@
+# EzyMarket Frontend - Cursor Rules
+
+## Project Context
+EzyMarket frontend là React Native/Expo app cho quản lý thực phẩm và meal planning.
+
+## Tech Stack
+- React Native 0.81.5
+- Expo SDK 54
+- Expo Router 6.0.14 (file-based routing)
+- TypeScript
+- React Query (@tanstack/react-query)
+- Axios
+- Styled Components & NativeWind
+- Expo Secure Store & Async Storage
+
+## Architecture Pattern
+
+### File-based Routing (Expo Router)
+- `app/` directory = routes
+- `(app)/` = protected routes group
+- `_layout.tsx` = layout wrapper
+- Dynamic routes: `[id].tsx`, `[...slug].tsx`
+
+### Folder Structure
+- `app/`: Pages/screens
+- `components/`: Reusable UI components
+- `api/`: API client functions
+- `services/`: Business logic, contexts, axios instance
+- `hooks/`: Custom React hooks
+- `utils/`: Utilities (storage, helpers)
+
+## Code Style
+
+### Naming Conventions
+- Files: `PascalCase.tsx` cho components, `camelCase.ts` cho utilities
+- Components: `PascalCase`
+- Functions/variables: `camelCase`
+- Constants: `UPPER_SNAKE_CASE`
+- Types/Interfaces: `PascalCase` với prefix `I` hoặc `T` (optional)
+
+### TypeScript
+- Type all props, state, và function parameters
+- Use interfaces cho API responses
+- Avoid `any` - use `unknown` nếu cần
+- Path aliases: `@/` → root directory
+
+### Imports
+- Use path aliases: `@/components/...`, `@/services/...`
+- Group imports: React → Third-party → Local
+- Absolute imports preferred over relative
+
+## State Management
+
+### React Query
+- Use `useQuery` cho GET requests
+- Use `useMutation` cho POST/PUT/DELETE
+- Custom hooks wrap React Query hooks
+- Example: `useGetAllFridges()` wraps `useQuery`
+
+### Context API
+- `AuthProvider`: Authentication state
+- `SnackBarProvider`: Toast notifications
+- Wrap providers trong root layout
+
+### Local Storage
+- **Secure Store**: Tokens, sensitive data
+- **Async Storage**: General app data
+- Use wrapper utilities: `SecureStorage`, `Storage`
+
+## API Integration
+
+### Axios Instance
+- Centralized trong `services/axios.ts`
+- Request interceptor: Auto-attach access token
+- Response interceptor: Auto-refresh token on 401
+- Refresh token queue để tránh race condition
+
+### API Functions
+- Place trong `api/` folder
+- Export named functions: `loginRequest`, `registerRequest`
+- Return typed responses
+- Handle errors consistently
+
+### Token Management
+- Access token: Auto-attach trong request header
+- Refresh token: Dùng khi 401, auto-retry request
+- Store trong Secure Store
+- Clear on logout
+
+## Components
+
+### Component Structure
+```typescript
+import React from 'react';
+import { View, Text } from 'react-native';
+
+interface Props {
+  title: string;
+}
+
+export const Component: React.FC<Props> = ({ title }) => {
+  return (
+    <View>
+      <Text>{title}</Text>
+    </View>
+  );
+};
+```
+
+### Styling
+- **NativeWind**: Primary styling method
+  - Use `className` prop
+  - Tailwind classes: `flex-1`, `justify-center`, etc.
+- **Styled Components**: For complex styling
+  - Use when NativeWind không đủ
+- **StyleSheet**: Avoid, prefer NativeWind
+
+### Component Organization
+- One component per file
+- Props interface defined above component
+- Export default hoặc named export
+- Group related components trong subfolders
+
+## Hooks
+
+### Custom Hooks
+- Place trong `hooks/` folder
+- Group by feature: `hooks/auth/`, `hooks/fridge/`
+- Naming: `useFeatureName`
+- Return typed values
+
+### React Query Hooks
+- Wrap `useQuery`/`useMutation` trong custom hooks
+- Provide query keys, options
+- Handle loading, error states
+
+## Error Handling
+
+### API Errors
+- Try-catch trong async functions
+- Show user-friendly messages
+- Use SnackBar context cho notifications
+- Log errors for debugging
+
+### Error Messages
+- User-friendly, không expose technical details
+- Consistent format
+- Show loading states
+
+## Performance
+
+### React Query
+- Enable caching
+- Use `staleTime`, `cacheTime` appropriately
+- Refetch on focus, reconnect
+
+### Images
+- Use `expo-image` thay vì `Image`
+- Optimize image sizes
+- Lazy load images
+
+### Code Splitting
+- Lazy load screens khi có thể
+- Use dynamic imports cho heavy components
+
+## Best Practices
+
+### Code Organization
+- Keep components small và focused
+- Extract reusable logic vào hooks
+- Separate API calls từ components
+- Business logic trong services
+
+### TypeScript
+- Type everything
+- Use interfaces cho props
+- Avoid `any`
+- Use type guards khi cần
+
+### Styling
+- Prefer NativeWind cho most cases
+- Use Styled Components cho complex cases
+- Consistent spacing, colors
+- Responsive design
+
+### Navigation
+- Use Expo Router navigation hooks
+- Type-safe navigation với TypeScript
+- Handle deep links
+
+## Common Tasks
+
+### Thêm Screen mới
+1. Tạo file trong `app/` hoặc `app/(app)/`
+2. Export default component
+3. Add navigation nếu cần
+4. Add types cho navigation params
+
+### Thêm API call mới
+1. Tạo function trong `api/` folder
+2. Use axios instance từ `services/axios.ts`
+3. Type request/response
+4. Create custom hook nếu cần
+
+### Thêm Component mới
+1. Tạo file trong `components/`
+2. Define Props interface
+3. Use NativeWind cho styling
+4. Export component
+
+### Authentication Flow
+- Check `isLoggedIn` từ `useAuth()`
+- Redirect to login nếu not authenticated
+- Use `SecureStorage` cho tokens
+- Handle token refresh automatically
+
+## Notes
+- Expo Router tự động generate routes
+- Protected routes trong `(app)/` group
+- Auto-refresh token trong axios interceptor
+- React Query cho tất cả data fetching
+- NativeWind primary styling method
+- TypeScript strict mode
+- Secure Store cho sensitive data only
+
