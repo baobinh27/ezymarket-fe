@@ -1,8 +1,22 @@
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, TextStyle, View, ViewStyle } from "react-native";
 import IButton from "./IButton";
 import ISelect from "./ISelect";
 import { IText } from "./styled";
+
+interface UnitSelectorProps {
+    value?: string;
+    onChange?: (value: string) => void;
+    buttonStyle?: ViewStyle;
+    buttonTextStyle?: TextStyle;
+    modalContainerStyle?: ViewStyle;
+    itemStyle?: ViewStyle;
+    itemTextStyle?: TextStyle;
+    searchInputStyle?: TextStyle;
+    overlayStyle?: ViewStyle;
+    maxModalHeight?: string | number;
+    placeholder?: string;
+}
 
 const mockUnitOptions = [
     { label: "Kilogram", value: "kg" },
@@ -19,22 +33,48 @@ const mockUnitOptions = [
     { label: "Set", value: "set" },
 ]
 
-const UnitSelector = () => {
-    const [unit, setUnit] = useState<string>('pc');
+const UnitSelector = ({
+    value = 'pc',
+    onChange,
+    buttonStyle,
+    buttonTextStyle,
+    modalContainerStyle,
+    itemStyle,
+    itemTextStyle,
+    searchInputStyle,
+    overlayStyle,
+    maxModalHeight = "50%",
+    placeholder = "Select Unit"
+}: UnitSelectorProps) => {
+    const [unit, setUnit] = useState<string>(value);
+
+    const handleChange = (newValue: string | number) => {
+        const strValue = newValue.toString();
+        setUnit(strValue);
+        onChange?.(strValue);
+    };
 
     return <ISelect
         value={unit}
-        onChange={(value) => { setUnit(value.toString()) }}
+        onChange={handleChange}
         options={mockUnitOptions}
-        placeholder="Select Unit"
+        placeholder={placeholder}
         searchable
+        buttonStyle={buttonStyle}
+        buttonTextStyle={buttonTextStyle}
+        modalContainerStyle={modalContainerStyle}
+        itemStyle={itemStyle}
+        itemTextStyle={itemTextStyle}
+        searchInputStyle={searchInputStyle}
+        overlayStyle={overlayStyle}
+        maxModalHeight={maxModalHeight}
         extraModalContent={<UnitRedirector />}
     />
 }
 
 const UnitRedirector = () => {
     return <View style={style.redirector}>
-        <IText style={{width: '60%'}}>Don't see your unit? Create one here!</IText>
+        <IText style={{width: '60%'}}>Don&apos;t see your unit? Create one here!</IText>
         <IButton
             variant="primary"
             onPress={() => {
