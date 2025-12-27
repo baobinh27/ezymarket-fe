@@ -15,12 +15,9 @@ type AddItemModalProps = {
 const AddItemModal = ({ ref }: AddItemModalProps) => {
   const {
     data,
-    isLoading,
     isFetching,
     isError,
-    error,
     refetch: fetchItems,
-    status,
   } = useGetAllFridgeItems({
     params: {
       sortBy: "expiryDate_desc",

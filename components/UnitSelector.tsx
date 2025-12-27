@@ -1,5 +1,6 @@
+import useGetAllUnits from "@/hooks/units/useGetAllUnits";
 import { useState } from "react";
-import { StyleSheet, TextStyle, View, ViewStyle } from "react-native";
+import { ActivityIndicator, StyleSheet, TextStyle, View, ViewStyle } from "react-native";
 import IButton from "./IButton";
 import ISelect from "./ISelect";
 import { IText } from "./styled";
@@ -16,6 +17,7 @@ interface UnitSelectorProps {
     overlayStyle?: ViewStyle;
     maxModalHeight?: string | number;
     placeholder?: string;
+    showLoading?: boolean;
 }
 
 const mockUnitOptions = [
@@ -34,7 +36,7 @@ const mockUnitOptions = [
 ]
 
 const UnitSelector = ({
-    value = 'pc',
+    value = '64f1a2b3c4d5e6f7890a1234',
     onChange,
     buttonStyle,
     buttonTextStyle,
@@ -47,6 +49,13 @@ const UnitSelector = ({
     placeholder = "Select Unit"
 }: UnitSelectorProps) => {
     const [unit, setUnit] = useState<string>(value);
+    const { data, isLoading, isError, refetch } = useGetAllUnits();
+
+    // Convert API response to select options
+    const unitOptions = data?.units?.map(u => ({
+        label: `${u.name} (${u.abbreviation})`,
+        value: u._id
+    })) || mockUnitOptions;
 
     const handleChange = (newValue: string | number) => {
         const strValue = newValue.toString();
@@ -54,10 +63,30 @@ const UnitSelector = ({
         onChange?.(strValue);
     };
 
+    if (isLoading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator color="#82CD47" />
+                <IText style={styles.loadingText}>Loading units...</IText>
+            </View>
+        );
+    }
+
+    if (isError) {
+        return (
+            <View style={styles.errorContainer}>
+                <IText color="#FF6B6B">Failed to load units</IText>
+                <IButton variant="secondary" onPress={() => refetch()} style={styles.retryButton}>
+                    <IText semiBold color="#46982D">Retry</IText>
+                </IButton>
+            </View>
+        );
+    }
+
     return <ISelect
         value={unit}
         onChange={handleChange}
-        options={mockUnitOptions}
+        options={unitOptions}
         placeholder={placeholder}
         searchable
         buttonStyle={buttonStyle}
@@ -103,7 +132,37 @@ const style = StyleSheet.create({
         borderRadius: 10,
         backgroundImage: 'linear-gradient(135deg, #46982D, #82CD47)',
     }
+});
 
+const styles = StyleSheet.create({
+    loadingContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        backgroundColor: "#F5F5F5",
+        borderRadius: 8,
+    },
+    loadingText: {
+        fontSize: 14,
+        color: "#000000B4",
+    },
+    errorContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+        backgroundColor: "#FFE0E0",
+        borderRadius: 8,
+        gap: 8,
+    },
+    retryButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 6,
+    }
 });
 
 export default UnitSelector;

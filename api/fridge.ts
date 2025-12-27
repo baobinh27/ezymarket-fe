@@ -1,4 +1,6 @@
+import { FridgeItem } from "@/components/fridge/FridgeItemCard";
 import axiosInstance from "@/services/axios";
+import { PaginatedResponse } from "@/types/api";
 
 export type GetAllFridgeItemsParams = {
     page?: number,
@@ -9,7 +11,7 @@ export type GetAllFridgeItemsParams = {
     search?: string
 }
 
-export const getAllFridgeItems = ({page, limit, sortBy, status, search}: GetAllFridgeItemsParams) => {
+export const getAllFridgeItems = ({page, limit, sortBy, status, search}: GetAllFridgeItemsParams): Promise<PaginatedResponse<FridgeItem>> => {
     return axiosInstance.get('/api/fridge-items', {
         params: {
             page,
@@ -18,5 +20,28 @@ export const getAllFridgeItems = ({page, limit, sortBy, status, search}: GetAllF
             status,
             search
         }
+    })
+}
+
+export type CreateFridgeItemParams = {
+    foodId: string,
+    unitId: string,
+    quantity: number,
+    purchaseDate?: string,
+    expiryDate: string,
+    price: number,
+    status: string
+}
+
+export const createFridgeItem = ({foodId, unitId, quantity, purchaseDate, expiryDate, price, status}: CreateFridgeItemParams) => {
+    purchaseDate = purchaseDate ? purchaseDate : (new Date()).toLocaleString();
+    return axiosInstance.post('/api/fridge-items', {
+        foodId,
+        unitId,
+        quantity,
+        purchaseDate,
+        expiryDate,
+        price,
+        status
     })
 }

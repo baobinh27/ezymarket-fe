@@ -1,11 +1,19 @@
 import { getAccessToken } from "@/api/auth";
+import { ApiResponse } from "@/types/api";
 import { SecureStorage } from "@/utils/secureStorage";
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import Constants from "expo-constants";
 
 declare module "axios" {
   export interface AxiosRequestConfig {
     _retry?: boolean;
+  }
+  export interface AxiosInstance {
+    get<T = any>(url: string, config?: any): Promise<T>;
+    post<T = any>(url: string, data?: any, config?: any): Promise<T>;
+    patch<T = any>(url: string, data?: any, config?: any): Promise<T>;
+    put<T = any>(url: string, data?: any, config?: any): Promise<T>;
+    delete<T = any>(url: string, config?: any): Promise<T>;
   }
 }
 
@@ -82,7 +90,7 @@ axiosInstance.interceptors.request.use(async (config) => {
 });
 
 axiosInstance.interceptors.response.use(
-  (response) => response.data,
+  (response: AxiosResponse<any>) => response.data,
   async (error: AxiosError<{ message?: string }>) => {
     const originalRequest = error.config;
 

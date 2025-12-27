@@ -89,7 +89,7 @@ export default function ISelect({
                 onPress={() => !disabled && setVisible(true)}
             >
                 <Text style={[styles.buttonText, buttonTextStyle]}>
-                    {selectedLabel}
+                    {selectedLabel ? selectedLabel : placeholder}
                 </Text>
                 <View style={styles.buttonIcon}>
                     <FontAwesome6 name="caret-down" size={16} color="#000000B4" />

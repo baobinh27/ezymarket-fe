@@ -1,17 +1,20 @@
+// import AddItemModal from "@/components/fridge/AddItemModal";
+import AddItemModal from "@/components/fridge/AddItemModal/index";
 import EmptyFridgeMessage from "@/components/fridge/EmptyFridgeMessage";
 import FridgeItemCard, { FridgeItem } from "@/components/fridge/FridgeItemCard";
 import IButton from "@/components/IButton";
+import SearchBar from "@/components/SearchBar";
 import { ItemCard, IText } from "@/components/styled";
 import { useGetAllFridgeItems } from "@/hooks/fridge/useGetAllFridgeItems";
 import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
   SafeAreaView,
   StyleSheet,
-  TextInput,
   View,
 } from "react-native";
 
@@ -65,6 +68,7 @@ export default function FridgeScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [editingQuantities, setEditingQuantities] = useState<EditingItem>({});
   const [itemsToDelete, setItemsToDelete] = useState<string[]>([]);
+  const bottomSheetRef = useRef<BottomSheetModal>(null);
 
   const { data, isLoading, error } = useGetAllFridgeItems({
     params: {
@@ -75,11 +79,11 @@ export default function FridgeScreen() {
     },
   });
 
-  const items = (data?.data?.items || [...mockFridgeItem]) as FridgeItem[];
+  const items = (data?.items || [...mockFridgeItem]) as FridgeItem[];
 
-  const handleAddItem = () => {
-    // TODO: Add bottom sheet for item adding
-  };
+  const handleAddItem = useCallback(() => {
+    bottomSheetRef.current?.present();
+  }, []);
 
   const handleEdit = useCallback(() => {
     setIsEditing(true);
@@ -158,23 +162,18 @@ export default function FridgeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AddItemModal
+        ref={bottomSheetRef}
+      />
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search your fridge..."
-            placeholderTextColor="#0000004B"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          <FontAwesome6
-            name="magnifying-glass"
-            size={16}
-            color="#82CD47"
-            style={styles.searchIcon}
-          />
-        </View>
+        {/* TODO: implement the search logic */}
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Search your fridge..."
+          containerStyle={styles.searchBarContainer}
+        />
 
         {isEditing ? (
           <>
@@ -285,7 +284,7 @@ export default function FridgeScreen() {
           </IText>
         </View>
       ) : filteredItems.length === 0 ? (
-        <EmptyFridgeMessage />
+        <EmptyFridgeMessage handleOpenAddItemModal={handleAddItem} />
       ) : (
         <FlatList
           data={filteredItems}
@@ -359,32 +358,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flex: 1,
   },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    height: 40,
+  searchBarContainer: {
     flex: 1,
-  },
-  // searchContainerEdit: {
-  //   marginHorizontal: 16,
-  //   marginBottom: 12,
-  //   flexDirection: "row",
-  //   alignItems: "center",
-  //   backgroundColor: "#F5F5F5",
-  //   borderRadius: 10,
-  //   paddingHorizontal: 12,
-  //   height: 40,
-  // },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: "#000000B4",
-  },
-  searchIcon: {
-    marginLeft: 8,
   },
   listContent: {
     marginTop: 12,

@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { Platform, ViewProps } from "react-native";
+import React, { useState } from "react";
+import { ImageProps, Platform, ViewProps } from "react-native";
 import { styled } from "styled-components/native";
 
 type ITextProps = {
@@ -202,3 +202,48 @@ export const ItemImage = styled.Image`
   margin-right: 12px;
   object-fit: contain;
 `;
+
+/**
+ * ItemImageWithFallback component that handles image load failures gracefully.
+ * If the image URL fails to load, it displays a fallback image.
+ *
+ * ---
+ * **Props**
+ * - {string | object} source - Image source (URI or require())
+ * - {object} style - Custom styles
+ *
+ * ---
+ * **Example usage**
+ * ```tsx
+ * <ItemImageWithFallback
+ *   source={item.imageURL ? { uri: item.imageURL } : require("@/assets/images/emptybox.png")}
+ * />
+ * ```
+ */
+interface ItemImageWithFallbackProps extends Omit<ImageProps, "source"> {
+  source: string;
+}
+
+const FALLBACK_IMAGE = require("@/assets/images/fallback-icon.jpg");
+
+export const ItemImageWithFallback: React.FC<ItemImageWithFallbackProps> = ({
+  source,
+  style,
+  ...props
+}) => {
+  const [hasError, setHasError] = useState(false);
+
+  const shouldShowFallback =
+    hasError || (typeof source === "string" && !source);
+
+  const displaySource = shouldShowFallback ? FALLBACK_IMAGE : source;
+
+  return (
+    <ItemImage
+      source={displaySource}
+      style={style}
+      onError={() => setHasError(true)}
+      {...props}
+    />
+  );
+};
