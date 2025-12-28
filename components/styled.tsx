@@ -1,18 +1,18 @@
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
-import { Platform } from 'react-native';
-import styled from 'styled-components/native';
+import React, { useState } from "react";
+import { ImageProps, Platform, ViewProps } from "react-native";
+import { styled } from "styled-components/native";
 
 type ITextProps = {
-    bold?: boolean,
-    semiBold?: boolean,
-    size?: number,
-    color?: string,
-}
+  bold?: boolean;
+  semiBold?: boolean;
+  size?: number;
+  color?: string;
+};
 
 /**
  * Text custom, sử dụng font Inter, mặc định: font-weight: 400, color: black
- * 
+ *
  * ---
  * **Props**
  * @prop {boolean} bold - Đặt font-weight: 700
@@ -20,30 +20,41 @@ type ITextProps = {
  * @prop {string} color - Màu cho text
  */
 export const IText = styled.Text<ITextProps>`
-    font-family: ${(props: any) => (props.bold ? "Inter_700Bold" : props.semiBold ? "Inter_600SemiBold" : "Inter_400Regular")};
-    font-size: ${(props: any) => (props.size ? props.size + 'px' : '14px')};
-    color: ${(props: any) => (props.color ? props.color : '#000000B4')}
-`
+  font-family: ${(props: any) =>
+    props.bold
+      ? "Inter_700Bold"
+      : props.semiBold
+      ? "Inter_600SemiBold"
+      : "Inter_400Regular"};
+  font-size: ${(props: any) => (props.size ? props.size + "px" : "14px")};
+  color: ${(props: any) => (props.color ? props.color : "#000000B4")};
+`;
 
 type ItemCardProps = {
-    primary?: boolean,
-    children?: React.ReactNode,
-    isInGroup?: boolean, 
-    isFirst?: boolean,
-    isLast?: boolean
-}
+  primary?: boolean;
+  children?: React.ReactNode;
+  isInGroup?: boolean;
+  isFirst?: boolean;
+  isLast?: boolean;
+} & ViewProps;
 
 // CSS gradient for web
 const WebItemCard = styled.View<ItemCardProps>`
-  ${(props) => !props.isFirst && !props.isLast && props.isInGroup ? "border-radius: 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
-  ${(props) => props.isFirst ? "border-radius: 12px 12px 0 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
-  ${(props) => props.isLast ? "border-radius: 0 0 12px 12px;" : ""}
-  ${(props) => !props.isInGroup ? "border-radius: 12px;" : ""}
+  ${(props) =>
+    !props.isFirst && !props.isLast && props.isInGroup
+      ? "border-radius: 0; border-bottom-width: 1px; border-bottom-color: white;"
+      : ""}
+  ${(props) =>
+    props.isFirst
+      ? "border-radius: 12px 12px 0 0; border-bottom-width: 1px; border-bottom-color: white;"
+      : ""}
+  ${(props) => (props.isLast ? "border-radius: 0 0 12px 12px;" : "")}
+  ${(props) => (!props.isInGroup ? "border-radius: 12px;" : "")}
   padding: 10px;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   ${({ primary }) =>
     primary
       ? `background-image: linear-gradient(135deg, #46982D, #82CD47);`
@@ -53,17 +64,21 @@ const WebItemCard = styled.View<ItemCardProps>`
 // LinearGradient for mobile
 const MobileItemCard = styled(LinearGradient as any).attrs<ItemCardProps>(
   (props) => ({
-    colors: props.primary
-      ? ["#46982D", "#82CD47"]
-      : ["#eeeeee", "#eeeeee"],
+    colors: props.primary ? ["#46982D", "#82CD47"] : ["#eeeeee", "#eeeeee"],
     start: { x: 0, y: 0 },
     end: { x: 1, y: 1 },
   })
 )<ItemCardProps>`
-  ${(props) => !props.isFirst && !props.isLast && props.isInGroup ? "border-radius: 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
-  ${(props) => props.isFirst ? "border-radius: 12px 12px 0 0; border-bottom-width: 1px; border-bottom-color: white;" : ""}
-  ${(props) => props.isLast ? "border-radius: 0 0 12px 12px;" : ""}
-  ${(props) => !props.isInGroup ? "border-radius: 12px;" : ""}
+  ${(props) =>
+    !props.isFirst && !props.isLast && props.isInGroup
+      ? "border-radius: 0; border-bottom-width: 1px; border-bottom-color: white;"
+      : ""}
+  ${(props) =>
+    props.isFirst
+      ? "border-radius: 12px 12px 0 0; border-bottom-width: 1px; border-bottom-color: white;"
+      : ""}
+  ${(props) => (props.isLast ? "border-radius: 0 0 12px 12px;" : "")}
+  ${(props) => (!props.isInGroup ? "border-radius: 12px;" : "")}
   padding: 10px;
   flex-direction: row;
   align-items: center;
@@ -76,7 +91,7 @@ const MobileItemCard = styled(LinearGradient as any).attrs<ItemCardProps>(
 
 /**
  * Component dạng thẻ nằm ngang.
- * 
+ *
  * ---
  * **Props**
  * - {boolean} - **[primary]** - Sử dụng theme primary (nền gradient xanh)
@@ -84,18 +99,41 @@ const MobileItemCard = styled(LinearGradient as any).attrs<ItemCardProps>(
  * - {boolean} - **[isFirst]** - (Chỉ sử dụng trong `CardGroup`).
  * - {boolean} - **[isLast]** - (Chỉ sử dụng trong `CardGroup`).
  * - {boolean} - **[isInGroup]** - (Chỉ sử dụng trong `CardGroup`).
- * 
+ *
  * ---
  * **Ví dụ sử dụng**
  * ```tsx
  * <ItemCard primary>Gói cơ bản</ItemCard>
  * ```
  */
-export const ItemCard: React.FC<ItemCardProps> = ({ primary, children, isFirst, isLast, isInGroup }) => {
+export const ItemCard: React.FC<ItemCardProps> = ({
+  primary,
+  children,
+  isFirst,
+  isLast,
+  isInGroup,
+  ...other
+}) => {
   return Platform.OS === "web" ? (
-    <WebItemCard primary={primary} isFirst={isFirst} isLast={isLast} isInGroup={isInGroup}>{children}</WebItemCard>
+    <WebItemCard
+      primary={primary}
+      isFirst={isFirst}
+      isLast={isLast}
+      isInGroup={isInGroup}
+      {...other}
+    >
+      {children}
+    </WebItemCard>
   ) : (
-    <MobileItemCard primary={primary} isFirst={isFirst} isLast={isLast} isInGroup={isInGroup}>{children}</MobileItemCard>
+    <MobileItemCard
+      primary={primary}
+      isFirst={isFirst}
+      isLast={isLast}
+      isInGroup={isInGroup}
+      {...other}
+    >
+      {children}
+    </MobileItemCard>
   );
 };
 
@@ -113,7 +151,7 @@ const GroupContainer = styled.View`
 
 /**
  * Một component giúp **gom nhóm nhiều `ItemCard`** lại với nhau thành một khối liền mạch (như một “card lớn”).
- * 
+ *
  * **Props**
  * - {React.ReactElement<typeof ItemCard>[]} - **children** - Danh sách các phần tử `ItemCard` nằm trong nhóm.
  * - {object} - **[style]** - (Tuỳ chọn) Custom style áp dụng cho container bao ngoài.
@@ -145,7 +183,11 @@ export const CardGroup: React.FC<CardGroupProps> = ({ children, style }) => {
         const isLast = index === total - 1;
 
         // inject props vào ItemCard
-        return React.cloneElement(child as React.ReactElement<ItemCardProps>, { isFirst, isLast, isInGroup: true });
+        return React.cloneElement(child as React.ReactElement<ItemCardProps>, {
+          isFirst,
+          isLast,
+          isInGroup: true,
+        });
       })}
     </GroupContainer>
   );
@@ -158,4 +200,50 @@ export const ItemImage = styled.Image`
   background-color: white;
   border-radius: 5px;
   margin-right: 12px;
+  object-fit: contain;
 `;
+
+/**
+ * ItemImageWithFallback component that handles image load failures gracefully.
+ * If the image URL fails to load, it displays a fallback image.
+ *
+ * ---
+ * **Props**
+ * - {string | object} source - Image source (URI or require())
+ * - {object} style - Custom styles
+ *
+ * ---
+ * **Example usage**
+ * ```tsx
+ * <ItemImageWithFallback
+ *   source={item.imageURL ? { uri: item.imageURL } : require("@/assets/images/emptybox.png")}
+ * />
+ * ```
+ */
+interface ItemImageWithFallbackProps extends Omit<ImageProps, "source"> {
+  source: string;
+}
+
+const FALLBACK_IMAGE = require("@/assets/images/fallback-icon.jpg");
+
+export const ItemImageWithFallback: React.FC<ItemImageWithFallbackProps> = ({
+  source,
+  style,
+  ...props
+}) => {
+  const [hasError, setHasError] = useState(false);
+
+  const shouldShowFallback =
+    hasError || (typeof source === "string" && !source);
+
+  const displaySource = shouldShowFallback ? FALLBACK_IMAGE : source;
+
+  return (
+    <ItemImage
+      source={displaySource}
+      style={style}
+      onError={() => setHasError(true)}
+      {...props}
+    />
+  );
+};

@@ -34,12 +34,14 @@ export interface SelectProps {
     itemStyle?: ViewStyle;
     itemTextStyle?: TextStyle;
     searchInputStyle?: TextStyle;
+    overlayStyle?: ViewStyle;
 
     extraModalContent?: React.ReactNode;
 
     error?: string;
     required?: boolean;
     searchable?: boolean;
+    maxModalHeight?: string | number;
 }
 
 export default function ISelect({
@@ -55,12 +57,14 @@ export default function ISelect({
     itemStyle,
     itemTextStyle,
     searchInputStyle,
+    overlayStyle,
 
     extraModalContent,
 
     error,
     required = false,
     searchable = false,
+    maxModalHeight = "50%",
 }: SelectProps) {
     const [visible, setVisible] = useState(false);
     const [search, setSearch] = useState("");
@@ -85,7 +89,7 @@ export default function ISelect({
                 onPress={() => !disabled && setVisible(true)}
             >
                 <Text style={[styles.buttonText, buttonTextStyle]}>
-                    {selectedLabel}
+                    {selectedLabel ? selectedLabel : placeholder}
                 </Text>
                 <View style={styles.buttonIcon}>
                     <FontAwesome6 name="caret-down" size={16} color="#000000B4" />
@@ -104,10 +108,14 @@ export default function ISelect({
                 onRequestClose={() => setVisible(false)}
             >
                 {/* Overlay */}
-                <Pressable style={styles.overlay} onPress={() => setVisible(false)}>
+                <Pressable style={[styles.overlay, overlayStyle]} onPress={() => setVisible(false)}>
                     {/* Dropdown container */}
                     <Pressable
-                        style={[styles.modalContainer, modalContainerStyle]}
+                        style={[
+                            styles.modalContainer, 
+                            typeof maxModalHeight === 'number' ? { maxHeight: maxModalHeight } : { maxHeight: maxModalHeight as any },
+                            modalContainerStyle
+                        ]}
                         onPress={(e) => e.stopPropagation()}
                     >
                         {/* Search */}

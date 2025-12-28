@@ -1,4 +1,4 @@
-import { BottomSheetBackdrop, BottomSheetBackdropProps, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetBackdrop, BottomSheetBackdropProps, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import React, { forwardRef, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import IButton from './IButton';
@@ -87,7 +87,7 @@ const IBottomSheetModal = forwardRef<Ref, BottomSheetModalProps>(
 		enableDynamicSizing={false}
 		enableOverDrag={false}
       >
-        <BottomSheetView style={styles.contentContainer}>
+        <BottomSheetScrollView style={styles.contentContainer}>
           {/* Header */}
           <View style={styles.header}>
             <IText bold size={24}>
@@ -112,7 +112,7 @@ const IBottomSheetModal = forwardRef<Ref, BottomSheetModalProps>(
               {children}
             </View>
           )}
-        </BottomSheetView>
+        </BottomSheetScrollView>
       </BottomSheetModal>
     );
   }

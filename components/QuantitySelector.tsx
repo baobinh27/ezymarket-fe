@@ -58,7 +58,7 @@ const QuantitySelector = ({ state, maxState, setState }: QuantitySelectorProps) 
             onPressOut={stopHolding}
             style={style.right}
         >
-            <FontAwesome6 name="caret-right" size={16} color={maxState && state < maxState ? '#000000B4' : '#0000004B'} />
+            <FontAwesome6 name="caret-right" size={16} color={!maxState || (maxState && state < maxState) ? '#000000B4' : '#0000004B'} />
         </IButton>
     </View>
 }
