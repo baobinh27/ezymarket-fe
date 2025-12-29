@@ -34,13 +34,19 @@ export interface UpdateIngredientInput extends Partial<CreateIngredientInput> {}
 
 // Recipe Types
 export interface RecipeIngredient {
-  ingredientId?: string;
+  ingredientId?: string | null;
   name: string;
   quantity: number;
   unitId?: string | null;
   unitText?: string;
   note?: string;
   optional?: boolean;
+}
+
+export interface RecipeTag {
+  _id: string;
+  name: string;
+  creatorId?: string | null;
 }
 
 export interface Recipe {
@@ -55,9 +61,11 @@ export interface Recipe {
   servings?: number;
   directions?: string[];
   ingredients?: RecipeIngredient[];
-  tags?: any[];
+  tags?: RecipeTag[] | string[];
+  tagsSearch?: string[]; // Legacy field, should be ignored
   createdAt?: string;
   updatedAt?: string;
+  __v?: number;
 }
 
 export interface CreateRecipeInput {

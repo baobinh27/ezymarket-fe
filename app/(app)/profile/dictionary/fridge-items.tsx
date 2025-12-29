@@ -1,13 +1,14 @@
-import { View, ActivityIndicator } from "react-native";
-import { useQuery } from "@tanstack/react-query";
-import { useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useQuery } from "@tanstack/react-query";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 
-import { IText } from "@/components/styled";
 import { getIngredients } from "@/api/dictionary";
+import { IText } from "@/components/styled";
+import { useAuth } from "@/services/auth/auth.context";
 import DictionaryItemCard from "./components/DictionaryItemCard";
-import EmptyState from "./components/EmptyState";
 import EditIngredientModal from "./components/EditIngredientModal";
+import EmptyState from "./components/EmptyState";
 import dictionaryItemStyles from "./dictionary-item.styles";
 
 interface DictionaryFridgeItemsProps {
@@ -17,13 +18,15 @@ interface DictionaryFridgeItemsProps {
 const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItemsProps, ref) => {
   const [editIngredientId, setEditIngredientId] = useState<string | null>(null);
   const ingredientSheetRef = useRef<BottomSheetModal>(null);
+  const { user } = useAuth();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["ingredients", searchQuery],
-    queryFn: () => getIngredients({ search: searchQuery || undefined, limit: 100 }),
+    queryFn: () => getIngredients({ search: searchQuery || undefined, limit: 10 }),
   });
 
   const ingredients = (data as any)?.ingredients || [];
+  const isAdmin = user?.role === "admin";
 
   const handleCreateNew = () => {
     setEditIngredientId(null);
@@ -40,7 +43,6 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
     setEditIngredientId(null);
   };
 
-  // Expose handleCreateNew to parent
   useImperativeHandle(ref, () => ({
     handleCreateNew,
   }));
@@ -77,8 +79,12 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
       ) : (
         <>
           {ingredients.map((item: any, index: number) => {
-            // System ingredient if creatorId is null/undefined
             const isSystemIngredient = !item.creatorId;
+            const creatorId = item.creatorId?._id ?? item.creatorId ?? null;
+            
+            const canEdit = 
+              isAdmin || 
+              (creatorId === user?.id);
 
             return (
               <DictionaryItemCard
@@ -89,18 +95,14 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
                 name={item.name}
                 unit="piece"
                 expiryDuration={item.defaultExpireDays ? `${item.defaultExpireDays} days` : undefined}
-                isSystem={isSystemIngredient}
-                onEdit={() => {
-                  if (!isSystemIngredient) {
-                    handleEdit(item._id);
-                  }
-                }}
-                onHide={() => {
+                isSystem={!canEdit}
+                onEdit={canEdit ? () => handleEdit(item._id) : undefined}
+                onHide={canEdit ? () => {
                   console.log("Hide ingredient:", item._id);
-                }}
-                onClone={() => {
+                } : undefined}
+                onClone={canEdit ? () => {
                   console.log("Clone ingredient:", item._id);
-                }}
+                } : undefined}
               />
             );
           })}

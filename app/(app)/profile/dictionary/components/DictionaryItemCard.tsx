@@ -1,10 +1,10 @@
-import { useState, useRef } from "react";
-import { View, TouchableOpacity, Pressable, Modal, StyleSheet } from "react-native";
 import { Octicons } from "@expo/vector-icons";
+import { useRef, useState } from "react";
+import { Modal, Pressable, TouchableOpacity, View } from "react-native";
 
 import { IText, ItemImage } from "@/components/styled";
-import DictionaryItemMenu from "./DictionaryItemMenu";
 import dictionaryItemStyles from "../dictionary-item.styles";
+import DictionaryItemMenu from "./DictionaryItemMenu";
 
 export type DictionaryItemType = "ingredient" | "recipe";
 
@@ -30,6 +30,8 @@ interface RecipeCardProps extends BaseDictionaryItemCardProps {
   icon?: string;
   name: string;
   description?: string;
+  tags?: Array<{ _id: string; name: string } | string>;
+  ingredientsCount?: number;
 }
 
 export type DictionaryItemCardProps = IngredientCardProps | RecipeCardProps;
@@ -41,16 +43,14 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
   const { id, type, isSystem, onEdit, onHide, onClone } = props;
 
   const handleMenuClose = () => {
-    console.log("🔴 Closing menu for:", type, id);
     setMenuVisible(false);
   };
 
   const handleMenuOpen = () => {
-    console.log("🟢 Opening menu for:", type, id);
     buttonRef.current?.measure((x, y, width, height, pageX, pageY) => {
       setMenuPosition({
         top: pageY + height,
-        right: 16, // Distance from right edge
+        right: 16,
       });
       setMenuVisible(true);
     });
@@ -87,8 +87,16 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
       );
     }
 
-    // type === "recipe"
-    const { icon, name, description } = props;
+    const { icon, name, description, tags, ingredientsCount } = props;
+    
+    const validTags = (tags ?? [])
+      .filter((tag) => {
+        if (typeof tag === "string" || !tag?._id) return false;
+        const nameStr = tag.name ?? "";
+        return !(nameStr.length === 24 && /^[0-9a-fA-F]{24}$/.test(nameStr));
+      })
+      .slice(0, 3);
+
     return (
       <>
         {icon ? (
@@ -103,9 +111,49 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
             {name}
           </IText>
           {description && (
-            <IText size={12} color="#000000B4" numberOfLines={2}>
+            <IText size={12} color="#000000B4" numberOfLines={2} style={{ marginTop: 4 }}>
               {description}
             </IText>
+          )}
+          {(validTags.length > 0 || ingredientsCount) && (
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+              {validTags.length > 0 && (
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 4 }}>
+                  {validTags.map((tag, idx) => {
+                    const tagName = typeof tag === "object" ? tag.name : tag;
+                    return (
+                      <View
+                        key={typeof tag === "object" ? tag._id : idx}
+                        style={{
+                          backgroundColor: "#F0F0F0",
+                          paddingHorizontal: 8,
+                          paddingVertical: 2,
+                          borderRadius: 4,
+                        }}
+                      >
+                        <IText size={10} color="#000000B4">
+                          {tagName}
+                        </IText>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+              {ingredientsCount !== undefined && ingredientsCount > 0 && (
+                <View
+                  style={{
+                    backgroundColor: "#E8F5E9",
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 4,
+                  }}
+                >
+                  <IText size={10} color="#46982D">
+                    {ingredientsCount} ingredients
+                  </IText>
+                </View>
+              )}
+            </View>
           )}
         </View>
       </>
@@ -117,7 +165,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
       <View style={dictionaryItemStyles.itemCard}>
         <View style={dictionaryItemStyles.itemLeft}>{renderContent()}</View>
 
-        {!isSystem && (
+        {!isSystem && (onEdit || onHide || onClone) && (
           <View ref={buttonRef} collapsable={false}>
             <TouchableOpacity
               onPress={handleMenuOpen}

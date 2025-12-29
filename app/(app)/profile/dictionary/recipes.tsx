@@ -1,15 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { ActivityIndicator, View } from "react-native";
-import { useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useQuery } from "@tanstack/react-query";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 
 import { getRecipes } from "@/api/dictionary";
 import { IText } from "@/components/styled";
-import DictionaryItemCard from "./components/DictionaryItemCard";
-import EmptyState from "./components/EmptyState";
-import EditRecipeModal from "./components/EditRecipeModal";
-import dictionaryItemStyles from "./dictionary-item.styles";
 import { useAuth } from "@/services/auth/auth.context";
+import DictionaryItemCard from "./components/DictionaryItemCard";
+import EditRecipeModal from "./components/EditRecipeModal";
+import EmptyState from "./components/EmptyState";
+import dictionaryItemStyles from "./dictionary-item.styles";
 
 interface DictionaryRecipesProps {
   searchQuery: string;
@@ -22,10 +22,10 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["recipes", searchQuery],
-    queryFn: () => getRecipes({ search: searchQuery || undefined, limit: 100 }),
+    queryFn: () => getRecipes({ search: searchQuery || undefined, limit: 10 }),
   });
 
-  const recipes = (data as any)?.recipes || (data as any)?.data || [];
+  const recipes = data?.recipes ?? [];
   const isAdmin = user?.role === "admin";
 
   const handleCreateNew = () => {
@@ -43,7 +43,6 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
     setEditRecipeId(null);
   };
 
-  // Expose handleCreateNew to parent
   useImperativeHandle(ref, () => ({
     handleCreateNew,
   }));
@@ -79,35 +78,34 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
         />
       ) : (
         recipes.map((item: any) => {
-          const isSystemRecipe = !item.creatorId;
-          const canEdit = isAdmin || (!isSystemRecipe && item.creatorId === user?.id);
+          const creatorId = item.creatorId?._id ?? item.creatorId ?? null;
+          const canEdit = isAdmin || (creatorId === user?.id);
+
+          const validTags = (item.tags ?? []).filter((tag: any) => {
+            if (!tag || typeof tag === "string" || !tag._id) return false;
+            const nameStr = tag.name ?? "";
+            return !(nameStr.length === 24 && /^[0-9a-fA-F]{24}$/.test(nameStr));
+          });
 
           return (
             <DictionaryItemCard
-              key={item._id || item.id}
-              id={item._id || item.id}
+              key={item._id}
+              id={item._id}
               type="recipe"
               icon={item.imageUrl}
               name={item.title}
               description={item.description}
+              tags={validTags}
+              ingredientsCount={item.ingredients?.length ?? 0}
               isSystem={!canEdit}
-              onEdit={() => {
-                if (canEdit) {
-                  handleEdit(item._id || item.id);
-                }
-              }}
-              onHide={() => {
-                console.log("Hide recipe:", item._id || item.id);
-              }}
-              onClone={() => {
-                console.log("Clone recipe:", item._id || item.id);
-              }}
+              onEdit={canEdit ? () => handleEdit(item._id) : undefined}
+              onHide={canEdit ? () => console.log("Hide recipe:", item._id) : undefined}
+              onClone={canEdit ? () => console.log("Clone recipe:", item._id) : undefined}
             />
           );
         })
       )}
 
-      {/* Edit Modal */}
       <EditRecipeModal
         ref={recipeSheetRef}
         recipeId={editRecipeId}

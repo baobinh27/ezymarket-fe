@@ -1,19 +1,18 @@
-import { useState, useEffect, forwardRef } from "react";
+import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { forwardRef, useEffect, useState } from "react";
 import {
-  View,
-  TextInput,
-  TouchableOpacity,
   ActivityIndicator,
   Alert,
   StyleSheet,
+  TextInput,
+  View
 } from "react-native";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 
-import { IText } from "@/components/styled";
-import IButton from "@/components/IButton";
+import { createUnit, getUnitById, updateUnit } from "@/api/dictionary";
 import IBottomSheetModal from "@/components/IBottomSheetModal";
-import { getUnitById, createUnit, updateUnit } from "@/api/dictionary";
+import IButton from "@/components/IButton";
+import { IText } from "@/components/styled";
 
 interface EditUnitModalProps {
   unitId?: string | null;
@@ -167,9 +166,12 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
         <View style={styles.actionButtons}>
           <IButton
             variant="primary"
-            onPress={handleSave}
+            onPress={
+              createMutation.isPending || updateMutation.isPending
+                ? undefined
+                : handleSave
+            }
             style={styles.saveButton}
-            disabled={createMutation.isPending || updateMutation.isPending}
           >
             {createMutation.isPending || updateMutation.isPending ? (
               <ActivityIndicator color="white" size="small" />

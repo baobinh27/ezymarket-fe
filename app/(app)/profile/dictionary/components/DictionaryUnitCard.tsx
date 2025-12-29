@@ -68,11 +68,13 @@ export default function DictionaryUnitCard({
           </View>
         </View>
 
-        <View ref={buttonRef} collapsable={false}>
-          <TouchableOpacity onPress={handleMenuOpen} style={styles.menuButton}>
-            <Octicons name="kebab-horizontal" size={20} color="#000000B4" />
-          </TouchableOpacity>
-        </View>
+        {!isSystem && (onEdit || onHide || onClone) && (
+          <View ref={buttonRef} collapsable={false}>
+            <TouchableOpacity onPress={handleMenuOpen} style={styles.menuButton}>
+              <Octicons name="kebab-horizontal" size={20} color="#000000B4" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <Modal

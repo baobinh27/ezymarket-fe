@@ -1,13 +1,14 @@
-import { View, ActivityIndicator } from "react-native";
-import { useQuery } from "@tanstack/react-query";
-import { useRef, useState, forwardRef, useImperativeHandle } from "react";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import { useQuery } from "@tanstack/react-query";
+import { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { ActivityIndicator, View } from "react-native";
 
-import { IText } from "@/components/styled";
 import { getUnits } from "@/api/dictionary";
+import { IText } from "@/components/styled";
+import { useAuth } from "@/services/auth/auth.context";
 import DictionaryUnitCard from "./components/DictionaryUnitCard";
-import EmptyState from "./components/EmptyState";
 import EditUnitModal from "./components/EditUnitModal";
+import EmptyState from "./components/EmptyState";
 import dictionaryItemStyles from "./dictionary-item.styles";
 
 interface DictionaryUnitsProps {
@@ -17,18 +18,15 @@ interface DictionaryUnitsProps {
 const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) => {
   const [editUnitId, setEditUnitId] = useState<string | null>(null);
   const unitSheetRef = useRef<BottomSheetModal>(null);
+  const { user } = useAuth();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ["units", searchQuery],
-    queryFn: () => getUnits({ search: searchQuery || undefined, limit: 100 }),
+    queryFn: () => getUnits({ search: searchQuery || undefined, limit: 10 }),
   });
 
-  const units = (data as any)?.units || (data as any)?.data || [];
-
-  console.log("=== DEBUG Units ===");
-  console.log("Raw data:", JSON.stringify(data, null, 2));
-  console.log("Units count:", units.length);
-  console.log("First unit:", units[0]);
+  const units = data?.units ?? [];
+  const isAdmin = user?.role === "admin";
 
   const handleCreateNew = () => {
     setEditUnitId(null);
@@ -45,7 +43,6 @@ const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) 
     setEditUnitId(null);
   };
 
-  // Expose handleCreateNew to parent
   useImperativeHandle(ref, () => ({
     handleCreateNew,
   }));
@@ -81,33 +78,32 @@ const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) 
         />
       ) : (
         units.map((item: any) => {
-          const isSystemUnit = !item.creatorId;
+          const canEdit = isAdmin;
 
           return (
             <DictionaryUnitCard
-              key={item._id || item.id}
-              id={item._id || item.id}
+              key={item._id ?? item.id}
+              id={item._id ?? item.id}
               name={item.name}
               abbreviation={item.abbreviation}
               type={item.type}
-              isSystem={isSystemUnit}
+              isSystem={!canEdit}
               onEdit={() => {
-                if (!isSystemUnit) {
-                  handleEdit(item._id || item.id);
+                if (canEdit) {
+                  handleEdit(item._id ?? item.id);
                 }
               }}
               onHide={() => {
-                console.log("Hide unit:", item._id || item.id);
+                console.log("Hide unit:", item._id ?? item.id);
               }}
               onClone={() => {
-                console.log("Clone unit:", item._id || item.id);
+                console.log("Clone unit:", item._id ?? item.id);
               }}
             />
           );
         })
       )}
 
-      {/* Edit Modal */}
       <EditUnitModal
         ref={unitSheetRef}
         unitId={editUnitId}

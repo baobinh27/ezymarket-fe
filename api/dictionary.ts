@@ -58,6 +58,24 @@ export const deleteIngredient = async (id: string) => {
   return result;
 };
 
+export const getIngredientSuggestions = async (query: string) => {
+  if (!query || !query.trim()) {
+    return [];
+  }
+  try {
+    const data = await axiosInstance.get("/api/ingredients/suggestions", {
+      params: { q: query.trim() },
+      headers: {
+        'Cache-Control': 'no-cache',
+      }
+    });
+    return data || [];
+  } catch (error) {
+    console.error("❌ getIngredientSuggestions error:", error);
+    return [];
+  }
+};
+
 // Recipes API
 export const getRecipes = async (params?: {
   page?: number;
@@ -147,4 +165,41 @@ export const updateUnit = async (id: string, data: {
 export const deleteUnit = async (id: string) => {
   const result = await axiosInstance.delete(`/api/units/${id}`);
   return result;
+};
+
+// Tags API
+export const getTagSuggestions = async (query?: string) => {
+  try {
+    const data = await axiosInstance.get("/api/tags/suggest", {
+      params: query ? { q: query.trim() } : {},
+      headers: {
+        'Cache-Control': 'no-cache',
+      }
+    });
+    return data || [];
+  } catch (error) {
+    console.error("❌ getTagSuggestions error:", error);
+    return [];
+  }
+};
+
+export const getUnitSuggestions = async (query: string) => {
+  if (!query || !query.trim()) {
+    return [];
+  }
+  try {
+    const data = await axiosInstance.get("/api/units/search", {
+      params: { 
+        q: query.trim(),
+        limit: 10 
+      },
+      headers: {
+        'Cache-Control': 'no-cache',
+      }
+    });
+    return (data as any)?.units || [];
+  } catch (error) {
+    console.error("❌ getUnitSuggestions error:", error);
+    return [];
+  }
 };
