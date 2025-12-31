@@ -1,20 +1,21 @@
 import { CreateFridgeItemParams } from "@/api/fridge";
 import { useCreateFridgeItem } from "@/hooks/fridge/useCreateFridgeItem";
 // import { useSnackBar } from "@/services/auth/snackbar.context";
+import { Ingredient } from "@/types/types";
 import { Entypo } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
 import {
-    ActivityIndicator,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from "react-native";
 import IButton from "../../IButton";
 import QuantitySelector from "../../QuantitySelector";
 import { ItemCard, ItemImageWithFallback, IText } from "../../styled";
 import UnitSelector from "../../UnitSelector";
-import { Ingredient } from "./BrowseTab";
+
 
 interface SelectedIngredientItem extends Ingredient {
   id: string; // unique identifier for this instance in the list

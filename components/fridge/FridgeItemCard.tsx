@@ -1,3 +1,4 @@
+import { FridgeItem } from "@/types/types";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -5,24 +6,7 @@ import QuantitySelector from "../QuantitySelector";
 import UnitSelector from "../UnitSelector";
 import { ItemCard, ItemImage, IText } from "../styled";
 
-export interface FridgeItem {
-  _id: string;
-  foodId: {
-    _id: string;
-    name: string;
-    imageURL?: string;
-  };
-  unitId: {
-    _id: string;
-    name: string;
-    abbreviation: string;
-  };
-  quantity: number;
-  expiryDate: string;
-  purchaseDate?: string;
-  status: "in-stock" | "used" | "expired" | "discarded";
-  price: number;
-}
+
 
 export interface FridgeItemCardProps {
   item: FridgeItem;

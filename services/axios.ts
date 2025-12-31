@@ -1,5 +1,4 @@
-import { getAccessToken } from "@/api/auth";
-import { ApiResponse } from "@/types/api";
+import { getAccessToken } from "@/services/tokenRefresh";
 import { SecureStorage } from "@/utils/secureStorage";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import Constants from "expo-constants";
@@ -47,8 +46,8 @@ type Extra = {
   BASE_API: string;
 };
 
-const { BASE_API='http://localhost:5001' } = Constants.expoConfig?.extra as Extra;
-console.log(BASE_API);
+const { BASE_API = "http://localhost:5001" } = Constants.expoConfig
+  ?.extra as Extra;
 
 const axiosInstance = axios.create({
   baseURL: BASE_API,

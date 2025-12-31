@@ -1,17 +1,9 @@
 import axiosInstance from "@/services/axios";
+import { Unit } from "@/types/types";
 
 export type GetAllUnitsParams = {
     page?: number,
     limit?: number
-}
-
-export interface Unit {
-  _id: string;
-  name: string;
-  abbreviation: string;
-  type: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export interface GetAllUnitsResponse {

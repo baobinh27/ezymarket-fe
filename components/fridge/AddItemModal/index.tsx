@@ -1,8 +1,9 @@
+import { Ingredient } from "@/types/types";
 import { Ref, useCallback, useState } from "react";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import IBottomSheetModal from "../../IBottomSheetModal";
 import { IText } from "../../styled";
-import BrowseTab, { Ingredient } from "./BrowseTab";
+import BrowseTab from "./BrowseTab";
 import ListTab from "./ListTab";
 
 type AddItemModalProps = {

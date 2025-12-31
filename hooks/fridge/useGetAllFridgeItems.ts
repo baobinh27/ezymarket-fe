@@ -1,6 +1,6 @@
 import { getAllFridgeItems, GetAllFridgeItemsParams } from "@/api/fridge";
 import { PaginatedResponse } from "@/types/api";
-import { FridgeItem } from "@/components/fridge/FridgeItemCard";
+import { FridgeItem } from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
 export const useGetAllFridgeItems = ({ params, enabled = true }: {params: GetAllFridgeItemsParams, enabled?: boolean}): UseQueryResult<PaginatedResponse<FridgeItem>, Error> => {

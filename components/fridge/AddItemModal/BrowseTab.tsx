@@ -1,4 +1,5 @@
 import useGetAllIngredients from "@/hooks/ingredients/useGetAllIngredients";
+import { Ingredient } from "@/types/types";
 import { Entypo } from "@expo/vector-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
@@ -7,14 +8,6 @@ import ISelect from "../../ISelect";
 import SearchBar from "../../SearchBar";
 import { ItemCard, ItemImageWithFallback, IText } from "../../styled";
 
-export interface Ingredient {
-  _id: string;
-  name: string;
-  imageURL: string;
-  foodCategory: string;
-  defaultExpireDays: number;
-  [key: string]: any;
-}
 
 type ItemType = "ingredients" | "dishes";
 

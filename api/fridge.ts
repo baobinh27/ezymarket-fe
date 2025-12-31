@@ -1,6 +1,7 @@
-import { FridgeItem } from "@/components/fridge/FridgeItemCard";
 import axiosInstance from "@/services/axios";
 import { PaginatedResponse } from "@/types/api";
+import { FridgeItem } from "@/types/types";
+
 
 export type GetAllFridgeItemsParams = {
     page?: number,
@@ -11,15 +12,9 @@ export type GetAllFridgeItemsParams = {
     search?: string
 }
 
-export const getAllFridgeItems = ({page, limit, sortBy, status, search}: GetAllFridgeItemsParams): Promise<PaginatedResponse<FridgeItem>> => {
+export const getAllFridgeItems = (params: GetAllFridgeItemsParams): Promise<PaginatedResponse<FridgeItem>> => {
     return axiosInstance.get('/api/fridge-items', {
-        params: {
-            page,
-            limit,
-            sortBy,
-            status,
-            search
-        }
+        params
     })
 }
 
