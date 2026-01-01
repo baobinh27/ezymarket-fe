@@ -19,27 +19,31 @@ import { useEntityChange } from "@/hooks/useEntityChange";
 import { useUnitChange } from "@/hooks/useUnitChange";
 import { useAuth } from "@/services/auth/auth.context";
 import { RecipeIngredient } from "@/types/dictionary";
-import {
-  getClonedItem,
-  markClonedItemAsEdited,
-  removeClonedItem,
-  updateClonedItem,
-} from "@/utils/dictionaryStorage";
 import styles from "./EditRecipeModal.styles";
 
 interface EditRecipeModalProps {
   recipeId?: string | null;
+  initialData?: {
+    title?: string;
+    description?: string;
+    imageUrl?: string;
+    prepTime?: number;
+    cookTime?: number;
+    servings?: number;
+    directions?: string[];
+    ingredients?: RecipeIngredient[];
+    tags?: string[];
+  };
   onClose: () => void;
   onSuccess?: () => void;
 }
 
 const EditRecipeModal = forwardRef<BottomSheetModal, EditRecipeModalProps>(
-  ({ recipeId, onClose, onSuccess }, ref) => {
+  ({ recipeId, initialData, onClose, onSuccess }, ref) => {
     const queryClient = useQueryClient();
     const { user } = useAuth();
     const isAdmin = user?.role === "admin";
     const isNew = !recipeId || recipeId === "new";
-    const isCloned = recipeId?.startsWith("temp_recipe_");
     const [canEditRecipe, setCanEditRecipe] = useState(true);
 
     const [title, setTitle] = useState("");
@@ -70,33 +74,24 @@ const EditRecipeModal = forwardRef<BottomSheetModal, EditRecipeModalProps>(
     const { data: recipeData, isLoading: isLoadingRecipe } = useQuery({
       queryKey: ["recipe", recipeId],
       queryFn: () => getRecipeById(recipeId as string),
-      enabled: !isNew && !!recipeId && !isCloned,
+      enabled: !isNew && !!recipeId,
     });
 
     useEffect(() => {
-      const loadClonedItem = async () => {
-        if (isCloned && recipeId) {
-          const cloned = await getClonedItem("recipe", recipeId);
-          if (cloned) {
-            const recipe = cloned.data;
-            setTitle(recipe.title ?? "");
-            setDescription(recipe.description ?? "");
-            setImageUrl(recipe.imageUrl ?? "");
-            setPrepTime(recipe.prepTime?.toString() ?? "");
-            setCookTime(recipe.cookTime?.toString() ?? "");
-            setServings(recipe.servings?.toString() ?? "4");
-            setDirections(recipe.directions ?? []);
-            setIngredients(recipe.ingredients ?? []);
-            const tagsList = (recipe.tags ?? [])
-              .map((tag: any) => (typeof tag === "object" ? tag.name : tag))
-              .filter(Boolean);
-            setTags(tagsList);
-            setCanEditRecipe(true);
-          }
-        }
-      };
-      loadClonedItem();
-    }, [isCloned, recipeId]);
+      if (initialData) {
+        setTitle(initialData.title ?? "");
+        setDescription(initialData.description ?? "");
+        setImageUrl(initialData.imageUrl ?? "");
+        setPrepTime(initialData.prepTime?.toString() ?? "");
+        setCookTime(initialData.cookTime?.toString() ?? "");
+        setServings(initialData.servings?.toString() ?? "4");
+        setDirections(initialData.directions ?? []);
+        setIngredients(initialData.ingredients ?? []);
+        const tagsList = initialData.tags ?? [];
+        setTags(tagsList);
+        setCanEditRecipe(true);
+      }
+    }, [initialData]);
 
     useEffect(() => {
       if (!recipeData) return;
@@ -123,7 +118,7 @@ const EditRecipeModal = forwardRef<BottomSheetModal, EditRecipeModalProps>(
     }, [recipeData, user?.id, isAdmin]);
 
     useEffect(() => {
-      if (isNew) {
+      if (isNew && !initialData) {
         setTitle("");
         setDescription("");
         setImageUrl("");
@@ -136,15 +131,12 @@ const EditRecipeModal = forwardRef<BottomSheetModal, EditRecipeModalProps>(
         setTagInput("");
         clearTagSuggestions();
       }
-    }, [isNew, recipeId, clearTagSuggestions]);
+    }, [isNew, recipeId, initialData, clearTagSuggestions]);
 
 
     const createMutation = useMutation({
       mutationFn: createRecipe,
-      onSuccess: async () => {
-        if (isCloned && recipeId) {
-          await removeClonedItem("recipe", recipeId);
-        }
+      onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["recipes"] });
         Alert.alert("Success", "Recipe created successfully");
         onSuccess?.();
@@ -192,11 +184,7 @@ const EditRecipeModal = forwardRef<BottomSheetModal, EditRecipeModalProps>(
         ...(tags.length > 0 && { tags }),
       };
 
-      if (isCloned && recipeId) {
-        await updateClonedItem("recipe", recipeId, data);
-        await markClonedItemAsEdited("recipe", recipeId);
-        createMutation.mutate(data);
-      } else if (isNew) {
+      if (isNew) {
         createMutation.mutate(data);
       } else {
         updateMutation.mutate({ id: recipeId as string, data });

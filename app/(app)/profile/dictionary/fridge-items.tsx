@@ -11,8 +11,6 @@ import EmptyState from "@/components/dictionary/EmptyState/EmptyState";
 import { IText } from "@/components/styled";
 import { useAuth } from "@/services/auth/auth.context";
 import {
-  cloneItem,
-  getClonedItemsByType,
   getHiddenItems,
   hideItem,
   unhideItem,
@@ -22,10 +20,19 @@ interface DictionaryFridgeItemsProps {
   searchQuery: string;
 }
 
+const normalizeIngredientForClone = (item: any) => {
+  return {
+    name: item.name ?? "",
+    category: item.foodCategory ?? item.category ?? "other",
+    imageUrl: item.imageURL ?? item.imageUrl ?? "",
+    defaultExpireDays: item.defaultExpireDays ?? 3,
+  };
+};
+
 const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItemsProps, ref) => {
   const [editIngredientId, setEditIngredientId] = useState<string | null>(null);
+  const [initialData, setInitialData] = useState<any>(null);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
-  const [clonedItems, setClonedItems] = useState<any[]>([]);
   const ingredientSheetRef = useRef<BottomSheetModal>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -36,33 +43,32 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
   });
 
   useEffect(() => {
-    const loadHiddenAndCloned = async () => {
+    const loadHidden = async () => {
       const hidden = await getHiddenItems();
       setHiddenIds(hidden.ingredient || []);
-      const cloned = await getClonedItemsByType("ingredient");
-      setClonedItems(cloned.map((item) => item.data));
     };
-    loadHiddenAndCloned();
+    loadHidden();
   }, []);
 
   const ingredients = (data as any)?.ingredients || [];
   const isAdmin = user?.role === "admin";
 
-  const allIngredients = [...ingredients, ...clonedItems];
-
   const handleCreateNew = () => {
     setEditIngredientId(null);
+    setInitialData(null);
     ingredientSheetRef.current?.present();
   };
 
   const handleEdit = (id: string) => {
     setEditIngredientId(id);
+    setInitialData(null);
     ingredientSheetRef.current?.present();
   };
 
   const handleCloseModal = () => {
     ingredientSheetRef.current?.dismiss();
     setEditIngredientId(null);
+    setInitialData(null);
   };
 
   const handleHide = async (id: string) => {
@@ -79,11 +85,9 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
     queryClient.invalidateQueries({ queryKey: ["ingredients"] });
   };
 
-  const handleClone = async (item: any) => {
-    const tempId = await cloneItem("ingredient", item._id, item);
-    const cloned = await getClonedItemsByType("ingredient");
-    setClonedItems(cloned.map((c) => c.data));
-    setEditIngredientId(tempId);
+  const handleClone = (item: any) => {
+    setEditIngredientId(null);
+    setInitialData(normalizeIngredientForClone(item));
     ingredientSheetRef.current?.present();
   };
 
@@ -109,7 +113,7 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
 
   return (
     <View style={dictionaryItemStyles.container}>
-      {allIngredients.length === 0 ? (
+      {ingredients.length === 0 ? (
         <EmptyState
           icon="package"
           title={searchQuery ? "No items found" : "No fridge items yet"}
@@ -121,12 +125,11 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
         />
       ) : (
         <>
-          {allIngredients.map((item: any, index: number) => {
+          {ingredients.map((item: any, index: number) => {
             const isSystemIngredient = !item.creatorId;
             const creatorId = item.creatorId?._id ?? item.creatorId ?? null;
-            const isCloned = item._id?.startsWith("temp_ingredient_");
             const isHidden = hiddenIds.includes(item._id);
-            const canEdit = isAdmin || creatorId === user?.id || isCloned;
+            const canEdit = isAdmin || creatorId === user?.id;
 
             return (
               <DictionaryItemCard
@@ -139,12 +142,12 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
                 expiryDuration={
                   item.defaultExpireDays ? `${item.defaultExpireDays} days` : undefined
                 }
-                isSystem={!canEdit && !isCloned}
+                isSystem={!canEdit}
                 isHidden={isHidden}
                 onEdit={canEdit ? () => handleEdit(item._id) : undefined}
-                onHide={canEdit && !isCloned && !isHidden ? () => handleHide(item._id) : undefined}
-                onShow={canEdit && !isCloned && isHidden ? () => handleShow(item._id) : undefined}
-                onClone={canEdit && !isCloned ? () => handleClone(item) : undefined}
+                onHide={canEdit && !isHidden ? () => handleHide(item._id) : undefined}
+                onShow={canEdit && isHidden ? () => handleShow(item._id) : undefined}
+                onClone={canEdit ? () => handleClone(item) : undefined}
               />
             );
           })}
@@ -155,6 +158,7 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
       <EditIngredientModal
         ref={ingredientSheetRef}
         ingredientId={editIngredientId}
+        initialData={initialData}
         onClose={handleCloseModal}
       />
     </View>

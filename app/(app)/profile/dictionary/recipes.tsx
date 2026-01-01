@@ -11,8 +11,6 @@ import EmptyState from "@/components/dictionary/EmptyState/EmptyState";
 import { IText } from "@/components/styled";
 import { useAuth } from "@/services/auth/auth.context";
 import {
-  cloneItem,
-  getClonedItemsByType,
   getHiddenItems,
   hideItem,
   unhideItem,
@@ -22,10 +20,28 @@ interface DictionaryRecipesProps {
   searchQuery: string;
 }
 
+const normalizeRecipeForClone = (item: any) => {
+  const tagsList = (item.tags ?? [])
+    .map((tag: any) => (typeof tag === "object" ? tag.name : tag))
+    .filter(Boolean);
+
+  return {
+    title: item.title ?? "",
+    description: item.description ?? "",
+    imageUrl: item.imageUrl ?? "",
+    prepTime: item.prepTime ?? undefined,
+    cookTime: item.cookTime ?? undefined,
+    servings: item.servings ?? 4,
+    directions: item.directions ?? [],
+    ingredients: item.ingredients ?? [],
+    tags: tagsList,
+  };
+};
+
 const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, ref) => {
   const [editRecipeId, setEditRecipeId] = useState<string | null>(null);
+  const [initialData, setInitialData] = useState<any>(null);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
-  const [clonedItems, setClonedItems] = useState<any[]>([]);
   const recipeSheetRef = useRef<BottomSheetModal>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -36,33 +52,32 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
   });
 
   useEffect(() => {
-    const loadHiddenAndCloned = async () => {
+    const loadHidden = async () => {
       const hidden = await getHiddenItems();
       setHiddenIds(hidden.recipe || []);
-      const cloned = await getClonedItemsByType("recipe");
-      setClonedItems(cloned.map((item) => item.data));
     };
-    loadHiddenAndCloned();
+    loadHidden();
   }, []);
 
   const recipes = data?.recipes ?? [];
   const isAdmin = user?.role === "admin";
 
-  const allRecipes = [...recipes, ...clonedItems];
-
   const handleCreateNew = () => {
     setEditRecipeId(null);
+    setInitialData(null);
     recipeSheetRef.current?.present();
   };
 
   const handleEdit = (id: string) => {
     setEditRecipeId(id);
+    setInitialData(null);
     recipeSheetRef.current?.present();
   };
 
   const handleCloseModal = () => {
     recipeSheetRef.current?.dismiss();
     setEditRecipeId(null);
+    setInitialData(null);
   };
 
   const handleHide = async (id: string) => {
@@ -79,11 +94,9 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
     queryClient.invalidateQueries({ queryKey: ["recipes"] });
   };
 
-  const handleClone = async (item: any) => {
-    const tempId = await cloneItem("recipe", item._id, item);
-    const cloned = await getClonedItemsByType("recipe");
-    setClonedItems(cloned.map((c) => c.data));
-    setEditRecipeId(tempId);
+  const handleClone = (item: any) => {
+    setEditRecipeId(null);
+    setInitialData(normalizeRecipeForClone(item));
     recipeSheetRef.current?.present();
   };
 
@@ -109,7 +122,7 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
 
   return (
     <View style={dictionaryItemStyles.container}>
-      {allRecipes.length === 0 ? (
+      {recipes.length === 0 ? (
         <EmptyState
           icon="book"
           title={searchQuery ? "No recipes found" : "No recipes yet"}
@@ -118,11 +131,10 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
           }
         />
       ) : (
-        allRecipes.map((item: any) => {
+        recipes.map((item: any) => {
           const creatorId = item.creatorId?._id ?? item.creatorId ?? null;
-          const isCloned = item._id?.startsWith("temp_recipe_");
           const isHidden = hiddenIds.includes(item._id);
-          const canEdit = isAdmin || creatorId === user?.id || isCloned;
+          const canEdit = isAdmin || creatorId === user?.id;
 
           const validTags = (item.tags ?? []).filter((tag: any) => {
             if (!tag || typeof tag === "string" || !tag._id) return false;
@@ -140,18 +152,23 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
               description={item.description}
               tags={validTags}
               ingredientsCount={item.ingredients?.length ?? 0}
-              isSystem={!canEdit && !isCloned}
+              isSystem={!canEdit}
               isHidden={isHidden}
               onEdit={canEdit ? () => handleEdit(item._id) : undefined}
-              onHide={canEdit && !isCloned && !isHidden ? () => handleHide(item._id) : undefined}
-              onShow={canEdit && !isCloned && isHidden ? () => handleShow(item._id) : undefined}
-              onClone={canEdit && !isCloned ? () => handleClone(item) : undefined}
+              onHide={canEdit && !isHidden ? () => handleHide(item._id) : undefined}
+              onShow={canEdit && isHidden ? () => handleShow(item._id) : undefined}
+              onClone={canEdit ? () => handleClone(item) : undefined}
             />
           );
         })
       )}
 
-      <EditRecipeModal ref={recipeSheetRef} recipeId={editRecipeId} onClose={handleCloseModal} />
+      <EditRecipeModal
+        ref={recipeSheetRef}
+        recipeId={editRecipeId}
+        initialData={initialData}
+        onClose={handleCloseModal}
+      />
     </View>
   );
 });

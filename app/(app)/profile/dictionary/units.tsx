@@ -11,8 +11,6 @@ import EmptyState from "@/components/dictionary/EmptyState/EmptyState";
 import { IText } from "@/components/styled";
 import { useAuth } from "@/services/auth/auth.context";
 import {
-  cloneItem,
-  getClonedItemsByType,
   getHiddenItems,
   hideItem,
   unhideItem,
@@ -22,10 +20,18 @@ interface DictionaryUnitsProps {
   searchQuery: string;
 }
 
+const normalizeUnitForClone = (item: any) => {
+  return {
+    name: item.name ?? "",
+    abbreviation: item.abbreviation ?? "",
+    type: item.type ?? "",
+  };
+};
+
 const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) => {
   const [editUnitId, setEditUnitId] = useState<string | null>(null);
+  const [initialData, setInitialData] = useState<any>(null);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
-  const [clonedItems, setClonedItems] = useState<any[]>([]);
   const unitSheetRef = useRef<BottomSheetModal>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -36,33 +42,32 @@ const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) 
   });
 
   useEffect(() => {
-    const loadHiddenAndCloned = async () => {
+    const loadHidden = async () => {
       const hidden = await getHiddenItems();
       setHiddenIds(hidden.unit || []);
-      const cloned = await getClonedItemsByType("unit");
-      setClonedItems(cloned.map((item) => item.data));
     };
-    loadHiddenAndCloned();
+    loadHidden();
   }, []);
 
   const units = data?.units ?? [];
   const isAdmin = user?.role === "admin";
 
-  const allUnits = [...units, ...clonedItems];
-
   const handleCreateNew = () => {
     setEditUnitId(null);
+    setInitialData(null);
     unitSheetRef.current?.present();
   };
 
   const handleEdit = (id: string) => {
     setEditUnitId(id);
+    setInitialData(null);
     unitSheetRef.current?.present();
   };
 
   const handleCloseModal = () => {
     unitSheetRef.current?.dismiss();
     setEditUnitId(null);
+    setInitialData(null);
   };
 
   const handleHide = async (id: string) => {
@@ -79,11 +84,9 @@ const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) 
     queryClient.invalidateQueries({ queryKey: ["units"] });
   };
 
-  const handleClone = async (item: any) => {
-    const tempId = await cloneItem("unit", item._id || item.id, item);
-    const cloned = await getClonedItemsByType("unit");
-    setClonedItems(cloned.map((c) => c.data));
-    setEditUnitId(tempId);
+  const handleClone = (item: any) => {
+    setEditUnitId(null);
+    setInitialData(normalizeUnitForClone(item));
     unitSheetRef.current?.present();
   };
 
@@ -109,7 +112,7 @@ const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) 
 
   return (
     <View style={dictionaryItemStyles.container}>
-      {allUnits.length === 0 ? (
+      {units.length === 0 ? (
         <EmptyState
           icon="dash"
           title={searchQuery ? "No units found" : "No units yet"}
@@ -118,10 +121,9 @@ const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) 
           }
         />
       ) : (
-        allUnits.map((item: any) => {
-          const isCloned = (item._id || item.id)?.startsWith("temp_unit_");
+        units.map((item: any) => {
           const isHidden = hiddenIds.includes(item._id || item.id);
-          const canEdit = isAdmin || isCloned;
+          const canEdit = isAdmin;
 
           return (
             <DictionaryUnitCard
@@ -130,7 +132,7 @@ const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) 
               name={item.name}
               abbreviation={item.abbreviation}
               type={item.type}
-              isSystem={!canEdit && !isCloned}
+              isSystem={!canEdit}
               isHidden={isHidden}
               onEdit={() => {
                 if (canEdit) {
@@ -138,22 +140,23 @@ const DictionaryUnits = forwardRef(({ searchQuery }: DictionaryUnitsProps, ref) 
                 }
               }}
               onHide={
-                canEdit && !isCloned && !isHidden
-                  ? () => handleHide(item._id ?? item.id)
-                  : undefined
+                canEdit && !isHidden ? () => handleHide(item._id ?? item.id) : undefined
               }
               onShow={
-                canEdit && !isCloned && isHidden
-                  ? () => handleShow(item._id ?? item.id)
-                  : undefined
+                canEdit && isHidden ? () => handleShow(item._id ?? item.id) : undefined
               }
-              onClone={canEdit && !isCloned ? () => handleClone(item) : undefined}
+              onClone={canEdit ? () => handleClone(item) : undefined}
             />
           );
         })
       )}
 
-      <EditUnitModal ref={unitSheetRef} unitId={editUnitId} onClose={handleCloseModal} />
+      <EditUnitModal
+        ref={unitSheetRef}
+        unitId={editUnitId}
+        initialData={initialData}
+        onClose={handleCloseModal}
+      />
     </View>
   );
 });

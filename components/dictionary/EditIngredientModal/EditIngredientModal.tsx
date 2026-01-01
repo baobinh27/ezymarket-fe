@@ -19,25 +19,24 @@ import IBottomSheetModal from "@/components/IBottomSheetModal";
 import IButton from "@/components/IButton";
 import { IText } from "@/components/styled";
 import { useImageUpload } from "@/hooks/useImageUpload";
-import {
-  getClonedItem,
-  markClonedItemAsEdited,
-  removeClonedItem,
-  updateClonedItem,
-} from "@/utils/dictionaryStorage";
 import styles from "./EditIngredientModal.styles";
 
 interface EditIngredientModalProps {
   ingredientId?: string | null;
+  initialData?: {
+    name?: string;
+    category?: string;
+    imageUrl?: string;
+    defaultExpireDays?: number;
+  };
   onClose: () => void;
   onSuccess?: () => void;
 }
 
 const EditIngredientModal = forwardRef<BottomSheetModal, EditIngredientModalProps>(
-  ({ ingredientId, onClose, onSuccess }, ref) => {
+  ({ ingredientId, initialData, onClose, onSuccess }, ref) => {
     const queryClient = useQueryClient();
     const isNew = !ingredientId || ingredientId === "new";
-    const isCloned = ingredientId?.startsWith("temp_ingredient_");
 
     const [name, setName] = useState("");
     const [category, setCategory] = useState("other");
@@ -73,30 +72,23 @@ const EditIngredientModal = forwardRef<BottomSheetModal, EditIngredientModalProp
     const { data: ingredientData, isLoading: isLoadingIngredient } = useQuery({
       queryKey: ["ingredient", ingredientId],
       queryFn: () => getIngredientById(ingredientId as string),
-      enabled: !isNew && !!ingredientId && !isCloned,
+      enabled: !isNew && !!ingredientId,
     });
 
     useEffect(() => {
-      const loadClonedItem = async () => {
-        if (isCloned && ingredientId) {
-          const cloned = await getClonedItem("ingredient", ingredientId);
-          if (cloned) {
-            const item = cloned.data;
-            setName(item.name || "");
-            setCategory(item.foodCategory || item.category || "other");
-            setImageUrlDirect(item.imageURL || item.imageUrl || "");
-            setDefaultExpireDays(item.defaultExpireDays?.toString() || "3");
-            setOriginalData({
-              name: item.name || "",
-              category: item.foodCategory || item.category || "other",
-              imageUrl: item.imageURL || item.imageUrl || "",
-              defaultExpireDays: item.defaultExpireDays?.toString() || "3",
-            });
-          }
-        }
-      };
-      loadClonedItem();
-    }, [isCloned, ingredientId, setImageUrlDirect]);
+      if (initialData) {
+        setName(initialData.name || "");
+        setCategory(initialData.category || "other");
+        setImageUrlDirect(initialData.imageUrl || "");
+        setDefaultExpireDays(initialData.defaultExpireDays?.toString() || "3");
+        setOriginalData({
+          name: initialData.name || "",
+          category: initialData.category || "other",
+          imageUrl: initialData.imageUrl || "",
+          defaultExpireDays: initialData.defaultExpireDays?.toString() || "3",
+        });
+      }
+    }, [initialData, setImageUrlDirect]);
 
     useEffect(() => {
       if (ingredientData) {
@@ -121,20 +113,18 @@ const EditIngredientModal = forwardRef<BottomSheetModal, EditIngredientModalProp
     }, [ingredientData, setImageUrlDirect]);
 
     useEffect(() => {
-      if (isNew) {
+      if (isNew && !initialData) {
         setName("");
         setCategory("other");
         setImageUrlDirect("");
         setDefaultExpireDays("3");
+        setOriginalData(null);
       }
-    }, [isNew, ingredientId, setImageUrlDirect]);
+    }, [isNew, ingredientId, initialData, setImageUrlDirect]);
 
     const createMutation = useMutation({
       mutationFn: createIngredient,
-      onSuccess: async (data, variables) => {
-        if (isCloned && ingredientId) {
-          await removeClonedItem("ingredient", ingredientId);
-        }
+      onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["ingredients"] });
         Alert.alert("Success", "Ingredient created successfully");
         onSuccess?.();
@@ -172,11 +162,7 @@ const EditIngredientModal = forwardRef<BottomSheetModal, EditIngredientModalProp
         defaultExpiryDays: parseInt(defaultExpireDays) || 3,
       };
 
-      if (isCloned && ingredientId) {
-        await updateClonedItem("ingredient", ingredientId, data);
-        await markClonedItemAsEdited("ingredient", ingredientId);
-        createMutation.mutate(data);
-      } else if (isNew) {
+      if (isNew) {
         createMutation.mutate(data);
       } else {
         if (originalData) {

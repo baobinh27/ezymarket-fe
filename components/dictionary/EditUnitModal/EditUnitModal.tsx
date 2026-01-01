@@ -7,25 +7,23 @@ import { createUnit, getUnitById, updateUnit } from "@/api/dictionary";
 import IBottomSheetModal from "@/components/IBottomSheetModal";
 import IButton from "@/components/IButton";
 import { IText } from "@/components/styled";
-import {
-  getClonedItem,
-  markClonedItemAsEdited,
-  removeClonedItem,
-  updateClonedItem,
-} from "@/utils/dictionaryStorage";
 import styles from "./EditUnitModal.styles";
 
 interface EditUnitModalProps {
   unitId?: string | null;
+  initialData?: {
+    name?: string;
+    abbreviation?: string;
+    type?: string;
+  };
   onClose: () => void;
   onSuccess?: () => void;
 }
 
 const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
-  ({ unitId, onClose, onSuccess }, ref) => {
+  ({ unitId, initialData, onClose, onSuccess }, ref) => {
     const queryClient = useQueryClient();
     const isNew = !unitId || unitId === "new";
-    const isCloned = unitId?.startsWith("temp_unit_");
 
     const [name, setName] = useState("");
     const [abbreviation, setAbbreviation] = useState("");
@@ -34,7 +32,7 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
     const { data: unitData, isLoading: isLoadingUnit } = useQuery({
       queryKey: ["unit", unitId],
       queryFn: () => getUnitById(unitId as string),
-      enabled: !isNew && !!unitId && !isCloned,
+      enabled: !isNew && !!unitId,
     });
 
     useEffect(() => {
@@ -47,34 +45,24 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
     }, [unitData]);
 
     useEffect(() => {
-      const loadClonedItem = async () => {
-        if (isCloned && unitId) {
-          const cloned = await getClonedItem("unit", unitId);
-          if (cloned) {
-            const unit = cloned.data;
-            setName(unit.name || "");
-            setAbbreviation(unit.abbreviation || "");
-            setType(unit.type || "");
-          }
-        }
-      };
-      loadClonedItem();
-    }, [isCloned, unitId]);
+      if (initialData) {
+        setName(initialData.name || "");
+        setAbbreviation(initialData.abbreviation || "");
+        setType(initialData.type || "");
+      }
+    }, [initialData]);
 
     useEffect(() => {
-      if (isNew) {
+      if (isNew && !initialData) {
         setName("");
         setAbbreviation("");
         setType("");
       }
-    }, [isNew, unitId]);
+    }, [isNew, unitId, initialData]);
 
     const createMutation = useMutation({
       mutationFn: createUnit,
-      onSuccess: async () => {
-        if (isCloned && unitId) {
-          await removeClonedItem("unit", unitId);
-        }
+      onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["units"] });
         Alert.alert("Success", "Unit created successfully");
         onSuccess?.();
@@ -111,11 +99,7 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
         type: type.trim() || undefined,
       };
 
-      if (isCloned && unitId) {
-        await updateClonedItem("unit", unitId, data);
-        await markClonedItemAsEdited("unit", unitId);
-        createMutation.mutate(data);
-      } else if (isNew) {
+      if (isNew) {
         createMutation.mutate(data);
       } else {
         updateMutation.mutate({ id: unitId as string, data });

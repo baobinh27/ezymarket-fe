@@ -36,7 +36,14 @@ export const createIngredient = async (data: {
   defaultExpiryDays?: number;
   defaultUnitId?: string;
 }) => {
-  const result = await axiosInstance.post("/api/ingredients", data);
+  const payload = {
+    name: data.name,
+    foodCategory: data.category || "other",
+    imageURL: data.imageUrl,
+    defaultExpireDays: data.defaultExpiryDays,
+    defaultUnitId: data.defaultUnitId,
+  };
+  const result = await axiosInstance.post("/api/ingredients", payload);
   return result;
 };
 
@@ -50,7 +57,13 @@ export const updateIngredient = async (
     defaultUnitId?: string;
   }
 ) => {
-  const result = await axiosInstance.put(`/api/ingredients/${id}`, data);
+  const payload: any = {};
+  if (data.name !== undefined) payload.name = data.name;
+  if (data.category !== undefined) payload.foodCategory = data.category;
+  if (data.imageUrl !== undefined) payload.imageURL = data.imageUrl;
+  if (data.defaultExpiryDays !== undefined) payload.defaultExpireDays = data.defaultExpiryDays;
+  if (data.defaultUnitId !== undefined) payload.defaultUnitId = data.defaultUnitId;
+  const result = await axiosInstance.put(`/api/ingredients/${id}`, payload);
   return result;
 };
 
