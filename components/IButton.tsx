@@ -1,6 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
-import { Pressable, StyleSheet, ViewStyle } from "react-native";
+import { Pressable, PressableProps, StyleSheet, ViewStyle } from "react-native";
 import styled from "styled-components/native";
 
 interface IButtonProps {
@@ -55,7 +55,8 @@ export default function IButton({
     onPressIn,
     onPressOut,
     style,
-}: IButtonProps) {
+    ...other
+}: IButtonProps & PressableProps) {
     return (
         <Pressable
             onPress={onPress}
@@ -68,6 +69,7 @@ export default function IButton({
                 pressed && styles.pressed,
                 variant === "secondary" && styles.border,
             ]}
+            {...other}
         >
             <IBackground variant={variant} />
             {children}

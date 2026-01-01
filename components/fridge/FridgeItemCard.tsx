@@ -174,6 +174,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flex: 1,
+    gap: 12
   },
   infoContainer: {
     flex: 1,
