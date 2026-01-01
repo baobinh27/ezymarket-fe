@@ -8,44 +8,40 @@ export default function ShoppingLayout() {
 
   return (
     <Stack
-        screenOptions={{
-            contentStyle: {backgroundColor: "white"},
-            headerTitleAlign: 'left',
-            
-        }}
+      screenOptions={{
+        contentStyle: { backgroundColor: "white" },
+        headerTitleAlign: "left",
+      }}
     >
       <Stack.Screen
         name="index"
         options={{
-            title: "",
-            headerShown: true,
-            headerLeft: () => (
-                <Text style={{
-                    fontFamily: 'Inter_700Bold',
-                    fontSize: 24,
-                    fontWeight: '700',
-                }}>
-                    Shopping
-                </Text>
-            )
+          title: "",
+          headerShown: true,
+          headerLeft: () => (
+            <Text
+              style={{
+                fontFamily: "Inter_700Bold",
+                fontSize: 24,
+                fontWeight: "700",
+              }}
+            >
+              Shopping
+            </Text>
+          ),
         }}
       />
       <Stack.Screen
         name="checkout/[id]"
         options={{
-            headerShown: true,
-            header: () => (
-              <CheckoutHeader 
-                onBack={() => router.back()} 
-                onSave={() => {}} 
-              />
-            ),
+          headerShown: true,
+          header: () => <CheckoutHeader onBack={() => router.back()} onSave={() => {}} />,
         }}
       />
       <Stack.Screen
         name="[id]"
         options={{
-            header: (props) => <ShoppingDetailHeader {...props} />
+          header: (props) => <ShoppingDetailHeader {...props} />,
         }}
       />
     </Stack>

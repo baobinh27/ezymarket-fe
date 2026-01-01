@@ -66,4 +66,3 @@ const dictionaryStyles = StyleSheet.create({
 });
 
 export default dictionaryStyles;
-

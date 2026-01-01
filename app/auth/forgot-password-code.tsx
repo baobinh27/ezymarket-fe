@@ -17,10 +17,7 @@ export default function ForgotPasswordCodeScreen() {
 
   const code = useMemo(() => digits.join(""), [digits]);
 
-  const {
-    mutateAsync: sendForgotPasswordRequest,
-    isPending,
-  } = useForgotPasswordRequest();
+  const { mutateAsync: sendForgotPasswordRequest, isPending } = useForgotPasswordRequest();
   const { showSnackBar } = useSnackBar();
 
   const handleChangeDigit = (value: string, index: number) => {
@@ -55,13 +52,13 @@ export default function ForgotPasswordCodeScreen() {
   const handleSendCode = async () => {
     try {
       if (!email) {
-        showSnackBar("Something went wrong. Please try again.", 'error');
+        showSnackBar("Something went wrong. Please try again.", "error");
         return;
       }
       await sendForgotPasswordRequest({ email });
-      showSnackBar('New code has been sent. Please check your emails.', 'info')
+      showSnackBar("New code has been sent. Please check your emails.", "info");
     } catch (e: any) {
-      showSnackBar(e.message, 'error')
+      showSnackBar(e.message, "error");
     }
   };
 
@@ -92,8 +89,7 @@ export default function ForgotPasswordCodeScreen() {
         <Text style={styles.title}>EzyMarket</Text>
         <Text style={styles.subtitleMain}>Forget Password</Text>
         <Text style={styles.subtitle}>
-          Check your emails and enter the 6-digit verification code. The code
-          expires in 10 minutes.
+          Check your emails and enter the 6-digit verification code. The code expires in 10 minutes.
         </Text>
       </View>
 
@@ -115,14 +111,8 @@ export default function ForgotPasswordCodeScreen() {
           ))}
         </View>
 
-        <IButton
-          variant="primary"
-          onPress={handleVerify}
-          style={styles.primaryButton}
-        >
-          <Text style={styles.primaryButtonText}>
-            {submitting ? "Verifying..." : "Verify"}
-          </Text>
+        <IButton variant="primary" onPress={handleVerify} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>{submitting ? "Verifying..." : "Verify"}</Text>
         </IButton>
 
         <Pressable style={styles.backWrapper} onPress={handleSendCode}>

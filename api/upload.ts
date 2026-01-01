@@ -23,13 +23,8 @@ const getToken = async (): Promise<string | null> => {
  */
 export const uploadIngredientImage = async (fileUri: string): Promise<string> => {
   try {
-    console.log("=== Starting Upload ===");
-    console.log("File URI:", fileUri);
-    console.log("Platform:", Platform.OS);
-
     // Get auth token
     const token = await getToken();
-    console.log("Token found:", !!token);
 
     if (!token) {
       throw new Error("Not authenticated - no access token found");
@@ -37,19 +32,16 @@ export const uploadIngredientImage = async (fileUri: string): Promise<string> =>
 
     // Extract filename from URI
     const filename = fileUri.split("/").pop() || `image_${Date.now()}.jpg`;
-    console.log("Filename:", filename);
 
     // Determine mime type
     const match = /\.(\w+)$/.exec(filename);
     const type = match ? `image/${match[1]}` : "image/jpeg";
-    console.log("MIME type:", type);
 
     // Create FormData with the file
     const formData = new FormData();
 
     if (Platform.OS === "web") {
       // Web: Convert blob URL to actual File object
-      console.log("Converting blob URL to File for web...");
       const response = await fetch(fileUri);
       const blob = await response.blob();
       const file = new File([blob], filename, { type });
@@ -63,8 +55,6 @@ export const uploadIngredientImage = async (fileUri: string): Promise<string> =>
         type: type,
       });
     }
-
-    console.log("Uploading to:", `${API_URL}/api/uploadthing?slug=ingredientImageUploader`);
 
     // Upload directly to UploadThing endpoint
     const response = await axios.post(
@@ -80,10 +70,6 @@ export const uploadIngredientImage = async (fileUri: string): Promise<string> =>
       }
     );
 
-    console.log("=== Upload Response ===");
-    console.log("Status:", response.status);
-    console.log("Data:", JSON.stringify(response.data, null, 2));
-
     // Extract URL from response
     // UploadThing can return different formats
     let imageUrl: string | null = null;
@@ -98,7 +84,11 @@ export const uploadIngredientImage = async (fileUri: string): Promise<string> =>
         imageUrl = response.data[0].url;
       }
       // Nested data: {data: [{url: '...'}]}
-      else if (response.data.data && Array.isArray(response.data.data) && response.data.data[0]?.url) {
+      else if (
+        response.data.data &&
+        Array.isArray(response.data.data) &&
+        response.data.data[0]?.url
+      ) {
         imageUrl = response.data.data[0].url;
       }
       // Direct URL
@@ -108,18 +98,11 @@ export const uploadIngredientImage = async (fileUri: string): Promise<string> =>
     }
 
     if (!imageUrl) {
-      console.error("No URL found in response:", response.data);
       throw new Error("Upload completed but no URL returned");
     }
 
-    console.log("=== Upload Success ===");
-    console.log("Image URL:", imageUrl);
     return imageUrl;
   } catch (error: any) {
-    console.error("=== Upload Error ===");
-    console.error("Error:", error.message);
-    console.error("Response data:", error.response?.data);
-    console.error("Response status:", error.response?.status);
     throw new Error(error.response?.data?.message || error.message || "Failed to upload image");
   }
 };

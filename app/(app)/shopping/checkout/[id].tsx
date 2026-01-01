@@ -1,4 +1,7 @@
-import { CheckoutItem, ShoppingItemCheckoutCard } from "@/components/shopping/ShoppingItemCheckoutCard";
+import {
+  CheckoutItem,
+  ShoppingItemCheckoutCard,
+} from "@/components/shopping/ShoppingItemCheckoutCard";
 import { IText } from "@/components/styled";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -6,62 +9,54 @@ import { FlatList, ScrollView, StyleSheet } from "react-native";
 
 export default function CheckoutScreen() {
   const { id, name } = useLocalSearchParams();
-  
+
   const [checkoutItems, setCheckoutItems] = useState<CheckoutItem[]>([
-    { 
-      id: "1", 
-      name: "Cabbage", 
-      quantity: "2", 
+    {
+      id: "1",
+      name: "Cabbage",
+      quantity: "2",
       unit: "pieces",
       saved: false,
       costPerUnit: "0",
       total: "0",
-      expiryDays: 3
+      expiryDays: 3,
     },
-    { 
-      id: "2", 
-      name: "Egg", 
-      quantity: "10", 
+    {
+      id: "2",
+      name: "Egg",
+      quantity: "10",
       unit: "pieces",
       saved: false,
       costPerUnit: "0",
       total: "0",
-      expiryDays: 21
+      expiryDays: 21,
     },
-    { 
-      id: "3", 
-      name: "Milk", 
-      quantity: "1", 
+    {
+      id: "3",
+      name: "Milk",
+      quantity: "1",
       unit: "carton",
       saved: true,
       costPerUnit: "0",
       total: "0",
-      expiryDays: 0
+      expiryDays: 0,
     },
   ]);
 
   const handleSaveItem = (itemId: string) => {
     setCheckoutItems(
-      checkoutItems.map((item) =>
-        item.id === itemId ? { ...item, saved: true } : item
-      )
+      checkoutItems.map((item) => (item.id === itemId ? { ...item, saved: true } : item))
     );
   };
 
   const handleCostChange = (itemId: string, costPerUnit: string) => {
     setCheckoutItems(
-      checkoutItems.map((item) =>
-        item.id === itemId ? { ...item, costPerUnit } : item
-      )
+      checkoutItems.map((item) => (item.id === itemId ? { ...item, costPerUnit } : item))
     );
   };
 
   const handleTotalChange = (itemId: string, total: string) => {
-    setCheckoutItems(
-      checkoutItems.map((item) =>
-        item.id === itemId ? { ...item, total } : item
-      )
-    );
+    setCheckoutItems(checkoutItems.map((item) => (item.id === itemId ? { ...item, total } : item)));
   };
 
   const handleExpiryChange = (itemId: string, expiryDays: string) => {
@@ -106,9 +101,9 @@ export default function CheckoutScreen() {
 
 const styles = StyleSheet.create({
   heading: {
-    flex:1, 
+    flex: 1,
     borderBottomWidth: 1,
     marginLeft: 2,
-    paddingVertical: 4  
+    paddingVertical: 4,
   },
 });

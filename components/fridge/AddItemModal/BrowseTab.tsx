@@ -8,7 +8,6 @@ import ISelect from "../../ISelect";
 import SearchBar from "../../SearchBar";
 import { ItemCard, ItemImageWithFallback, IText } from "../../styled";
 
-
 type ItemType = "ingredients" | "dishes";
 
 const ItemOptions = [
@@ -64,9 +63,7 @@ const BrowseTab = ({ onSelectIngredient, selectedIngredientIds }: BrowseTabProps
   }, [searchInput, fetchIngredients]);
 
   const handleItemTypeChange = useCallback((newValue: any) => {
-    setItemType(
-      typeof newValue === "string" ? (newValue as ItemType) : "ingredients"
-    );
+    setItemType(typeof newValue === "string" ? (newValue as ItemType) : "ingredients");
   }, []);
 
   const handleSearchChange = useCallback((text: string) => {
@@ -107,20 +104,12 @@ const BrowseTab = ({ onSelectIngredient, selectedIngredientIds }: BrowseTabProps
         <View style={styles.loadingContainer}>
           <ActivityIndicator color="#82CD47" />
         </View>
-      ) : data &&
-        Array.isArray(data.ingredients) &&
-        data.ingredients.length === 0 ? (
+      ) : data && Array.isArray(data.ingredients) && data.ingredients.length === 0 ? (
         <View style={styles.content}>
-          <Entypo
-            style={{ alignSelf: "center" }}
-            name="emoji-sad"
-            color="#000000B4"
-            size={32}
-          />
+          <Entypo style={{ alignSelf: "center" }} name="emoji-sad" color="#000000B4" size={32} />
           <IText style={styles.emptyListMessage}>
-            The list is empty. This could be a result of lacking various items
-            in our database. You might want to add your own items in your
-            personal list below.
+            The list is empty. This could be a result of lacking various items in our database. You
+            might want to add your own items in your personal list below.
           </IText>
           <IButton
             variant="secondary"
@@ -132,10 +121,7 @@ const BrowseTab = ({ onSelectIngredient, selectedIngredientIds }: BrowseTabProps
             </IText>
           </IButton>
         </View>
-      ) : data &&
-        isReady &&
-        Array.isArray(data.ingredients) &&
-        data.ingredients.length !== 0 ? (
+      ) : data && isReady && Array.isArray(data.ingredients) && data.ingredients.length !== 0 ? (
         <>
           {data.ingredients.map((ingredient: Ingredient) => {
             const isSelected = selectedIngredientIds.has(ingredient._id);
@@ -151,7 +137,11 @@ const BrowseTab = ({ onSelectIngredient, selectedIngredientIds }: BrowseTabProps
                   style={styles.addButton}
                   onPress={() => handleSelectIngredient(ingredient)}
                 >
-                  <Entypo name={isSelected ? "check" : "plus"} size={24} color={isSelected ? "#4CAF50" : "#82CD47"} />
+                  <Entypo
+                    name={isSelected ? "check" : "plus"}
+                    size={24}
+                    color={isSelected ? "#4CAF50" : "#82CD47"}
+                  />
                 </IButton>
               </ItemCard>
             );

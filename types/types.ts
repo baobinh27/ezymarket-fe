@@ -37,34 +37,34 @@ export interface Ingredient {
 }
 
 export interface Recipe {
-    _id: string;
-    title: string;
-    imageUrl: string;
-    prepTime: number;
-    cookTime: number;
+  _id: string;
+  title: string;
+  imageUrl: string;
+  prepTime: number;
+  cookTime: number;
 }
 
 export interface MealItem {
-    _id: string;
-    itemType: "ingredient" | "recipe";
-    quantity: number;
-    isEaten: boolean;
-    note: string;
-    recipeId?: Recipe;
-    ingredientId?: Ingredient;
-    unitId: Unit;
+  _id: string;
+  itemType: "ingredient" | "recipe";
+  quantity: number;
+  isEaten: boolean;
+  note: string;
+  recipeId?: Recipe;
+  ingredientId?: Ingredient;
+  unitId: Unit;
 }
 
 export interface MealDetail {
-    mealType: MealType;
-    items: MealItem[];
+  mealType: MealType;
+  items: MealItem[];
 }
 
 export interface MealPlan {
-    _id: string;
-    date: string;
-    summary: {
-        totalCalories: number;
-    };
-    meals: MealDetail[];
+  _id: string;
+  date: string;
+  summary: {
+    totalCalories: number;
+  };
+  meals: MealDetail[];
 }

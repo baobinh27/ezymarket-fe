@@ -18,9 +18,7 @@ export default function ShoppingListDetailScreen() {
 
   const handleTogglePurchased = (itemId: string) => {
     setItems(
-      items.map((item) =>
-        item.id === itemId ? { ...item, purchased: !item.purchased } : item
-      )
+      items.map((item) => (item.id === itemId ? { ...item, purchased: !item.purchased } : item))
     );
   };
 
@@ -49,34 +47,29 @@ export default function ShoppingListDetailScreen() {
       style={{ flex: 1, backgroundColor: "#fff" }}
       contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
     >
-
-
       <IText bold size={16} style={styles.heading}>
         {name}
       </IText>
 
       {/* Items List */}
-       <FlatList
-            data={items}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            contentContainerStyle={{
-                gap: 16
-            }}
-            renderItem={({ item }) => (
-                <ShoppingItemCard item={item} />
-            )}
-        />
+      <FlatList
+        data={items}
+        keyExtractor={(item) => item.id}
+        scrollEnabled={false}
+        contentContainerStyle={{
+          gap: 16,
+        }}
+        renderItem={({ item }) => <ShoppingItemCard item={item} />}
+      />
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-    heading: {
-        flex:1, 
-        borderBottomWidth: 1,
-        marginLeft: 2,
-        paddingVertical: 4  
-    } 
-     
- });
+  heading: {
+    flex: 1,
+    borderBottomWidth: 1,
+    marginLeft: 2,
+    paddingVertical: 4,
+  },
+});

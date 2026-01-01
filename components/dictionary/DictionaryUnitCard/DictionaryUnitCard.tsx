@@ -1,9 +1,10 @@
-import { useState, useRef } from "react";
-import { View, TouchableOpacity, Pressable, Modal, StyleSheet } from "react-native";
+import React, { useRef, useState } from "react";
 import { Octicons } from "@expo/vector-icons";
+import { Modal, Pressable, TouchableOpacity, View } from "react-native";
 
 import { IText } from "@/components/styled";
-import DictionaryItemMenu from "./DictionaryItemMenu";
+import DictionaryItemMenu from "../DictionaryItemMenu/DictionaryItemMenu";
+import styles from "./DictionaryUnitCard.styles";
 
 interface DictionaryUnitCardProps {
   id: string;
@@ -11,8 +12,10 @@ interface DictionaryUnitCardProps {
   abbreviation?: string;
   type?: string;
   isSystem?: boolean;
+  isHidden?: boolean;
   onEdit?: () => void;
   onHide?: () => void;
+  onShow?: () => void;
   onClone?: () => void;
 }
 
@@ -22,8 +25,10 @@ export default function DictionaryUnitCard({
   abbreviation,
   type,
   isSystem,
+  isHidden,
   onEdit,
   onHide,
+  onShow,
   onClone,
 }: DictionaryUnitCardProps) {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -46,7 +51,7 @@ export default function DictionaryUnitCard({
 
   return (
     <>
-      <View style={styles.unitCard}>
+      <View style={[styles.unitCard, isHidden && styles.unitCardHidden]}>
         <View style={styles.unitLeft}>
           <IText size={16} bold>
             {name}
@@ -58,7 +63,10 @@ export default function DictionaryUnitCard({
               </IText>
             )}
             {type && abbreviation && (
-              <IText size={12} color="#000000B4"> • </IText>
+              <IText size={12} color="#000000B4">
+                {" "}
+                •{" "}
+              </IText>
             )}
             {type && (
               <IText size={12} color="#000000B4">
@@ -97,6 +105,7 @@ export default function DictionaryUnitCard({
             <DictionaryItemMenu
               id={id}
               type="unit"
+              isHidden={isHidden}
               onClose={handleMenuClose}
               onEdit={() => {
                 handleMenuClose();
@@ -105,6 +114,10 @@ export default function DictionaryUnitCard({
               onHide={() => {
                 handleMenuClose();
                 onHide?.();
+              }}
+              onShow={() => {
+                handleMenuClose();
+                onShow?.();
               }}
               onClone={() => {
                 handleMenuClose();
@@ -117,39 +130,3 @@ export default function DictionaryUnitCard({
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  unitCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "white",
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  unitLeft: {
-    flex: 1,
-    gap: 4,
-  },
-  unitDetails: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 2,
-  },
-  menuButton: {
-    padding: 8,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.2)",
-  },
-  menuPositioned: {
-    minWidth: 150,
-  },
-});

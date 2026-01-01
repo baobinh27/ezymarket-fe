@@ -66,9 +66,7 @@ const AddItemModal = ({ ref }: AddItemModalProps) => {
   }, [searchInput, fetchIngredients]);
 
   const handleItemTypeChange = useCallback((newValue: any) => {
-    setItemType(
-      typeof newValue === "string" ? (newValue as ItemType) : "ingredients"
-    );
+    setItemType(typeof newValue === "string" ? (newValue as ItemType) : "ingredients");
   }, []);
 
   const handleSearchChange = useCallback((text: string) => {
@@ -79,9 +77,7 @@ const AddItemModal = ({ ref }: AddItemModalProps) => {
     // TODO: route to dict
   }, []);
 
-  const handleAddItem = () => {
-
-  }
+  const handleAddItem = () => {};
 
   const handleCloseModal = useCallback(() => {
     setIsReady(false);
@@ -122,9 +118,7 @@ const AddItemModal = ({ ref }: AddItemModalProps) => {
         <View style={styles.loadingContainer}>
           <View style={styles.errorBox}>
             <Entypo name="circle-with-cross" size={24} />
-            <IText style={styles.errorText}>
-              Something went wrong. Please try again later.
-            </IText>
+            <IText style={styles.errorText}>Something went wrong. Please try again later.</IText>
           </View>
         </View>
       ) : (
@@ -146,16 +140,13 @@ const AddItemModal = ({ ref }: AddItemModalProps) => {
             </View>
             {showRefetchLoading ? (
               <View>
-                <ActivityIndicator color="#82CD47"/>
+                <ActivityIndicator color="#82CD47" />
               </View>
-            ) : data &&
-              Array.isArray(data.ingredients) &&
-              data.ingredients.length === 0 ? (
+            ) : data && Array.isArray(data.ingredients) && data.ingredients.length === 0 ? (
               <>
                 <IText>
-                  The list is empty. This could be a result of lacking various
-                  items in our database. You might want to add your own items in
-                  your personal list below.
+                  The list is empty. This could be a result of lacking various items in our
+                  database. You might want to add your own items in your personal list below.
                 </IText>
                 <IButton
                   variant="secondary"
@@ -189,7 +180,7 @@ const AddItemModal = ({ ref }: AddItemModalProps) => {
               </>
             ) : (
               <View>
-                <ActivityIndicator color="#82CD47"/>
+                <ActivityIndicator color="#82CD47" />
               </View>
             )}
           </View>

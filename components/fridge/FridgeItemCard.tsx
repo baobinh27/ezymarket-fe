@@ -6,8 +6,6 @@ import QuantitySelector from "../QuantitySelector";
 import UnitSelector from "../UnitSelector";
 import { ItemCard, ItemImage, IText } from "../styled";
 
-
-
 export interface FridgeItemCardProps {
   item: FridgeItem;
   isEditing?: boolean;
@@ -27,9 +25,7 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
   editQuantity,
   toBeDeleted,
 }) => {
-  const [selectedQuantity, setSelectedQuantity] = useState<number>(
-    editQuantity || item.quantity
-  );
+  const [selectedQuantity, setSelectedQuantity] = useState<number>(editQuantity || item.quantity);
   const expiryDate = new Date(item.expiryDate);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -79,12 +75,7 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
         {!isEditing ? (
           <View style={styles.infoContainer}>
             <View style={styles.groupInfoContainer}>
-              <IText
-                semiBold
-                size={14}
-                color="black"
-                numberOfLines={1}
-              >
+              <IText semiBold size={14} color="black" numberOfLines={1}>
                 {item.foodId.name}
               </IText>
 
@@ -106,25 +97,14 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
         ) : (
           <View style={styles.infoContainer}>
             <View style={styles.groupInfoContainer}>
-              <IText
-                semiBold
-                size={14}
-                color="black"
-                numberOfLines={1}
-              >
+              <IText semiBold size={14} color="black" numberOfLines={1}>
                 {item.foodId.name}
               </IText>
 
               <View style={styles.editModeControls}>
-                <QuantitySelector
-                  state={selectedQuantity}
-                  setState={setSelectedQuantity}
-                />
+                <QuantitySelector state={selectedQuantity} setState={setSelectedQuantity} />
                 <View style={styles.unitSelectorContainer}>
-                  <UnitSelector 
-                    maxModalHeight="40%"
-                    buttonStyle={styles.unitSelectButton}
-                  />
+                  <UnitSelector maxModalHeight="40%" buttonStyle={styles.unitSelectButton} />
                 </View>
               </View>
             </View>
@@ -190,11 +170,11 @@ const styles = StyleSheet.create({
   },
   unitSelectorContainer: {
     // marginTop: 4,
-    marginLeft: 4
+    marginLeft: 4,
   },
   unitSelectButton: {
     width: 60,
-    height: 20
+    height: 20,
   },
   rightContent: {
     alignItems: "flex-end",

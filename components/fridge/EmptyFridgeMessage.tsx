@@ -16,12 +16,7 @@ const EmptyFridgeMessage: React.FC<EmptyFridgeMessageProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <MaterialCommunityIcons
-        name="fridge-outline"
-        size={80}
-        color="#82CD47"
-        style={styles.icon}
-      />
+      <MaterialCommunityIcons name="fridge-outline" size={80} color="#82CD47" style={styles.icon} />
       <IText semiBold size={18} color="#000000B4" style={styles.title}>
         {title}
       </IText>

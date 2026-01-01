@@ -156,4 +156,3 @@ const authStyles = StyleSheet.create({
 });
 
 export default authStyles;
-

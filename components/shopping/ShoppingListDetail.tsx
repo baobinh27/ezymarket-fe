@@ -9,7 +9,6 @@ export interface ShoppingItem {
   quantity: string;
   unit: string;
   purchased: boolean;
-
 }
 
 interface ShoppingItemListProps {
@@ -32,11 +31,7 @@ interface AddItemInputProps {
   onAdd: () => void;
 }
 
-export const AddItemInput: React.FC<AddItemInputProps> = ({
-  value,
-  onChange,
-  onAdd,
-}) => {
+export const AddItemInput: React.FC<AddItemInputProps> = ({ value, onChange, onAdd }) => {
   return (
     <View style={{ flexDirection: "row", marginBottom: 16, gap: 8 }}>
       <TextInput

@@ -16,5 +16,5 @@ export const localStorage = {
 
   remove: async (key: string) => {
     await AsyncStorage.removeItem(key);
-  }
+  },
 };

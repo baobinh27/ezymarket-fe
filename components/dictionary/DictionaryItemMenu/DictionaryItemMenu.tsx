@@ -1,3 +1,4 @@
+import React from "react";
 import { TouchableOpacity, View } from "react-native";
 
 import { IText } from "@/components/styled";
@@ -6,16 +7,20 @@ import dictionaryMenuStyles from "./dictionary-menu.styles";
 interface DictionaryItemMenuProps {
   id: string;
   type: "ingredient" | "recipe" | "unit";
+  isHidden?: boolean;
   onClose: () => void;
   onEdit: () => void;
   onHide: () => void;
+  onShow?: () => void;
   onClone: () => void;
 }
 
 export default function DictionaryItemMenu({
+  isHidden,
   onClose,
   onEdit,
   onHide,
+  onShow,
   onClone,
 }: DictionaryItemMenuProps) {
   const handleEdit = () => {
@@ -23,8 +28,12 @@ export default function DictionaryItemMenu({
     onClose();
   };
 
-  const handleHide = () => {
-    onHide();
+  const handleHideOrShow = () => {
+    if (isHidden && onShow) {
+      onShow();
+    } else {
+      onHide();
+    }
     onClose();
   };
 
@@ -41,9 +50,9 @@ export default function DictionaryItemMenu({
         </IText>
       </TouchableOpacity>
       <View style={dictionaryMenuStyles.separator} />
-      <TouchableOpacity style={dictionaryMenuStyles.menuItem} onPress={handleHide}>
+      <TouchableOpacity style={dictionaryMenuStyles.menuItem} onPress={handleHideOrShow}>
         <IText size={14} color="#000000B4">
-          Hide
+          {isHidden ? "Show" : "Hide"}
         </IText>
       </TouchableOpacity>
       <View style={dictionaryMenuStyles.separator} />
@@ -55,4 +64,3 @@ export default function DictionaryItemMenu({
     </View>
   );
 }
-

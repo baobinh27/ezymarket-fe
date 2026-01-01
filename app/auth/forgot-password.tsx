@@ -10,8 +10,7 @@ export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState("");
 
   const { showSnackBar } = useSnackBar();
-  const { mutateAsync: sendForgotPasswordRequest, isPending } =
-    useForgotPasswordRequest();
+  const { mutateAsync: sendForgotPasswordRequest, isPending } = useForgotPasswordRequest();
 
   // TODO: Kết nối API forgot-password của backend khi sẵn sàng
   const handleSubmit = async () => {
@@ -58,20 +57,11 @@ export default function ForgotPasswordScreen() {
           onChangeText={setEmail}
         />
 
-        <IButton
-          variant="primary"
-          onPress={handleSubmit}
-          style={styles.primaryButton}
-        >
-          <Text style={styles.primaryButtonText}>
-            {isPending ? "Sending..." : "Confirm"}
-          </Text>
+        <IButton variant="primary" onPress={handleSubmit} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>{isPending ? "Sending..." : "Confirm"}</Text>
         </IButton>
 
-        <Pressable
-          style={styles.backWrapper}
-          onPress={() => router.replace("/auth/login")}
-        >
+        <Pressable style={styles.backWrapper} onPress={() => router.replace("/auth/login")}>
           <Text style={styles.backText}>Back to Sign in</Text>
         </Pressable>
       </View>

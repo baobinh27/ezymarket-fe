@@ -10,13 +10,7 @@ import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  SafeAreaView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, SafeAreaView, StyleSheet, View } from "react-native";
 
 type EditingItem = {
   [key: string]: number;
@@ -97,15 +91,12 @@ export default function FridgeScreen() {
     setItemsToDelete([]);
   }, []);
 
-  const handleQuantityChange = useCallback(
-    (itemId: string, newQuantity: number) => {
-      setEditingQuantities((prev) => ({
-        ...prev,
-        [itemId]: newQuantity,
-      }));
-    },
-    []
-  );
+  const handleQuantityChange = useCallback((itemId: string, newQuantity: number) => {
+    setEditingQuantities((prev) => ({
+      ...prev,
+      [itemId]: newQuantity,
+    }));
+  }, []);
 
   const handleDeleteItem = useCallback((itemId: string) => {
     setItemsToDelete((prev) => [...prev, itemId]);
@@ -162,9 +153,7 @@ export default function FridgeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <AddItemModal
-        ref={bottomSheetRef}
-      />
+      <AddItemModal ref={bottomSheetRef} />
       {/* Header */}
       <View style={styles.header}>
         {/* TODO: implement the search logic */}
@@ -177,20 +166,12 @@ export default function FridgeScreen() {
 
         {isEditing ? (
           <>
-            <IButton
-              variant="secondary"
-              style={styles.headerButton}
-              onPress={handleCancel}
-            >
+            <IButton variant="secondary" style={styles.headerButton} onPress={handleCancel}>
               <IText semiBold size={14} color="#82CD47">
                 Cancel
               </IText>
             </IButton>
-            <IButton
-              variant="primary"
-              style={styles.headerButton}
-              onPress={handleDone}
-            >
+            <IButton variant="primary" style={styles.headerButton} onPress={handleDone}>
               <IText semiBold size={14} color="white">
                 Done
               </IText>
@@ -198,11 +179,7 @@ export default function FridgeScreen() {
           </>
         ) : (
           <>
-            <IButton
-              variant="secondary"
-              style={styles.headerButton}
-              onPress={handleEdit}
-            >
+            <IButton variant="secondary" style={styles.headerButton} onPress={handleEdit}>
               <IText semiBold size={14} color="#82CD47">
                 Edit
               </IText>
@@ -221,11 +198,7 @@ export default function FridgeScreen() {
               </IText>
               {/* TODO: Style this and make this actually work */}
               <View style={{ flexDirection: "row" }}>
-                <input
-                  type="checkbox"
-                  id="options-show-meal-use"
-                  style={styles.showTipsCheckbox}
-                />
+                <input type="checkbox" id="options-show-meal-use" style={styles.showTipsCheckbox} />
                 <label htmlFor="options-show-meal-use">
                   <IText size={12} color="white" style={{ opacity: 0.9 }}>
                     Don&apos;t show again
@@ -233,11 +206,7 @@ export default function FridgeScreen() {
                 </label>
               </View>
             </View>
-            <IButton
-              variant="tertiary"
-              onPress={handleUseInMeals}
-              style={styles.mealNavButton}
-            >
+            <IButton variant="tertiary" onPress={handleUseInMeals} style={styles.mealNavButton}>
               <FontAwesome6 name="arrow-right" size={16} color="#82CD47" />
             </IButton>
           </View>

@@ -1,6 +1,5 @@
 import { Redirect } from "expo-router";
 
-
 export default function Index() {
-    return (<Redirect href='/(app)/meals/planning' />)
+  return <Redirect href="/(app)/meals/planning" />;
 }

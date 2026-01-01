@@ -22,20 +22,16 @@ export default function ResetPasswordScreen() {
 
   // TODO: Kết nối API đặt lại mật khẩu mới khi backend sẵn sàng
   const handleConfirm = async () => {
-    if (
-      !password ||
-      !confirmPassword ||
-      isPending
-    ) {
+    if (!password || !confirmPassword || isPending) {
       return;
     }
-    if (password !== confirmPassword ) {
-      showSnackBar("Passwords don't match.", 'error');
+    if (password !== confirmPassword) {
+      showSnackBar("Passwords don't match.", "error");
       return;
     }
     try {
       if (!otp) {
-        showSnackBar("Missing OTP! Please try again.", 'error');
+        showSnackBar("Missing OTP! Please try again.", "error");
         return;
       }
       // await resetPasswordApi({ password, confirmPassword });
@@ -110,14 +106,8 @@ export default function ResetPasswordScreen() {
           </Pressable>
         </View>
 
-        <IButton
-          variant="primary"
-          onPress={handleConfirm}
-          style={styles.primaryButton}
-        >
-          <Text style={styles.primaryButtonText}>
-            {isPending ? "Saving..." : "Confirm"}
-          </Text>
+        <IButton variant="primary" onPress={handleConfirm} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>{isPending ? "Saving..." : "Confirm"}</Text>
         </IButton>
       </View>
     </View>

@@ -59,12 +59,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onChangeText={onChangeText}
         {...textInputProps}
       />
-      <FontAwesome6
-        name="magnifying-glass"
-        size={iconSize}
-        color={iconColor}
-        style={styles.icon}
-      />
+      <FontAwesome6 name="magnifying-glass" size={iconSize} color={iconColor} style={styles.icon} />
     </View>
   );
 };

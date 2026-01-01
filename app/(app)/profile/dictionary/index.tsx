@@ -1,10 +1,10 @@
 import { MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import { Pressable, ScrollView, TextInput, TouchableOpacity, View } from "react-native";
 
-import { IText } from "@/components/styled";
 import IButton from "@/components/IButton";
-import dictionaryStyles from "./dictionary.styles";
+import dictionaryStyles from "@/components/dictionary/dictionary.styles";
+import { IText } from "@/components/styled";
 import DictionaryFridgeItems from "./fridge-items";
 import DictionaryRecipes from "./recipes";
 import DictionaryUnits from "./units";
@@ -20,7 +20,6 @@ export default function DictionaryScreen() {
   const [activeTab, setActiveTab] = useState<DictionaryTab>("fridge-items");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Refs for child components to trigger their modal opening
   const fridgeItemsRef = useRef<any>(null);
   const recipesRef = useRef<any>(null);
   const unitsRef = useRef<any>(null);
@@ -49,16 +48,9 @@ export default function DictionaryScreen() {
           <Pressable
             key={tab.name}
             onPress={() => setActiveTab(tab.name)}
-            style={[
-              dictionaryStyles.tab,
-              activeTab === tab.name && dictionaryStyles.tabActive,
-            ]}
+            style={[dictionaryStyles.tab, activeTab === tab.name && dictionaryStyles.tabActive]}
           >
-            <IText
-              size={12}
-              semiBold
-              color={activeTab === tab.name ? "white" : "#000000B4"}
-            >
+            <IText size={12} semiBold color={activeTab === tab.name ? "white" : "#000000B4"}>
               {tab.title}
             </IText>
           </Pressable>
@@ -68,12 +60,7 @@ export default function DictionaryScreen() {
       {/* Search Bar with New Button */}
       <View style={dictionaryStyles.searchBarContainer}>
         <View style={dictionaryStyles.searchInputContainer}>
-          <Octicons
-            name="search"
-            size={20}
-            color="#000000B4"
-            style={dictionaryStyles.searchIcon}
-          />
+          <Octicons name="search" size={20} color="#000000B4" style={dictionaryStyles.searchIcon} />
           <TextInput
             style={dictionaryStyles.searchInput}
             placeholder="Search the dictionary..."
@@ -101,11 +88,8 @@ export default function DictionaryScreen() {
         {activeTab === "recipes" && (
           <DictionaryRecipes ref={recipesRef} searchQuery={searchQuery} />
         )}
-        {activeTab === "units" && (
-          <DictionaryUnits ref={unitsRef} searchQuery={searchQuery} />
-        )}
+        {activeTab === "units" && <DictionaryUnits ref={unitsRef} searchQuery={searchQuery} />}
       </ScrollView>
     </View>
   );
 }
-

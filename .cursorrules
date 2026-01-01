@@ -1,9 +1,11 @@
 # EzyMarket Frontend - Cursor Rules
 
 ## Project Context
+
 EzyMarket frontend là React Native/Expo app cho quản lý thực phẩm và meal planning.
 
 ## Tech Stack
+
 - React Native 0.81.5
 - Expo SDK 54
 - Expo Router 6.0.14 (file-based routing)
@@ -16,14 +18,18 @@ EzyMarket frontend là React Native/Expo app cho quản lý thực phẩm và me
 ## Architecture Pattern
 
 ### File-based Routing (Expo Router)
+
 - `app/` directory = routes
 - `(app)/` = protected routes group
 - `_layout.tsx` = layout wrapper
 - Dynamic routes: `[id].tsx`, `[...slug].tsx`
 
 ### Folder Structure
-- `app/`: Pages/screens
+
+- `app/`: Pages/screens (CHỈ chứa route files, KHÔNG chứa components)
 - `components/`: Reusable UI components
+  - Mỗi component có folder riêng: `ComponentName/ComponentName.tsx`, `ComponentName/ComponentName.styles.ts`
+- `types/`: TypeScript types và interfaces (tách riêng từ components)
 - `api/`: API client functions
 - `services/`: Business logic, contexts, axios instance
 - `hooks/`: Custom React hooks
@@ -32,6 +38,7 @@ EzyMarket frontend là React Native/Expo app cho quản lý thực phẩm và me
 ## Code Style
 
 ### Naming Conventions
+
 - Files: `PascalCase.tsx` cho components, `camelCase.ts` cho utilities
 - Components: `PascalCase`
 - Functions/variables: `camelCase`
@@ -39,12 +46,18 @@ EzyMarket frontend là React Native/Expo app cho quản lý thực phẩm và me
 - Types/Interfaces: `PascalCase` với prefix `I` hoặc `T` (optional)
 
 ### TypeScript
+
 - Type all props, state, và function parameters
 - Use interfaces cho API responses
 - Avoid `any` - use `unknown` nếu cần
 - Path aliases: `@/` → root directory
+- **BẮT BUỘC**: Tách types/interfaces ra file riêng trong `types/` folder
+  - Không định nghĩa types trong component files
+  - Group types theo domain: `types/dictionary.ts`, `types/api.ts`
+  - Export types để reuse
 
 ### Imports
+
 - Use path aliases: `@/components/...`, `@/services/...`
 - Group imports: React → Third-party → Local
 - Absolute imports preferred over relative
@@ -52,17 +65,20 @@ EzyMarket frontend là React Native/Expo app cho quản lý thực phẩm và me
 ## State Management
 
 ### React Query
+
 - Use `useQuery` cho GET requests
 - Use `useMutation` cho POST/PUT/DELETE
 - Custom hooks wrap React Query hooks
 - Example: `useGetAllFridges()` wraps `useQuery`
 
 ### Context API
+
 - `AuthProvider`: Authentication state
 - `SnackBarProvider`: Toast notifications
 - Wrap providers trong root layout
 
 ### Local Storage
+
 - **Secure Store**: Tokens, sensitive data
 - **Async Storage**: General app data
 - Use wrapper utilities: `SecureStorage`, `Storage`
@@ -70,18 +86,21 @@ EzyMarket frontend là React Native/Expo app cho quản lý thực phẩm và me
 ## API Integration
 
 ### Axios Instance
+
 - Centralized trong `services/axios.ts`
 - Request interceptor: Auto-attach access token
 - Response interceptor: Auto-refresh token on 401
 - Refresh token queue để tránh race condition
 
 ### API Functions
+
 - Place trong `api/` folder
 - Export named functions: `loginRequest`, `registerRequest`
 - Return typed responses
 - Handle errors consistently
 
 ### Token Management
+
 - Access token: Auto-attach trong request header
 - Refresh token: Dùng khi 401, auto-retry request
 - Store trong Secure Store
@@ -90,6 +109,7 @@ EzyMarket frontend là React Native/Expo app cho quản lý thực phẩm và me
 ## Components
 
 ### Component Structure
+
 ```typescript
 import React from 'react';
 import { View, Text } from 'react-native';
@@ -108,28 +128,47 @@ export const Component: React.FC<Props> = ({ title }) => {
 ```
 
 ### Styling
-- **NativeWind**: Primary styling method
-  - Use `className` prop
-  - Tailwind classes: `flex-1`, `justify-center`, etc.
-- **Styled Components**: For complex styling
-  - Use when NativeWind không đủ
-- **StyleSheet**: Avoid, prefer NativeWind
+
+- **BẮT BUỘC**: Tách styles ra file riêng `.styles.ts` hoặc `.styles.tsx`
+  - Mỗi component phải có file styles riêng: `ComponentName.styles.ts`
+  - Sử dụng `StyleSheet.create()` từ React Native
+  - Import styles: `import styles from "./ComponentName.styles"`
+  - KHÔNG được viết inline styles trong component (trừ dynamic styles)
+- **StyleSheet**: Primary styling method
+  - Tất cả styles phải trong `StyleSheet.create()`
+  - Export default styles object
+- **Styled Components**: For complex styling khi cần
+  - Use khi StyleSheet không đủ
+- **NativeWind**: Avoid, không sử dụng trong project này
 
 ### Component Organization
+
 - One component per file
+- **BẮT BUỘC**: Mỗi component phải có folder riêng với structure:
+  ```
+  ComponentName/
+    ├── ComponentName.tsx
+    ├── ComponentName.styles.ts
+    └── index.tsx (export ComponentName)
+  ```
 - Props interface defined above component
 - Export default hoặc named export
 - Group related components trong subfolders
+- **KHÔNG được đặt components trong route folders** (`app/`, `app/(app)/`)
+  - Components phải ở `components/` folder
+  - Routes chỉ chứa route files (`.tsx` files cho routing)
 
 ## Hooks
 
 ### Custom Hooks
+
 - Place trong `hooks/` folder
 - Group by feature: `hooks/auth/`, `hooks/fridge/`
 - Naming: `useFeatureName`
 - Return typed values
 
 ### React Query Hooks
+
 - Wrap `useQuery`/`useMutation` trong custom hooks
 - Provide query keys, options
 - Handle loading, error states
@@ -137,12 +176,14 @@ export const Component: React.FC<Props> = ({ title }) => {
 ## Error Handling
 
 ### API Errors
+
 - Try-catch trong async functions
 - Show user-friendly messages
 - Use SnackBar context cho notifications
 - Log errors for debugging
 
 ### Error Messages
+
 - User-friendly, không expose technical details
 - Consistent format
 - Show loading states
@@ -150,40 +191,48 @@ export const Component: React.FC<Props> = ({ title }) => {
 ## Performance
 
 ### React Query
+
 - Enable caching
 - Use `staleTime`, `cacheTime` appropriately
 - Refetch on focus, reconnect
 
 ### Images
+
 - Use `expo-image` thay vì `Image`
 - Optimize image sizes
 - Lazy load images
 
 ### Code Splitting
+
 - Lazy load screens khi có thể
 - Use dynamic imports cho heavy components
 
 ## Best Practices
 
 ### Code Organization
+
 - Keep components small và focused
 - Extract reusable logic vào hooks
 - Separate API calls từ components
 - Business logic trong services
 
 ### TypeScript
+
 - Type everything
 - Use interfaces cho props
 - Avoid `any`
 - Use type guards khi cần
 
 ### Styling
-- Prefer NativeWind cho most cases
-- Use Styled Components cho complex cases
+
+- **BẮT BUỘC**: Tách styles ra file `.styles.ts` riêng
+- Use StyleSheet.create() cho tất cả styles
 - Consistent spacing, colors
 - Responsive design
+- KHÔNG viết inline styles (trừ dynamic styles cần tính toán)
 
 ### Navigation
+
 - Use Expo Router navigation hooks
 - Type-safe navigation với TypeScript
 - Handle deep links
@@ -191,35 +240,95 @@ export const Component: React.FC<Props> = ({ title }) => {
 ## Common Tasks
 
 ### Thêm Screen mới
+
 1. Tạo file trong `app/` hoặc `app/(app)/`
 2. Export default component
 3. Add navigation nếu cần
 4. Add types cho navigation params
 
 ### Thêm API call mới
+
 1. Tạo function trong `api/` folder
 2. Use axios instance từ `services/axios.ts`
 3. Type request/response
 4. Create custom hook nếu cần
 
 ### Thêm Component mới
-1. Tạo file trong `components/`
-2. Define Props interface
-3. Use NativeWind cho styling
-4. Export component
+
+1. Tạo folder trong `components/` với structure:
+   ```
+   ComponentName/
+     ├── ComponentName.tsx
+     ├── ComponentName.styles.ts
+     └── index.tsx
+   ```
+2. Define Props interface (hoặc import từ `types/`)
+3. Tạo file styles riêng với `StyleSheet.create()`
+4. Export component từ `index.tsx`
+5. **KHÔNG đặt component trong route folders**
 
 ### Authentication Flow
+
 - Check `isLoggedIn` từ `useAuth()`
 - Redirect to login nếu not authenticated
 - Use `SecureStorage` cho tokens
 - Handle token refresh automatically
 
+## Code Quality Rules
+
+### Styles Separation
+
+- **BẮT BUỘC**: Mỗi component phải có file styles riêng `.styles.ts`
+- Sử dụng `StyleSheet.create()` từ React Native
+- KHÔNG viết inline styles trong component (trừ dynamic styles)
+- Import: `import styles from "./ComponentName.styles"`
+
+### Component Structure
+
+- Mỗi component có folder riêng:
+  ```
+  ComponentName/
+    ├── ComponentName.tsx
+    ├── ComponentName.styles.ts
+    └── index.tsx
+  ```
+- **KHÔNG đặt components trong route folders** (`app/`, `app/(app)/`)
+- Routes chỉ chứa route files, không chứa components
+
+### Types Organization
+
+- Tách types/interfaces ra `types/` folder
+- Group theo domain: `types/dictionary.ts`, `types/api.ts`
+- Không định nghĩa types trong component files
+
+### Entity Changes & Suggestions
+
+- Sử dụng hooks cho entity changes: `useEntityChange`, `useUnitChange`
+- Suggestions phải hiển thị trong modal (giống `UnitSelector`)
+- Sử dụng `IngredientSelector` component cho ingredient selection
+- Modal-based selection thay vì inline dropdown
+
+### Code Cleanup
+
+- **KHÔNG có console.log** trong production code
+- Xóa các comment không cần thiết
+- Xóa code không sử dụng (unused imports, functions, variables)
+
+### Prettier Standards
+
+- Sử dụng Prettier cho code formatting
+- Config trong `.prettierrc`
+- Run `npm run format` trước khi commit
+
 ## Notes
+
 - Expo Router tự động generate routes
 - Protected routes trong `(app)/` group
 - Auto-refresh token trong axios interceptor
 - React Query cho tất cả data fetching
-- NativeWind primary styling method
+- StyleSheet primary styling method (tách riêng file)
 - TypeScript strict mode
 - Secure Store cho sensitive data only
-
+- Components phải tách styles ra file riêng
+- Types phải tách ra `types/` folder
+- Suggestions sử dụng modal-based selection

@@ -21,4 +21,3 @@ const emptyStateStyles = StyleSheet.create({
 });
 
 export default emptyStateStyles;
-

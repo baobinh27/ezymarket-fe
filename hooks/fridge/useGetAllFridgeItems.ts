@@ -3,7 +3,13 @@ import { PaginatedResponse } from "@/types/api";
 import { FridgeItem } from "@/types/types";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
-export const useGetAllFridgeItems = ({ params, enabled = true }: {params: GetAllFridgeItemsParams, enabled?: boolean}): UseQueryResult<PaginatedResponse<FridgeItem>, Error> => {
+export const useGetAllFridgeItems = ({
+  params,
+  enabled = true,
+}: {
+  params: GetAllFridgeItemsParams;
+  enabled?: boolean;
+}): UseQueryResult<PaginatedResponse<FridgeItem>, Error> => {
   return useQuery({
     enabled: enabled,
     queryKey: ["fridge-items", params],

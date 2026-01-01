@@ -42,9 +42,7 @@ export default function AddItemModalLayout({ ref, onClose }: AddItemModalProps) 
   }, []);
 
   const handleRemoveIngredient = useCallback((ingredientId: string) => {
-    setSelectedIngredients((prev) =>
-      prev.filter((ing) => ing._id !== ingredientId)
-    );
+    setSelectedIngredients((prev) => prev.filter((ing) => ing._id !== ingredientId));
     setSelectedIngredientIds((prev) => {
       const newSet = new Set(prev);
       newSet.delete(ingredientId);
@@ -73,11 +71,7 @@ export default function AddItemModalLayout({ ref, onClose }: AddItemModalProps) 
             style={[styles.tab, activeTab === "browse" && styles.activeTab]}
             onPress={() => setActiveTab("browse")}
           >
-            <IText
-              semiBold
-              size={12}
-              color={activeTab === "browse" ? "#FFFFFF" : "#000000B4"}
-            >
+            <IText semiBold size={12} color={activeTab === "browse" ? "#FFFFFF" : "#000000B4"}>
               Browse
             </IText>
           </TouchableOpacity>
@@ -85,11 +79,7 @@ export default function AddItemModalLayout({ ref, onClose }: AddItemModalProps) 
             style={[styles.tab, activeTab === "list" && styles.activeTab]}
             onPress={() => setActiveTab("list")}
           >
-            <IText
-              semiBold
-              size={12}
-              color={activeTab === "list" ? "#FFFFFF" : "#000000B4"}
-            >
+            <IText semiBold size={12} color={activeTab === "list" ? "#FFFFFF" : "#000000B4"}>
               List {selectedIngredients.length > 0 && `(${selectedIngredients.length})`}
             </IText>
           </TouchableOpacity>

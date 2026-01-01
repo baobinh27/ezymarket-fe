@@ -13,12 +13,12 @@ export default function CheckoutHeader({ onBack, onSave }: CheckoutHeaderProps) 
     <View
       style={{
         flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingHorizontal: 16,
-      paddingTop: 50,
-      paddingBottom: 10,
-    //   backgroundColor: "white"
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingTop: 50,
+        paddingBottom: 10,
+        //   backgroundColor: "white"
       }}
     >
       <TouchableOpacity onPress={onBack}>

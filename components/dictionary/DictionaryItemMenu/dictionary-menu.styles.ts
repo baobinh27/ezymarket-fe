@@ -24,4 +24,3 @@ const dictionaryMenuStyles = StyleSheet.create({
 });
 
 export default dictionaryMenuStyles;
-

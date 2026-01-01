@@ -2,9 +2,9 @@ import axiosInstance from "@/services/axios";
 import { Unit } from "@/types/types";
 
 export type GetAllUnitsParams = {
-    page?: number,
-    limit?: number
-}
+  page?: number;
+  limit?: number;
+};
 
 export interface GetAllUnitsResponse {
   units: Unit[];
@@ -16,11 +16,14 @@ export interface GetAllUnitsResponse {
   };
 }
 
-export const getAllUnits = ({page = 1, limit = 100}: GetAllUnitsParams = {}): Promise<GetAllUnitsResponse> => {
-    return axiosInstance.get('/api/units', {
-        params: {
-            page,
-            limit
-        }
-    })
-}
+export const getAllUnits = ({
+  page = 1,
+  limit = 100,
+}: GetAllUnitsParams = {}): Promise<GetAllUnitsResponse> => {
+  return axiosInstance.get("/api/units", {
+    params: {
+      page,
+      limit,
+    },
+  });
+};

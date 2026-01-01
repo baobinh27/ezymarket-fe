@@ -15,7 +15,7 @@ export default function AuthLayout() {
   // }
 
   if (isLoggedIn) return <Redirect href="/home" />;
-  return (<Stack screenOptions={{ headerShown: false }} />);
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 // const styles = StyleSheet.create({

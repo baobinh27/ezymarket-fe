@@ -1,8 +1,9 @@
-import { View } from "react-native";
+import React from "react";
 import { Octicons } from "@expo/vector-icons";
+import { View } from "react-native";
 
 import { IText } from "@/components/styled";
-import emptyStateStyles from "./empty-state.styles";
+import emptyStateStyles from "./EmptyState.styles";
 
 interface EmptyStateProps {
   icon?: keyof typeof Octicons.glyphMap;
@@ -27,4 +28,3 @@ export default function EmptyState({ icon = "package", title, message }: EmptySt
     </View>
   );
 }
-

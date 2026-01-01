@@ -27,10 +27,6 @@ const AddItemModal = ({ ref }: AddItemModalProps) => {
 
   const [hasModalLoaded, setHasModalLoaded] = useState(false);
 
-  // defensive logging
-  useEffect(() => {
-    console.log("data:", data);
-  }, [data]);
 
   const handleGoFridge = () => {
     // TODO: close the modal
@@ -61,9 +57,7 @@ const AddItemModal = ({ ref }: AddItemModalProps) => {
         <View style={styles.loadingContainer}>
           <View style={styles.errorBox}>
             <Entypo name="circle-with-cross" size={24} />
-            <IText style={styles.errorText}>
-              Something went wrong. Please try again later.
-            </IText>
+            <IText style={styles.errorText}>Something went wrong. Please try again later.</IText>
           </View>
         </View>
       ) : (
@@ -71,21 +65,17 @@ const AddItemModal = ({ ref }: AddItemModalProps) => {
           {data && Array.isArray(data.items) && data.items.length === 0 && (
             <>
               <IText>
-                Your fridge is empty. You might want to have something in your
-                fridge before using them.
+                Your fridge is empty. You might want to have something in your fridge before using
+                them.
               </IText>
-              <IButton
-                variant="secondary"
-                onPress={handleGoFridge}
-                style={styles.goToFridgeBtn}
-              >
-                <IText semiBold color="#46982D">Go to Fridge</IText>
+              <IButton variant="secondary" onPress={handleGoFridge} style={styles.goToFridgeBtn}>
+                <IText semiBold color="#46982D">
+                  Go to Fridge
+                </IText>
               </IButton>
             </>
           )}
-          {data && Array.isArray(data.items) && data.items.length !== 0 && (
-            <>map items here</>
-          )}
+          {data && Array.isArray(data.items) && data.items.length !== 0 && <>map items here</>}
           {showRefetchLoading && <IText>loading overlay</IText>}
         </View>
       )}

@@ -28,6 +28,9 @@ const dictionaryItemStyles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
+  itemCardHidden: {
+    opacity: 0.4,
+  },
   itemLeft: {
     flexDirection: "row",
     alignItems: "center",

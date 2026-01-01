@@ -76,23 +76,13 @@ export default function WelcomeScreen() {
 
         <View style={styles.dotsRow}>
           {slides.map((item, i) => (
-            <View
-              key={item.id}
-              style={[
-                styles.dot,
-                i === index && styles.dotActive,
-              ]}
-            />
+            <View key={item.id} style={[styles.dot, i === index && styles.dotActive]} />
           ))}
         </View>
       </View>
 
       <View style={styles.footer}>
-        <IButton
-          variant="primary"
-          onPress={handleNext}
-          style={styles.primaryButton}
-        >
+        <IButton variant="primary" onPress={handleNext} style={styles.primaryButton}>
           <Text style={styles.primaryButtonText}>
             {index === slides.length - 1 ? "Get Started" : "Next"}
           </Text>

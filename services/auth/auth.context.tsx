@@ -1,16 +1,16 @@
 // src/services/auth.context.tsx
-import { loginRequest, registerRequest } from "@/api/auth";
+import { getCurrentUser, loginRequest, registerRequest } from "@/api/auth";
 import { SecureStorage } from "@/utils/secureStorage";
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import axiosInstance from "../axios";
 
-type User = { id: string; name: string; role?: string } | null;
+type User = {
+  id: string;
+  userName?: string;
+  email?: string;
+  role?: string;
+  groupId?: string | null;
+} | null;
 
 type AuthContextType = {
   user: User;
@@ -18,10 +18,7 @@ type AuthContextType = {
   otp: string | null;
   loading: boolean;
   setOtp: (otp: string | null) => void;
-  login: (
-    email: string,
-    password: string
-  ) => Promise<{ success: boolean; message: string }>;
+  login: (email: string, password: string) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
   register: (
     email: string,
@@ -49,20 +46,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        // Gọi API refresh lần đầu
-        const { refreshToken, token } = (await axiosInstance.post(
-          `/api/user/token/refresh`,
-          { refreshToken: refresh }
-        )) as { refreshToken: string; token: string };
+        const { refreshToken, token } = (await axiosInstance.post(`/api/user/token/refresh`, {
+          refreshToken: refresh,
+        })) as { refreshToken: string; token: string };
 
         await SecureStorage.setItem("accessToken", token);
         await SecureStorage.setItem("refreshToken", refreshToken);
-        setUser(user);
+
+        try {
+          const userData = await getCurrentUser();
+          setUser(userData);
+          setIsLoggedIn(true);
+        } catch (userError) {
+          console.error("Failed to get user info:", userError);
         setIsLoggedIn(true);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        }
       } catch (e) {
         await SecureStorage.deleteItem("refreshToken");
         await SecureStorage.deleteItem("accessToken");
+        setIsLoggedIn(false);
+        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -118,11 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoggedIn(false);
   };
 
-  const register = async (
-    email: string,
-    username: string,
-    password: string
-  ) => {
+  const register = async (email: string, username: string, password: string) => {
     try {
       const { data } = await registerRequest(email, "000000000000", password);
 
@@ -131,8 +130,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         message: "Register success! Check your mail to verify your account!",
       };
     } catch (error: any) {
-      console.log(error);
-
       const status = error?.response?.status;
       const message = error?.response?.data?.message;
 

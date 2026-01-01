@@ -213,11 +213,7 @@ const MealPlanning = () => {
                 style={styles.iconButton}
               >
                 {isExpanded[meal.expandedKey] ? (
-                  <MaterialCommunityIcons
-                    name="playlist-check"
-                    size={24}
-                    color="white"
-                  />
+                  <MaterialCommunityIcons name="playlist-check" size={24} color="white" />
                 ) : (
                   <Feather name="edit-3" size={24} color="white" />
                 )}
@@ -226,9 +222,7 @@ const MealPlanning = () => {
 
             {isExpanded[meal.expandedKey] && (
               <ItemCard>
-                <View
-                  style={{ flexDirection: "column", gap: 8, width: "100%" }}
-                >
+                <View style={{ flexDirection: "column", gap: 8, width: "100%" }}>
                   {meal.data.map((foodItem, index) => (
                     <View key={index} style={styles.foodItem}>
                       <IButton style={styles.iconButton}>
@@ -252,10 +246,7 @@ const MealPlanning = () => {
                   ))}
 
                   <View style={styles.foodItem}>
-                    <IButton
-                      style={styles.iconButton}
-                      onPress={handleOpenModal}
-                    >
+                    <IButton style={styles.iconButton} onPress={handleOpenModal}>
                       <Entypo name="plus" size={24} color="#000000B4" />
                     </IButton>
                     <IText size={12}>Add a dish or an item</IText>

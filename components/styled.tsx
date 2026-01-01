@@ -21,11 +21,7 @@ type ITextProps = {
  */
 export const IText = styled.Text<ITextProps>`
   font-family: ${(props: any) =>
-    props.bold
-      ? "Inter_700Bold"
-      : props.semiBold
-      ? "Inter_600SemiBold"
-      : "Inter_400Regular"};
+    props.bold ? "Inter_700Bold" : props.semiBold ? "Inter_600SemiBold" : "Inter_400Regular"};
   font-size: ${(props: any) => (props.size ? props.size + "px" : "14px")};
   color: ${(props: any) => (props.color ? props.color : "#000000B4")};
 `;
@@ -62,13 +58,11 @@ const WebItemCard = styled.View<ItemCardProps>`
 `;
 
 // LinearGradient for mobile
-const MobileItemCard = styled(LinearGradient as any).attrs<ItemCardProps>(
-  (props) => ({
-    colors: props.primary ? ["#46982D", "#82CD47"] : ["#eeeeee", "#eeeeee"],
-    start: { x: 0, y: 0 },
-    end: { x: 1, y: 1 },
-  })
-)<ItemCardProps>`
+const MobileItemCard = styled(LinearGradient as any).attrs<ItemCardProps>((props) => ({
+  colors: props.primary ? ["#46982D", "#82CD47"] : ["#eeeeee", "#eeeeee"],
+  start: { x: 0, y: 0 },
+  end: { x: 1, y: 1 },
+}))<ItemCardProps>`
   ${(props) =>
     !props.isFirst && !props.isLast && props.isInGroup
       ? "border-radius: 0; border-bottom-width: 1px; border-bottom-color: white;"
@@ -233,17 +227,11 @@ export const ItemImageWithFallback: React.FC<ItemImageWithFallbackProps> = ({
 }) => {
   const [hasError, setHasError] = useState(false);
 
-  const shouldShowFallback =
-    hasError || (typeof source === "string" && !source);
+  const shouldShowFallback = hasError || (typeof source === "string" && !source);
 
   const displaySource = shouldShowFallback ? FALLBACK_IMAGE : source;
 
   return (
-    <ItemImage
-      source={displaySource}
-      style={style}
-      onError={() => setHasError(true)}
-      {...props}
-    />
+    <ItemImage source={displaySource} style={style} onError={() => setHasError(true)} {...props} />
   );
 };

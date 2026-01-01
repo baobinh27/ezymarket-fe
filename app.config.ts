@@ -6,6 +6,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: "EzyMarket",
   slug: "ezymarket",
   extra: {
-    BASE_API: process.env.BASE_API
+    BASE_API: process.env.BASE_API,
   },
 });

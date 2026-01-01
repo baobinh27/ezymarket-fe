@@ -4,18 +4,11 @@ import { useCreateFridgeItem } from "@/hooks/fridge/useCreateFridgeItem";
 import { Ingredient } from "@/types/types";
 import { Entypo } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import IButton from "../../IButton";
 import QuantitySelector from "../../QuantitySelector";
 import { ItemCard, ItemImageWithFallback, IText } from "../../styled";
 import UnitSelector from "../../UnitSelector";
-
 
 interface SelectedIngredientItem extends Ingredient {
   id: string; // unique identifier for this instance in the list
@@ -32,11 +25,7 @@ interface ListTabProps {
   onClose: () => void;
 }
 
-const ListTab = ({
-  selectedIngredients,
-  onRemoveIngredient,
-  onClose,
-}: ListTabProps) => {
+const ListTab = ({ selectedIngredients, onRemoveIngredient, onClose }: ListTabProps) => {
   const [items, setItems] = useState<SelectedIngredientItem[]>(
     selectedIngredients.map((ing, idx) => ({
       ...ing,
@@ -53,45 +42,32 @@ const ListTab = ({
   const { mutate: createItem } = useCreateFridgeItem();
   //   const { showSnackBar } = useSnackBar();
 
-  const handleQuantityChange = useCallback(
-    (id: string, newQuantity: number) => {
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, quantity: newQuantity } : item
-        )
-      );
-    },
-    []
-  );
+  const handleQuantityChange = useCallback((id: string, newQuantity: number) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item))
+    );
+  }, []);
 
   const handleUnitChange = useCallback((id: string, newUnit: string) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, selectedUnit: newUnit } : item
-      )
+      prev.map((item) => (item.id === id ? { ...item, selectedUnit: newUnit } : item))
     );
   }, []);
 
   const handlePurchaseDateChange = useCallback((id: string, date: string) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, purchaseDate: date } : item
-      )
+      prev.map((item) => (item.id === id ? { ...item, purchaseDate: date } : item))
     );
   }, []);
 
   const handleDateToExpireChange = useCallback((id: string, days: number) => {
     setItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, dateToExpire: days } : item
-      )
+      prev.map((item) => (item.id === id ? { ...item, dateToExpire: days } : item))
     );
   }, []);
 
   const handlePriceChange = useCallback((id: string, priceStr: string) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, price: priceStr } : item))
-    );
+    setItems((prev) => prev.map((item) => (item.id === id ? { ...item, price: priceStr } : item)));
   }, []);
 
   const handleRemoveItem = useCallback((id: string) => {
@@ -167,10 +143,7 @@ const ListTab = ({
             <ItemCard key={item.id} style={styles.itemPanel}>
               <View style={styles.panelHeader}>
                 <View style={styles.itemInfo}>
-                  <ItemImageWithFallback
-                    source={item.imageURL}
-                    style={styles.itemImage}
-                  />
+                  <ItemImageWithFallback source={item.imageURL} style={styles.itemImage} />
                   <IText semiBold size={14}>
                     {item.name}
                   </IText>
@@ -255,9 +228,7 @@ const ListTab = ({
                     style={styles.input}
                     placeholder="YYYY-MM-DD"
                     value={item.purchaseDate}
-                    onChangeText={(date) =>
-                      handlePurchaseDateChange(item.id, date)
-                    }
+                    onChangeText={(date) => handlePurchaseDateChange(item.id, date)}
                   />
                 </View>
                 <View style={styles.fieldGroup}>

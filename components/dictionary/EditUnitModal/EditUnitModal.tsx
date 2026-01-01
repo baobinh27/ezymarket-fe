@@ -1,18 +1,19 @@
 import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { forwardRef, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  StyleSheet,
-  TextInput,
-  View
-} from "react-native";
+import React, { forwardRef, useEffect, useState } from "react";
+import { ActivityIndicator, Alert, TextInput, View } from "react-native";
 
 import { createUnit, getUnitById, updateUnit } from "@/api/dictionary";
 import IBottomSheetModal from "@/components/IBottomSheetModal";
 import IButton from "@/components/IButton";
 import { IText } from "@/components/styled";
+import {
+  getClonedItem,
+  markClonedItemAsEdited,
+  removeClonedItem,
+  updateClonedItem,
+} from "@/utils/dictionaryStorage";
+import styles from "./EditUnitModal.styles";
 
 interface EditUnitModalProps {
   unitId?: string | null;
@@ -24,19 +25,18 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
   ({ unitId, onClose, onSuccess }, ref) => {
     const queryClient = useQueryClient();
     const isNew = !unitId || unitId === "new";
+    const isCloned = unitId?.startsWith("temp_unit_");
 
     const [name, setName] = useState("");
     const [abbreviation, setAbbreviation] = useState("");
     const [type, setType] = useState("");
 
-    // Fetch unit data if editing
     const { data: unitData, isLoading: isLoadingUnit } = useQuery({
       queryKey: ["unit", unitId],
       queryFn: () => getUnitById(unitId as string),
-      enabled: !isNew && !!unitId,
+      enabled: !isNew && !!unitId && !isCloned,
     });
 
-    // Set form data when unit loads
     useEffect(() => {
       if (unitData) {
         const unit = unitData.unit || unitData;
@@ -46,7 +46,21 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
       }
     }, [unitData]);
 
-    // Reset form when opening for new item
+    useEffect(() => {
+      const loadClonedItem = async () => {
+        if (isCloned && unitId) {
+          const cloned = await getClonedItem("unit", unitId);
+          if (cloned) {
+            const unit = cloned.data;
+            setName(unit.name || "");
+            setAbbreviation(unit.abbreviation || "");
+            setType(unit.type || "");
+          }
+        }
+      };
+      loadClonedItem();
+    }, [isCloned, unitId]);
+
     useEffect(() => {
       if (isNew) {
         setName("");
@@ -55,10 +69,12 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
       }
     }, [isNew, unitId]);
 
-    // Create mutation
     const createMutation = useMutation({
       mutationFn: createUnit,
-      onSuccess: () => {
+      onSuccess: async () => {
+        if (isCloned && unitId) {
+          await removeClonedItem("unit", unitId);
+        }
         queryClient.invalidateQueries({ queryKey: ["units"] });
         Alert.alert("Success", "Unit created successfully");
         onSuccess?.();
@@ -69,7 +85,6 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
       },
     });
 
-    // Update mutation
     const updateMutation = useMutation({
       mutationFn: ({ id, data }: { id: string; data: any }) => updateUnit(id, data),
       onSuccess: () => {
@@ -84,7 +99,7 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
       },
     });
 
-    const handleSave = () => {
+    const handleSave = async () => {
       if (!name.trim()) {
         Alert.alert("Error", "Please enter unit name");
         return;
@@ -96,7 +111,11 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
         type: type.trim() || undefined,
       };
 
-      if (isNew) {
+      if (isCloned && unitId) {
+        await updateClonedItem("unit", unitId, data);
+        await markClonedItemAsEdited("unit", unitId);
+        createMutation.mutate(data);
+      } else if (isNew) {
         createMutation.mutate(data);
       } else {
         updateMutation.mutate({ id: unitId as string, data });
@@ -166,11 +185,7 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
         <View style={styles.actionButtons}>
           <IButton
             variant="primary"
-            onPress={
-              createMutation.isPending || updateMutation.isPending
-                ? undefined
-                : handleSave
-            }
+            onPress={createMutation.isPending || updateMutation.isPending ? undefined : handleSave}
             style={styles.saveButton}
           >
             {createMutation.isPending || updateMutation.isPending ? (
@@ -190,39 +205,3 @@ const EditUnitModal = forwardRef<BottomSheetModal, EditUnitModalProps>(
 EditUnitModal.displayName = "EditUnitModal";
 
 export default EditUnitModal;
-
-const styles = StyleSheet.create({
-  centerContainer: {
-    paddingVertical: 40,
-    alignItems: "center",
-  },
-  formSection: {
-    gap: 20,
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  fieldGroup: {
-    gap: 8,
-  },
-  label: {
-    color: "#000000",
-  },
-  input: {
-    backgroundColor: "#F5F5F5",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 14,
-    fontFamily: "Inter_400Regular",
-    color: "#000000",
-  },
-  actionButtons: {
-    paddingTop: 16,
-    paddingBottom: 20,
-  },
-  saveButton: {
-    width: "100%",
-    paddingVertical: 14,
-    borderRadius: 8,
-  },
-});

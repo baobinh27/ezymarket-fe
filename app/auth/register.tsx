@@ -14,29 +14,27 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const { register } = useAuth()
+  const { register } = useAuth();
   const { showSnackBar } = useSnackBar();
 
   // TODO: Username is used as phone here, revert this after BE change the API
   const handleRegister = async () => {
     if (!email || !username || !password) {
-      showSnackBar("Please enter your credentials.", 'warning');
+      showSnackBar("Please enter your credentials.", "warning");
       return;
     }
     if (password !== confirmPassword) {
-      showSnackBar("Passwords do not match each other.", 'warning');
+      showSnackBar("Passwords do not match each other.", "warning");
       return;
     }
-    
+
     // router.push("/auth/login");
     const { success, message } = await register(email, username, password);
     if (success) {
-      showSnackBar(message, 'success', 5000);
+      showSnackBar(message, "success", 5000);
     } else {
-      showSnackBar(message, 'error')
+      showSnackBar(message, "error");
     }
-
-
   };
 
   return (
@@ -118,11 +116,7 @@ export default function RegisterScreen() {
           </Pressable>
         </View>
 
-        <IButton
-          variant="primary"
-          onPress={handleRegister}
-          style={styles.primaryButton}
-        >
+        <IButton variant="primary" onPress={handleRegister} style={styles.primaryButton}>
           <Text style={styles.primaryButtonText}>Sign up</Text>
         </IButton>
 

@@ -46,8 +46,7 @@ type Extra = {
   BASE_API: string;
 };
 
-const { BASE_API = "http://localhost:5001" } = Constants.expoConfig
-  ?.extra as Extra;
+const { BASE_API = "http://localhost:5001" } = Constants.expoConfig?.extra as Extra;
 
 const axiosInstance = axios.create({
   baseURL: BASE_API,
@@ -94,11 +93,7 @@ axiosInstance.interceptors.response.use(
   async (error: AxiosError<{ message?: string }>) => {
     const originalRequest = error.config;
 
-    if (
-      error.response?.status === 401 &&
-      originalRequest &&
-      !originalRequest._retry
-    ) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
       // A refreshAccessToken request already exists, put it in queue
@@ -138,9 +133,7 @@ axiosInstance.interceptors.response.use(
 
     if (error.response?.status === 400 || error.response?.status === 429) {
       return Promise.reject(
-        new Error(
-          error.response.data?.message || "Something went wrong (400/429)"
-        )
+        new Error(error.response.data?.message || "Something went wrong (400/429)")
       );
     }
 

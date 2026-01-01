@@ -31,6 +31,8 @@ export default function DictionaryLayout() {
         contentStyle: { backgroundColor: "white" },
         headerShadowVisible: false,
         headerStyle: { backgroundColor: "white" },
+        animation: "default",
+        presentation: "card",
       }}
     >
       <Stack.Screen
@@ -38,7 +40,7 @@ export default function DictionaryLayout() {
         options={{
           headerShown: true,
           headerBackVisible: false,
-          header: () => <DictionaryHeader onBack={() => router.push("/profile")} />,
+          header: () => <DictionaryHeader onBack={() => router.back()} />,
         }}
       />
     </Stack>
@@ -77,4 +79,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-

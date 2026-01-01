@@ -9,23 +9,32 @@ import styles from "./auth.styles";
 
 export default function LoginScreen() {
   const { login, loading } = useAuth();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const { showSnackBar } = useSnackBar();
 
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleLogin = async () => {
     if (submitting) return;
-    if (!username || !password) {
-      showSnackBar("Please enter your credentials.", 'warning');
+    if (!email || !password) {
+      showSnackBar("Please enter your credentials.", "warning");
+      return;
+    }
+    if (!validateEmail(email.trim())) {
+      showSnackBar("Please enter a valid email address.", "warning");
       return;
     }
     try {
       setSubmitting(true);
-      const { success, message } = await login(username.trim(), password);
-      showSnackBar(message, success ? 'success' : 'error');
+      const { success, message } = await login(email.trim(), password);
+      showSnackBar(message, success ? "success" : "error");
       if (success) router.replace("/");
     } finally {
       setSubmitting(false);
@@ -47,14 +56,16 @@ export default function LoginScreen() {
       </View>
 
       <View style={styles.form}>
-        <Text style={styles.label}>Username</Text>
+        <Text style={styles.label}>Email</Text>
         <TextInput
           style={styles.input}
-          placeholder="Username"
+          placeholder="Email"
           placeholderTextColor="#9CA3AF"
           autoCapitalize="none"
-          value={username}
-          onChangeText={setUsername}
+          keyboardType="email-address"
+          autoComplete="email"
+          value={email}
+          onChangeText={setEmail}
         />
 
         <Text style={[styles.label, { marginTop: 16 }]}>Password</Text>
@@ -86,14 +97,8 @@ export default function LoginScreen() {
           <Text style={styles.forgotText}>Forgot password?</Text>
         </Pressable>
 
-        <IButton
-          variant="primary"
-          onPress={handleLogin}
-          style={styles.primaryButton}
-        >
-          <Text style={styles.primaryButtonText}>
-            {loading ? "Signing in..." : "Sign in"}
-          </Text>
+        <IButton variant="primary" onPress={handleLogin} style={styles.primaryButton}>
+          <Text style={styles.primaryButtonText}>{loading ? "Signing in..." : "Sign in"}</Text>
         </IButton>
 
         <View style={styles.bottomRow}>

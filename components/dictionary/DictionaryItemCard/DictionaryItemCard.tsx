@@ -1,10 +1,10 @@
 import { Octicons } from "@expo/vector-icons";
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Modal, Pressable, TouchableOpacity, View } from "react-native";
 
 import { IText, ItemImage } from "@/components/styled";
-import dictionaryItemStyles from "../dictionary-item.styles";
-import DictionaryItemMenu from "./DictionaryItemMenu";
+import DictionaryItemMenu from "../DictionaryItemMenu/DictionaryItemMenu";
+import dictionaryItemStyles from "./dictionary-item.styles";
 
 export type DictionaryItemType = "ingredient" | "recipe";
 
@@ -12,8 +12,10 @@ interface BaseDictionaryItemCardProps {
   id: string;
   type: DictionaryItemType;
   isSystem?: boolean;
+  isHidden?: boolean;
   onEdit?: () => void;
   onHide?: () => void;
+  onShow?: () => void;
   onClone?: () => void;
 }
 
@@ -40,7 +42,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<View>(null);
-  const { id, type, isSystem, onEdit, onHide, onClone } = props;
+  const { id, type, isSystem, isHidden, onEdit, onHide, onShow, onClone } = props;
 
   const handleMenuClose = () => {
     setMenuVisible(false);
@@ -88,7 +90,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
     }
 
     const { icon, name, description, tags, ingredientsCount } = props;
-    
+
     const validTags = (tags ?? [])
       .filter((tag) => {
         if (typeof tag === "string" || !tag?._id) return false;
@@ -162,15 +164,12 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
 
   return (
     <>
-      <View style={dictionaryItemStyles.itemCard}>
+      <View style={[dictionaryItemStyles.itemCard, isHidden && dictionaryItemStyles.itemCardHidden]}>
         <View style={dictionaryItemStyles.itemLeft}>{renderContent()}</View>
 
         {!isSystem && (onEdit || onHide || onClone) && (
           <View ref={buttonRef} collapsable={false}>
-            <TouchableOpacity
-              onPress={handleMenuOpen}
-              style={dictionaryItemStyles.menuButton}
-            >
+            <TouchableOpacity onPress={handleMenuOpen} style={dictionaryItemStyles.menuButton}>
               <Octicons name="kebab-horizontal" size={20} color="#000000B4" />
             </TouchableOpacity>
           </View>
@@ -183,10 +182,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
         animationType="none"
         onRequestClose={handleMenuClose}
       >
-        <Pressable
-          style={dictionaryItemStyles.modalOverlay}
-          onPress={handleMenuClose}
-        >
+        <Pressable style={dictionaryItemStyles.modalOverlay} onPress={handleMenuClose}>
           <View
             style={[
               dictionaryItemStyles.menuPositioned,
@@ -200,19 +196,21 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
             <DictionaryItemMenu
               id={id}
               type={type}
+              isHidden={isHidden}
               onClose={handleMenuClose}
               onEdit={() => {
-                console.log("📝 Edit clicked for:", type, id);
                 handleMenuClose();
                 onEdit?.();
               }}
               onHide={() => {
-                console.log("👁️ Hide clicked for:", type, id);
                 handleMenuClose();
                 onHide?.();
               }}
+              onShow={() => {
+                handleMenuClose();
+                onShow?.();
+              }}
               onClone={() => {
-                console.log("📋 Clone clicked for:", type, id);
                 handleMenuClose();
                 onClone?.();
               }}
