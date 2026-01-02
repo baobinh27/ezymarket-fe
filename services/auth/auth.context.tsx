@@ -9,6 +9,7 @@ import {
   useState,
 } from "react";
 import axiosInstance from "../axios";
+import { startTokenRefreshInterval, stopTokenRefreshInterval } from "../tokenRefresh";
 
 type User = { id: string; name: string; role?: string } | null;
 
@@ -102,6 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         setIsLoggedIn(true);
+        // Start periodic token refresh on successful login check
+        startTokenRefreshInterval();
          
       } catch (e: any) {
         const status = e?.response?.status;
@@ -113,6 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await SecureStorage.deleteItem("refreshToken");
           await SecureStorage.deleteItem("accessToken");
           setIsLoggedIn(false);
+          stopTokenRefreshInterval();
         } else {
           // For other errors, just log and leave tokens intact
           // They might work on the next attempt
@@ -135,6 +139,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(user);
       setIsLoggedIn(true);
+      
+      // Start periodic token refresh on successful login
+      startTokenRefreshInterval();
 
       return {
         success: true,
@@ -159,7 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return {
         success: false,
-        message: "Something went wrong!",
+        message: "Something went wrong!" + error,
       };
     } finally {
       setLoading(false);
@@ -172,6 +179,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(null);
     setIsLoggedIn(false);
+    
+    // Stop periodic token refresh on logout
+    stopTokenRefreshInterval();
   };
 
   const register = async (
@@ -180,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string
   ) => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { data } = await registerRequest(email, "000000000000", password);
 
       return {

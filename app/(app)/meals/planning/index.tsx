@@ -180,6 +180,7 @@ const MealPlanning = () => {
         data: getMealItems("snacks"),
       },
     ] as const;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mealDay]);
 
   const handleGoToday = () => {
