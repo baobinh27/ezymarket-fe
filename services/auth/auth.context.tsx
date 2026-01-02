@@ -32,6 +32,32 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+// Helper function to decode JWT and check expiration
+const isTokenExpired = (token: string): boolean => {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return true;
+
+    // Decode JWT payload using base64url decoding
+    const base64url = parts[1];
+    // Convert base64url to base64 (replace - with + and _ with /)
+    const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+    // Add padding if needed
+    const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+    // Decode using atob (available in React Native)
+    const decoded = JSON.parse(atob(padded));
+    
+    const expirationTime = decoded.exp * 1000;
+    const currentTime = Date.now();
+    
+    // Consider token expired if it will expire within 5 minutes
+    return expirationTime - currentTime < 5 * 60 * 1000;
+  } catch (e) {
+    console.warn("Something went wrong when checking token expiration:", e)
+    return true;
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
@@ -41,28 +67,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Load token khi app mở lại
   useEffect(() => {
     (async () => {
-      const refresh = await SecureStorage.getItem("refreshToken");
-      if (!refresh) {
+      const refreshToken = await SecureStorage.getItem("refreshToken");
+      const accessToken = await SecureStorage.getItem("accessToken");
+
+      if (!refreshToken) {
+        setIsLoggedIn(false);
+        setLoading(false);
+        return;
+      }
+
+      // Check if refresh token is expired
+      if (isTokenExpired(refreshToken)) {
+        console.warn("Refresh token is expired");
+        await SecureStorage.deleteItem("refreshToken");
+        await SecureStorage.deleteItem("accessToken");
         setIsLoggedIn(false);
         setLoading(false);
         return;
       }
 
       try {
-        // Gọi API refresh lần đầu
-        const { refreshToken, token } = (await axiosInstance.post(
-          `/api/user/token/refresh`,
-          { refreshToken: refresh }
-        )) as { refreshToken: string; token: string };
+        // Only refresh if access token is expired or missing
+        if (!accessToken || isTokenExpired(accessToken)) {
+          const response = await axiosInstance.post(
+            `/api/user/token/refresh`,
+            { refreshToken }
+          );
 
-        await SecureStorage.setItem("accessToken", token);
-        await SecureStorage.setItem("refreshToken", refreshToken);
-        setUser(user);
+          const { refreshToken: newRefreshToken, token: newAccessToken } =
+            response.data as { refreshToken: string; token: string };
+
+          await SecureStorage.setItem("accessToken", newAccessToken);
+          await SecureStorage.setItem("refreshToken", newRefreshToken);
+        }
+
         setIsLoggedIn(true);
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (e) {
-        await SecureStorage.deleteItem("refreshToken");
-        await SecureStorage.deleteItem("accessToken");
+         
+      } catch (e: any) {
+        const status = e?.response?.status;
+        
+        // Only clear tokens on unauthorized errors (401, 403)
+        // Don't clear on network errors or server errors (5xx)
+        if (status === 401 || status === 403) {
+          console.warn("Token refresh failed: Unauthorized");
+          await SecureStorage.deleteItem("refreshToken");
+          await SecureStorage.deleteItem("accessToken");
+          setIsLoggedIn(false);
+        } else {
+          // For other errors, just log and leave tokens intact
+          // They might work on the next attempt
+          console.error("Token refresh failed:", e?.message || e);
+          setIsLoggedIn(false);
+        }
       } finally {
         setLoading(false);
       }
