@@ -1,13 +1,23 @@
 import IButton from "@/components/IButton";
 import AddItemModal from "@/components/meals/AddItemModal";
+import ConfirmDeleteModal from "@/components/meals/ConfirmDeleteModal";
 import WeekPicker from "@/components/meals/WeekPicker";
-import { CardGroup, ItemCard, IText } from "@/components/styled";
-import { useSnackBar } from "@/services/auth/snackbar.context";
+import {
+  CardGroup,
+  ItemCard,
+  ItemImageWithFallback,
+  IText,
+} from "@/components/styled";
+import useDeleteMealItem from "@/hooks/meal/useDeleteMealItem";
+import useGetMealByDateRange from "@/hooks/meal/useGetMealByDateRange";
+import { MealItem, MealType } from "@/types/types";
+import { getFridgeItemImage } from "@/utils/getFridgeItemImage";
+import { getDateFormat } from "@/utils/utils";
 import { Entypo, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import dayjs, { Dayjs } from "dayjs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 enum Meals {
   Breakfast = "breakfast",
@@ -23,59 +33,59 @@ type MealEditType = {
   snacks: boolean;
 };
 
-const mockData: MealDay = {
-  breakfast: [
-    {
-      name: "Apple",
-      quantity: 1,
-      unit: "fruit",
-    },
-  ],
-  lunch: [
-    {
-      name: "Rice",
-      quantity: 2,
-      unit: "bowl",
-    },
-    {
-      name: "Egg",
-      quantity: 2,
-      unit: "piece",
-    },
-  ],
-  dinner: [
-    {
-      name: "Rice",
-      quantity: 2,
-      unit: "bowl",
-    },
-    {
-      name: "Egg",
-      quantity: 2,
-      unit: "piece",
-    },
-  ],
-  snacks: [
-    {
-      name: "Banana",
-      quantity: 3,
-      unit: "piece",
-    },
-  ],
-};
+// const mockData: MealDay = {
+//   breakfast: [
+//     {
+//       name: "Apple",
+//       quantity: 1,
+//       unit: "fruit",
+//     },
+//   ],
+//   lunch: [
+//     {
+//       name: "Rice",
+//       quantity: 2,
+//       unit: "bowl",
+//     },
+//     {
+//       name: "Egg",
+//       quantity: 2,
+//       unit: "piece",
+//     },
+//   ],
+//   dinner: [
+//     {
+//       name: "Rice",
+//       quantity: 2,
+//       unit: "bowl",
+//     },
+//     {
+//       name: "Egg",
+//       quantity: 2,
+//       unit: "piece",
+//     },
+//   ],
+//   snacks: [
+//     {
+//       name: "Banana",
+//       quantity: 3,
+//       unit: "piece",
+//     },
+//   ],
+// };
 
-type Dish = {
-  name: string;
-  quantity: number;
-  unit: string;
-};
+// type Dish = {
+//   name: string;
+//   quantity: number;
+//   unit: string;
+// };
 
-type MealDay = {
-  breakfast: Dish[];
-  lunch: Dish[];
-  dinner: Dish[];
-  snacks: Dish[];
-};
+// type MealDay = {
+//   breakfast: Dish[];
+//   lunch: Dish[];
+//   dinner: Dish[];
+//   snacks: Dish[];
+// };
 
 const MealPlanning = () => {
   const [isExpanded, setIsExpanded] = useState<MealEditType>({
@@ -84,67 +94,110 @@ const MealPlanning = () => {
     dinner: false,
     snacks: false,
   });
-  // const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const [selectedMealType, setSelectedMealType] = useState<Meals | null>(null);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [mealDay, setMealDay] = useState<MealDay>({
-    breakfast: [],
-    lunch: [],
-    dinner: [],
-    snacks: [],
+  const [isReady, setIsReady] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    itemId: string;
+    itemName: string;
+    mealType: MealType;
+  } | null>(null);
+
+  const {
+    data: mealDay,
+    isFetching,
+    refetch: fetchMealDay,
+  } = useGetMealByDateRange({
+    params: {
+      startDate: getDateFormat(selectedDate),
+      endDate: getDateFormat(selectedDate),
+    },
+    enabled: false,
   });
 
-  const { showSnackBar } = useSnackBar();
+  const { mutateAsync: deleteMealItem, isPending: isDeleting } =
+    useDeleteMealItem();
+
+  // useEffect(() => {
+  //   // console.log("iso:", selectedDate.toISOString());
+  //   const date = `${selectedDate.year()}-${selectedDate.month()}-${selectedDate.date()}`;
+  //   console.log("date:", date);
+
+  // }, [selectedDate])
+
+  // useEffect(() => {
+  //   if (!isFetching) console.log("mealDay =", mealDay);
+  // }, [mealDay]);
 
   useEffect(() => {
-    // fetch new data when user change date
-    setMealDay(mockData);
+    setIsReady(false);
     setIsExpanded({
       breakfast: false,
       lunch: false,
       dinner: false,
       snacks: false,
     });
-  }, [selectedDate]);
+    const timer = setTimeout(async () => {
+      await fetchMealDay();
+      setIsReady(true);
+    }, 300);
 
-  const mealDayUI = useMemo(
-    () =>
-      [
-        {
-          key: Meals.Breakfast,
-          label: "Breakfast",
-          icon: <Feather name="sunrise" size={24} />,
-          expandedKey: "breakfast",
-          data: mealDay.breakfast,
-        },
-        {
-          key: Meals.Lunch,
-          label: "Lunch",
-          icon: <Feather name="sun" size={24} />,
-          expandedKey: "lunch",
-          data: mealDay.lunch,
-        },
-        {
-          key: Meals.Dinner,
-          label: "Dinner",
-          icon: <Feather name="moon" size={24} />,
-          expandedKey: "dinner",
-          data: mealDay.dinner,
-        },
-        {
-          key: Meals.Snacks,
-          label: "Snacks",
-          icon: <Feather name="sunrise" size={24} />,
-          expandedKey: "snacks",
-          data: mealDay.snacks,
-        },
-      ] as const,
-    [mealDay]
-  );
+    return () => clearTimeout(timer);
+  }, [selectedDate, fetchMealDay]);
+
+  const mealDayUI = useMemo(() => {
+    // FUTURE: refine API calls to return the exact date
+    const mealData =
+      mealDay && mealDay.length > 0
+        ? mealDay.find(
+            (d) => d.date.split("T")[0] === selectedDate.format("YYYY-MM-DD")
+          )
+        : null;
+
+    // console.log("mealData for", selectedDate.format("YYYY-MM-DD"), ":", mealData);
+
+    const getMealItems = (mealType: MealType) => {
+      if (!mealData) return [];
+      const meal = mealData.meals.find((m) => m.mealType === mealType);
+      return meal?.items || [];
+    };
+
+    return [
+      {
+        key: Meals.Breakfast,
+        label: "Breakfast",
+        icon: <Feather name="sunrise" size={24} />,
+        expandedKey: "breakfast",
+        data: getMealItems("breakfast"),
+      },
+      {
+        key: Meals.Lunch,
+        label: "Lunch",
+        icon: <Feather name="sun" size={24} />,
+        expandedKey: "lunch",
+        data: getMealItems("lunch"),
+      },
+      {
+        key: Meals.Dinner,
+        label: "Dinner",
+        icon: <Feather name="moon" size={24} />,
+        expandedKey: "dinner",
+        data: getMealItems("dinner"),
+      },
+      {
+        key: Meals.Snacks,
+        label: "Snacks",
+        icon: <Feather name="sunrise" size={24} />,
+        expandedKey: "snacks",
+        data: getMealItems("snacks"),
+      },
+    ] as const;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mealDay]);
 
   const handleGoToday = () => {
     setSelectedDate(dayjs());
-    showSnackBar("Done!", "error");
   };
 
   const handleGoPrevWeek = () => {
@@ -167,14 +220,26 @@ const MealPlanning = () => {
     setIsExpanded(updated);
   };
 
-  const handleDeleteFoodItem = (meal: Meals, index: number) => {
-    setMealDay((prev) => ({
-      ...prev,
-      [meal]: prev[meal].filter((_, i) => i !== index),
-    }));
+  const handleDeleteFoodItem = (itemId: string, itemName: string, mealType: MealType) => {
+    setDeleteTarget({ itemId, itemName, mealType });
   };
 
-  const handleOpenModal = useCallback(() => {
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    await deleteMealItem(deleteTarget.itemId, {
+      onSuccess: async () => {
+        setDeleteTarget(null);
+        await fetchMealDay();
+      },
+      onError: () => {
+        setDeleteTarget(null);
+      },
+    });
+  };
+
+  const handleOpenModal = useCallback((meal: Meals) => {
+    setSelectedMealType(meal);
     bottomSheetRef.current?.present();
   }, []);
 
@@ -184,7 +249,23 @@ const MealPlanning = () => {
 
   return (
     <View style={{ height: "100%" }}>
-      <AddItemModal ref={bottomSheetRef} />
+      {selectedMealType && (
+        <AddItemModal
+          ref={bottomSheetRef}
+          mealType={selectedMealType}
+          selectedDate={getDateFormat(selectedDate)}
+          onItemsAdded={fetchMealDay}
+        />
+      )}
+
+      <ConfirmDeleteModal
+        visible={deleteTarget !== null}
+        itemName={deleteTarget?.itemName || ""}
+        mealType={deleteTarget?.mealType}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+      />
 
       <WeekPicker
         currentDate={selectedDate}
@@ -199,287 +280,144 @@ const MealPlanning = () => {
           gap: 16,
         }}
       >
-        {mealDayUI.map((meal) => (
-          <CardGroup key={meal.key}>
-            <ItemCard>
-              <View style={styles.mealName}>
-                <View style={styles.iconSquare}>{meal.icon}</View>
-                <IText semiBold>{meal.label}</IText>
-              </View>
-
-              <IButton
-                variant="primary"
-                onPress={() => handleExpand(meal.key)}
-                style={styles.iconButton}
-              >
-                {isExpanded[meal.expandedKey] ? (
-                  <MaterialCommunityIcons name="playlist-check" size={24} color="white" />
-                ) : (
-                  <Feather name="edit-3" size={24} color="white" />
-                )}
-              </IButton>
-            </ItemCard>
-
-            {isExpanded[meal.expandedKey] && (
-              <ItemCard>
-                <View style={{ flexDirection: "column", gap: 8, width: "100%" }}>
-                  {meal.data.map((foodItem, index) => (
-                    <View key={index} style={styles.foodItem}>
-                      <IButton style={styles.iconButton}>
-                        <Entypo name="plus" size={24} color="#000000B4" />
-                      </IButton>
-
-                      <View style={{ flexDirection: "column", gap: 4 }}>
-                        <IText semiBold>{foodItem.name}</IText>
-                        <IText size={11}>
-                          {foodItem.quantity} {foodItem.unit}
-                        </IText>
-                      </View>
-
-                      <IButton
-                        style={[styles.iconButton, styles.placeEnd]}
-                        onPress={() => handleDeleteFoodItem(meal.key, index)}
-                      >
-                        <Feather name="trash-2" size={24} color="#000000B4" />
-                      </IButton>
-                    </View>
-                  ))}
-
-                  <View style={styles.foodItem}>
-                    <IButton style={styles.iconButton} onPress={handleOpenModal}>
-                      <Entypo name="plus" size={24} color="#000000B4" />
-                    </IButton>
-                    <IText size={12}>Add a dish or an item</IText>
+        {isFetching || !isReady ? (
+          <View>
+            <ActivityIndicator color="#82CD47" />
+          </View>
+        ) : (
+          <>
+            {mealDayUI.map((meal) => (
+              <CardGroup key={meal.key}>
+                <ItemCard>
+                  <View style={styles.mealActionGroup}>
+                    <View style={styles.iconSquare}>{meal.icon}</View>
+                    <IText semiBold>{meal.label}</IText>
                   </View>
-                </View>
-              </ItemCard>
-            )}
-          </CardGroup>
-        ))}
 
-        {/* <CardGroup>
-                <ItemCard>
-                    <View style={styles.mealName}>
-                        <Feather style={styles.iconSquare} name="sunrise" size={24} />
-                        <IText semiBold>Breakfast</IText>
-                    </View>
-
+                  <View style={styles.mealActionGroup}>
+                    {!isExpanded[meal.expandedKey] && (
+                      <>
+                        {meal.data[0] && (
+                          <ItemImageWithFallback
+                            source={getFridgeItemImage(meal.data[0])}
+                          />
+                        )}
+                        {meal.data[1] && (
+                          <ItemImageWithFallback
+                            source={getFridgeItemImage(meal.data[1])}
+                          />
+                        )}
+                        {meal.data.length === 3 && (
+                          <ItemImageWithFallback
+                            source={getFridgeItemImage(meal.data[2])}
+                          />
+                        )}
+                        {meal.data.length > 3 && (
+                          <View style={styles.iconSquare}>
+                            <IText size={12} semiBold>{`+${
+                              meal.data.length - 2
+                            }`}</IText>
+                          </View>
+                        )}
+                      </>
+                    )}
                     <IButton
-                        variant="primary"
-                        onPress={() => handleExpand(Meals.Breakfast)}
-                        style={styles.iconButton}
+                      variant="primary"
+                      onPress={() => handleExpand(meal.key)}
+                      style={styles.iconButton}
                     >
-                        {isExpanded.breakfast ?
-                            <MaterialCommunityIcons name="playlist-check" size={24} color='white' />
-                            :
-                            <Feather name="edit-3" size={24} color='white' />
-                        }
+                      {isExpanded[meal.expandedKey] ? (
+                        <MaterialCommunityIcons
+                          name="playlist-check"
+                          size={24}
+                          color="white"
+                        />
+                      ) : (
+                        <Feather name="edit-3" size={24} color="white" />
+                      )}
                     </IButton>
+                  </View>
                 </ItemCard>
 
-                {isExpanded.breakfast && <ItemCard><View style={{ flexDirection: 'column', gap: 8, width: '100%' }}>
-                    {mealDay.breakfast.map((foodItem, index) =>
-                        <View
-                            key={index}
-                            style={styles.foodItem}
-                        >
-                            <IButton style={styles.iconButton}>
-                                <Entypo name="plus" size={24} color='#000000B4' />
-                            </IButton>
+                {isExpanded[meal.expandedKey] && (
+                  <ItemCard>
+                    <View
+                      style={{ flexDirection: "column", gap: 8, width: "100%" }}
+                    >
+                      {meal.data.map((mealItem: MealItem, index) => (
+                        <View key={mealItem._id} style={styles.foodItem}>
+                          <ItemImageWithFallback
+                            source={
+                              mealItem.ingredientId
+                                ? mealItem.ingredientId.imageURL
+                                : mealItem.recipeId?.imageUrl
+                            }
+                          />
 
-                            <View style={{ flexDirection: 'column', gap: 4 }}>
-                                <IText semiBold>{foodItem.name}</IText>
-                                <IText size={11}>{foodItem.quantity} {foodItem.unit}</IText>
-                            </View>
+                          <View style={{ flexDirection: "column", gap: 4 }}>
+                            <IText semiBold>
+                              {mealItem.itemType === "ingredient"
+                                ? mealItem.ingredientId?.name
+                                : mealItem.recipeId?.title}
+                            </IText>
+                            <IText size={11}>
+                              {mealItem.quantity} {mealItem.unitId.abbreviation}
+                            </IText>
+                          </View>
 
-                            <IButton
-                                style={[styles.iconButton, styles.placeEnd]}
-                                onPress={() => handleDeleteFoodItem(Meals.Breakfast, index)}
-                            >
-                                <Feather name="trash-2" size={24} color='#000000B4' />
-                            </IButton>
-                        </View>)}
+                          <IButton
+                            style={[styles.iconButton, styles.placeEnd]}
+                            onPress={() => {
+                              const itemName =
+                                mealItem.itemType === "ingredient"
+                                  ? mealItem.ingredientId?.name || "Item"
+                                  : mealItem.recipeId?.title || "Item";
+                              handleDeleteFoodItem(mealItem._id, itemName, meal.key);
+                            }}
+                          >
+                            <Feather
+                              name="trash-2"
+                              size={24}
+                              color="#000000B4"
+                            />
+                          </IButton>
+                        </View>
+                      ))}
 
-                    <View style={styles.foodItem}>
+                      <View style={styles.foodItem}>
                         <IButton
-                            style={styles.iconButton}
-                            onPress={handleOpenModal}
+                          style={styles.iconButton}
+                          onPress={() => handleOpenModal(meal.key)}
                         >
-                            <Entypo name="plus" size={24} color='#000000B4' />
+                          <Entypo name="plus" size={24} color="#000000B4" />
                         </IButton>
                         <IText size={12}>Add a dish or an item</IText>
+                      </View>
                     </View>
-                </View></ItemCard>}
-            </CardGroup>
-
-            <CardGroup>
-                <ItemCard>
-                    <View style={styles.mealName}>
-                        <Feather style={styles.iconSquare} name="sun" size={24} />
-                        <IText semiBold>Lunch</IText>
-                    </View>
-
-                    <IButton
-                        variant="primary"
-                        onPress={() => handleExpand(Meals.Lunch)}
-                        style={styles.iconButton}
-                    >
-                        {isExpanded.lunch ?
-                            <MaterialCommunityIcons name="playlist-check" size={24} color='white' />
-                            :
-                            <Feather name="edit-3" size={24} color='white' />
-                        }
-                    </IButton>
-                </ItemCard>
-
-                {isExpanded.lunch && <ItemCard><View style={{ flexDirection: 'column', gap: 8, width: '100%' }}>
-                    {mealDay.lunch.map((foodItem, index) =>
-                        <View
-                            key={index}
-                            style={styles.foodItem}
-                        >
-                            <IButton style={styles.iconButton}>
-                                <Entypo name="plus" size={24} color='#000000B4' />
-                            </IButton>
-
-                            <View style={{ flexDirection: 'column', gap: 4 }}>
-                                <IText semiBold>{foodItem.name}</IText>
-                                <IText size={11}>{foodItem.quantity} {foodItem.unit}</IText>
-                            </View>
-
-                            <IButton
-                                style={[styles.iconButton, styles.placeEnd]}
-                                onPress={() => handleDeleteFoodItem(Meals.Lunch, index)}
-                            >
-                                <Feather name="trash-2" size={24} color='#000000B4' />
-                            </IButton>
-                        </View>)}
-
-                    <View style={styles.foodItem}>
-                        <IButton style={styles.iconButton}>
-                            <Entypo name="plus" size={24} color='#000000B4' />
-                        </IButton>
-                        <IText size={12}>Add a dish or an item</IText>
-                    </View>
-                </View></ItemCard>}
-            </CardGroup>
-
-            <CardGroup>
-                <ItemCard>
-                    <View style={styles.mealName}>
-                        <Feather style={styles.iconSquare} name="moon" size={24} />
-                        <IText semiBold>Dinner</IText>
-                    </View>
-
-                    <IButton
-                        variant="primary"
-                        onPress={() => handleExpand(Meals.Dinner)}
-                        style={styles.iconButton}
-                    >
-                        {isExpanded.dinner ?
-                            <MaterialCommunityIcons name="playlist-check" size={24} color='white' />
-                            :
-                            <Feather name="edit-3" size={24} color='white' />
-                        }
-                    </IButton>
-                </ItemCard>
-
-                {isExpanded.dinner && <ItemCard><View style={{ flexDirection: 'column', gap: 8, width: '100%' }}>
-                    {mealDay.dinner.map((foodItem, index) =>
-                        <View
-                            key={index}
-                            style={styles.foodItem}
-                        >
-                            <IButton style={styles.iconButton}>
-                                <Entypo name="plus" size={24} color='#000000B4' />
-                            </IButton>
-
-                            <View style={{ flexDirection: 'column', gap: 4 }}>
-                                <IText semiBold>{foodItem.name}</IText>
-                                <IText size={11}>{foodItem.quantity} {foodItem.unit}</IText>
-                            </View>
-
-                            <IButton
-                                style={[styles.iconButton, styles.placeEnd]}
-                                onPress={() => handleDeleteFoodItem(Meals.Dinner, index)}
-                            >
-                                <Feather name="trash-2" size={24} color='#000000B4' />
-                            </IButton>
-                        </View>)}
-
-                    <View style={styles.foodItem}>
-                        <IButton style={styles.iconButton}>
-                            <Entypo name="plus" size={24} color='#000000B4' />
-                        </IButton>
-                        <IText size={12}>Add a dish or an item</IText>
-                    </View>
-                </View></ItemCard>}
-            </CardGroup>
-
-            <CardGroup>
-                <ItemCard>
-                    <View style={styles.mealName}>
-                        <Feather style={styles.iconSquare} name="sunrise" size={24} />
-                        <IText semiBold>Snacks</IText>
-                    </View>
-
-                    <IButton
-                        variant="primary"
-                        onPress={() => handleExpand(Meals.Snacks)}
-                        style={styles.iconButton}
-                    >
-                        {isExpanded.snacks ?
-                            <MaterialCommunityIcons name="playlist-check" size={24} color='white' />
-                            :
-                            <Feather name="edit-3" size={24} color='white' />
-                        }
-                    </IButton>
-                </ItemCard>
-
-                {isExpanded.snacks && <ItemCard><View style={{ flexDirection: 'column', gap: 8, width: '100%' }}>
-                    {mealDay.snacks.map((foodItem, index) =>
-                        <View
-                            key={index}
-                            style={styles.foodItem}
-                        >
-                            <IButton style={styles.iconButton}>
-                                <Entypo name="plus" size={24} color='#000000B4' />
-                            </IButton>
-
-                            <View style={{ flexDirection: 'column', gap: 4 }}>
-                                <IText semiBold>{foodItem.name}</IText>
-                                <IText size={11}>{foodItem.quantity} {foodItem.unit}</IText>
-                            </View>
-
-                            <IButton
-                                style={[styles.iconButton, styles.placeEnd]}
-                                onPress={() => handleDeleteFoodItem(Meals.Snacks, index)}
-                            >
-                                <Feather name="trash-2" size={24} color='#000000B4' />
-                            </IButton>
-                        </View>)}
-
-                    <View style={styles.foodItem}>
-                        <IButton style={styles.iconButton}>
-                            <Entypo name="plus" size={24} color='#000000B4' />
-                        </IButton>
-                        <IText size={12}>Add a dish or an item</IText>
-                    </View>
-                </View></ItemCard>}
-            </CardGroup> */}
+                  </ItemCard>
+                )}
+              </CardGroup>
+            ))}
+          </>
+        )}
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  mealName: {
+  mealActionGroup: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
   },
   iconSquare: {
-    padding: 6,
+    // padding: 6,
+    height: 36,
+    width: 36,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "white",
     borderRadius: 6,
     color: "#000000B4",

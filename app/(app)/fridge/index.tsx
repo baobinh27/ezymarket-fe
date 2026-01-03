@@ -1,11 +1,12 @@
 // import AddItemModal from "@/components/fridge/AddItemModal";
 import AddItemModal from "@/components/fridge/AddItemModal/index";
 import EmptyFridgeMessage from "@/components/fridge/EmptyFridgeMessage";
-import FridgeItemCard, { FridgeItem } from "@/components/fridge/FridgeItemCard";
+import FridgeItemCard from "@/components/fridge/FridgeItemCard";
 import IButton from "@/components/IButton";
 import SearchBar from "@/components/SearchBar";
 import { ItemCard, IText } from "@/components/styled";
 import { useGetAllFridgeItems } from "@/hooks/fridge/useGetAllFridgeItems";
+import { FridgeItem } from "@/types/types";
 import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";

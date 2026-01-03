@@ -68,6 +68,7 @@ async function refreshAccessToken() {
       try {
         const res = await getAccessToken(refreshToken);
         const newAccess = res.data.token;
+        await SecureStorage.setItem("refreshToken", res.data.refreshToken);
         return newAccess;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (err) {

@@ -68,3 +68,43 @@ export interface MealPlan {
   };
   meals: MealDetail[];
 }
+
+// REPORTS types
+
+export interface ReportOverview {
+  fridgeStats: {
+    totalItems: number;
+    inStock: number;
+    expired: number;
+    expiringSoon: number;
+    totalValue: number
+  },
+  recipeStats: {
+    totalRecipes: number;
+    personalRecipes: number;
+    systemRecipes: number;
+  },
+  mealPlanStats: {
+    thisWeek: number;
+    thisMonth: number;
+    completionRate: number;
+  },
+  shoppingStats: {
+    activeLists: number;
+    completedLists: number;
+    totalSpending: number;
+  }
+}
+
+export interface ReportShopping {
+  summary: {
+    totalSpending: number;
+    averageSpending: number;
+    itemCount: number;
+    periodsCount: number;
+    changePercentage: number;
+  },
+  spendingTimeSeries: any[];
+  spendingByCategories: any[];
+}
+

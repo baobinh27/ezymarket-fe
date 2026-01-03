@@ -193,7 +193,6 @@ export const ItemImage = styled.Image`
   padding: 3px;
   background-color: white;
   border-radius: 5px;
-  margin-right: 12px;
   object-fit: contain;
 `;
 
@@ -215,7 +214,7 @@ export const ItemImage = styled.Image`
  * ```
  */
 interface ItemImageWithFallbackProps extends Omit<ImageProps, "source"> {
-  source: string;
+  source?: string;
 }
 
 const FALLBACK_IMAGE = require("@/assets/images/fallback-icon.jpg");
