@@ -1,74 +1,128 @@
-import { ShoppingItem, ShoppingItemCard } from "@/components/shopping/ShoppingItemCard";
+import { ShoppingItemCard } from "@/components/shopping/ShoppingItemCard";
 import { IText } from "@/components/styled";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
-import { FlatList, ScrollView, StyleSheet } from "react-native";
+import { useAddShoppingItem, useDeleteItem, useShoppingList, useUpdateItem } from "@/hooks/shopping/useShopping";
+import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from "react-native";
 
 export default function ShoppingListDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  const name = Array.isArray(params.name) ? params.name[0] : params.name;
-  const [items, setItems] = useState<ShoppingItem[]>([
-    { id: "1", name: "Milk", quantity: "2", unit: "L", isPurchased: false },
-    { id: "2", name: "Bread", quantity: "1", unit: "loaf", isPurchased: false },
-    { id: "3", name: "Eggs", quantity: "12", unit: "pieces", isPurchased: false },
-  ]);
+
+  const { data: list, isLoading } = useShoppingList(id);
+  const addMutation = useAddShoppingItem();
+  const updateMutation = useUpdateItem();
+  const deleteMutation = useDeleteItem();
+
   const [newItemName, setNewItemName] = useState("");
+  const [pendingUpdates, setPendingUpdates] = useState<Record<string, boolean>>({});
+  const updatesRef = useRef<Record<string, boolean>>({});
 
   const navigation = useNavigation();
+  // Merge pending updates for display
+  const displayItems = useMemo(() => list?.items.map(item => ({
+    ...item,
+    isPurchased: pendingUpdates[item._id!] !== undefined
+      ? pendingUpdates[item._id!]
+      : item.isPurchased
+  })) || [], [list, pendingUpdates]);
 
   useEffect(() => {
-    navigation.setParams({ items } as any);
-  }, [items]);
+    navigation.setParams({ items: displayItems } as any);
+  }, [displayItems]);
+
+  useEffect(() => {
+    updatesRef.current = pendingUpdates;
+  }, [pendingUpdates]);
+
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        const updates = updatesRef.current;
+        const currentList = list;
+
+        if (!currentList || !currentList._id) return;
+
+        Object.entries(updates).forEach(([itemId, isPurchased]) => {
+          const originalItem = currentList.items.find(i => i._id === itemId);
+          if (originalItem && originalItem.isPurchased !== isPurchased) {
+            updateMutation.mutate({
+              listId: currentList._id,
+              itemId,
+              data: { isPurchased }
+            });
+          }
+        });
+      };
+    }, [list])
+  );
 
   const handleTogglePurchased = (itemId: string) => {
-    setItems(
-      items.map((item) =>
-        item.id === itemId ? { ...item, isPurchased: !item.isPurchased } : item
-      )
-    );
+    // Current state is from pending or original
+    const item = list?.items.find(i => i._id === itemId);
+    const currentStatus = pendingUpdates[itemId] !== undefined ? pendingUpdates[itemId] : item?.isPurchased;
+    const newStatus = !currentStatus;
+
+    setPendingUpdates(prev => ({
+      ...prev,
+      [itemId]: newStatus
+    }));
   };
 
   const handleDeleteItem = (itemId: string) => {
-    setItems(items.filter((item) => item.id !== itemId));
-  };
+    // Also remove from pending updates if present
+    if (pendingUpdates[itemId] !== undefined) {
+      setPendingUpdates(prev => {
+        const next = { ...prev };
+        delete next[itemId];
+        return next;
+      });
+    }
 
-  const handleAddItem = () => {
-    if (newItemName.trim()) {
-      const newItem: ShoppingItem = {
-        id: Date.now().toString(),
-        name: newItemName,
-        quantity: "1",
-        unit: "piece",
-        isPurchased: false,
-      };
-      setItems([...items, newItem]);
-      setNewItemName("");
+    if (list?._id) {
+      deleteMutation.mutate({ listId: list._id, itemId });
     }
   };
 
-  const purchasedCount = items.filter((i) => i.isPurchased).length;
+
+  if (isLoading) return <ActivityIndicator style={{ marginTop: 20 }} />;
+
+
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: "#fff" }}
       contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
     >
-      <IText bold size={16} style={styles.heading}>
-        {name}
-      </IText>
+
+
+      <View style={styles.heading}>
+        <IText bold size={16}>
+          {list?.title}
+        </IText>
+        {list?.description ? (
+          <IText size={12} color="#6B7280" style={{ fontStyle: "italic", marginTop: 2 }}>
+            {list.description}
+          </IText>
+        ) : null}
+      </View>
 
       {/* Items List */}
       <FlatList
-        data={items}
-        keyExtractor={(item) => item.id}
+        data={displayItems}
+        keyExtractor={(item) => item._id || ""}
         scrollEnabled={false}
         contentContainerStyle={{
           gap: 16
         }}
         renderItem={({ item }) => (
-          <ShoppingItemCard item={item} />
+          <ShoppingItemCard
+            item={item}
+            onToggle={() => handleTogglePurchased(item._id!)}
+            onDelete={() => handleDeleteItem(item._id!)}
+          />
         )}
       />
     </ScrollView>
@@ -80,6 +134,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderBottomWidth: 1,
     marginLeft: 2,
-    paddingVertical: 4,
-  },
+    paddingVertical: 4
+  }
+
 });

@@ -1,267 +1,367 @@
-import IBottomSheetModal from "@/components/IBottomSheetModal";
 import IButton from "@/components/IButton";
+import { useToast } from "@/components/IToast";
 import QuantitySelector from "@/components/QuantitySelector";
-import { SearchBox } from "@/components/SearchBox";
-import AddItemCard from "@/components/shopping/AddItemCard";
+import ShoppingAddItemModal from "@/components/shopping/create/ShoppingAddItemModal";
 import { ItemCard, ItemImage, IText } from "@/components/styled";
 import UnitSelector from "@/components/UnitSelector";
+import { useCreateShoppingList } from "@/hooks/shopping/useShopping";
+import { useAuth } from "@/services/auth/auth.context";
+import { useSnackBar } from "@/services/auth/snackbar.context";
 import { Octicons } from "@expo/vector-icons";
-import { BottomSheetModal, BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
-import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
-import { ScrollView } from 'react-native-gesture-handler';
+import { useRef, useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface CreateItem {
-//   id: string;
+  ingredientId?: string;
   name: string;
   quantity: number;
-  unit: string;
+  unitId: string;
+  imageURL?: string | null;
 }
-
-const recommendedItems = [
-  { name: "Apple", imageUrl: "", isRecommended: true },
-  { name: "Pork Ribs", imageUrl: "", isRecommended: true },
-  { name: "Bread", imageUrl: "", isRecommended: false },
-  { name: "Milk", imageUrl: "", isRecommended: false },
-  { name: "Apple", imageUrl: "", isRecommended: true },
-  { name: "Pork Ribs", imageUrl: "", isRecommended: true },
-  { name: "Bread", imageUrl: "", isRecommended: false },
-  { name: "Milk", imageUrl: "", isRecommended: false },
-  { name: "Apple", imageUrl: "", isRecommended: true },
-  { name: "Pork Ribs", imageUrl: "", isRecommended: true },
-  { name: "Bread", imageUrl: "", isRecommended: false },
-  { name: "Milk", imageUrl: "", isRecommended: false },
-];
-
 export default function CreateShoppingListScreen() {
   const router = useRouter();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [listName, setListName] = useState("");
-  const [isEditingName, setIsEditingName] = useState(false);
+  const [description, setDescription] = useState("");
   const [searchText, setSearchText] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-//   const [items, setItems] = useState<CreateItem[]>([
-//     { id: "1", name: "Cabbage", quantity: 2, unit: "pieces" },
-//     { id: "2", name: "Egg", quantity: 10, unit: "pieces" },
-//     { id: "3", name: "Milk", quantity: 1, unit: "cartons" },
-//   ]);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
 
-  const [items, setItems] = useState<CreateItem[]>([
-    { name: "Cabbage", quantity: 2, unit: "pieces" },
-    { name: "Egg", quantity: 10, unit: "pieces" },
-    { name: "Milk", quantity: 1, unit: "cartons" },
-  ]);
+  const [items, setItems] = useState<CreateItem[]>([]);
 
+  // API Hooks
+  const { user } = useAuth();
+  const createListMutation = useCreateShoppingList();
+
+  const { showSnackBar } = useSnackBar();
+  const { showToast } = useToast();
 
   const handleConfirm = () => {
-    // Handle creating the shopping list
-    console.log("Creating list:", listName, items);
-    router.back();
+    if (!listName.trim()) {
+      showSnackBar("Please enter a list name" + user?.groupId, "error");
+      return;
+    }
+
+    if (items.length === 0) {
+      showSnackBar("Please add at least one item", "error");
+      return;
+    }
+    const groupId = user?.groupId;
+
+    if (!groupId) {
+      showSnackBar("No group found", "error");
+      return;
+    }
+
+    createListMutation.mutate(
+      {
+        groupId,
+        title: listName,
+        description,
+        items: items.map((i) => ({
+          name: i.name,
+          quantity: i.quantity,
+          unitId: i.unitId,
+          ingredientId: i.ingredientId,
+        })),
+      },
+      {
+        onSuccess: () => {
+          showSnackBar("List " + listName + " created successfully!", "success");
+          router.back();
+        },
+        onError: (error) => {
+          showSnackBar(error.message || "Failed to create list", "error");
+        },
+      }
+    );
   };
+
+
+
 
   const handleAddItem = () => {
     setIsModalOpen(true);
     bottomSheetRef.current?.present();
   };
 
-  const handleDismissModal = useCallback(() => {
-    setIsModalOpen(false);
-    bottomSheetRef.current?.dismiss();
-    setSearchText("");
-  }, []);
-
-  const handleSelectItem = (itemName: string) => {
-    const newItem: CreateItem = {
-      name: itemName,
-      quantity: 1,
-      unit: "pieces",
-    };
-    setItems([newItem, ...items]);
-    // handleDismissModal();
-  };
-
   const handleDeleteItem = (index: number) => {
     setItems(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleSelectItem = (item: any) => {
+    const newItem: CreateItem = {
+      name: item.name,
+      quantity: 1,
+      unitId: "",
+      ingredientId: item._id,
+      imageURL: item.imageURL,
+    };
+    setItems((prev) => [newItem, ...prev]);
+
+    showToast(`Added ${item.name}`, "success", 3000, {
+      icon: <Octicons name="trash" size={18} color="#f44336" />,
+      onPress: () => {
+        setItems((prev) => prev.filter((i) => i !== newItem));
+      }
+    });
+  };
+
+
+
   const updateItemQuantity = (index: number, quantity: number) => {
     const updated = [...items];
     updated[index].quantity = quantity;
+
+    setItems(updated);
+  };
+
+  const updateItemUnit = (index: number, unitId: string) => {
+    const updated = [...items];
+    updated[index].unitId = unitId;
+    console.log("updated", unitId);
     setItems(updated);
   };
 
   return (
-    <ScrollView
-      style={[{ flex: 1}, isModalOpen && styles.scrollViewWithModal]}
-      contentContainerStyle={{ padding: 16, gap: 16 }}
-    >
-      {/* List Name Display/Input and Add Button */}
-      <View style={styles.topRow}>
-        {isEditingName ? (
-          <TextInput
-            style={styles.nameInput}
-            value={listName}
-            onChangeText={setListName}
-            onBlur={() => setIsEditingName(false)}
-            autoFocus
-          />
-        ) : (
-          <TouchableOpacity 
-            style={styles.nameDisplay}
-            onPress={() => setIsEditingName(true)}
-          >
-            <IText size={16} bold={!!listName} color={listName ? "#000" : "#9CA3AF"}>
-              {listName || "Enter new list name..."}
-            </IText>
-            <Octicons name="pencil" size={18} color="#46982D" />
-          </TouchableOpacity>
-        )}
-        <IButton 
-          variant="primary" 
-          style={styles.addButton}
-          onPress={handleAddItem}
-        >
-          <View style={styles.addButtonContent}>
-            <View style={styles.plusIcon}>
-              <Octicons size={24} name="plus" color="#46982D" />
-            </View>
-            <IText color="white" semiBold>Add</IText>
-          </View>
-        </IButton>
-      </View>
-
-      {/* Items List */}
-      <View style={{ gap: 12 }}>
-        {items.map((item, index) => (
-          <ItemCard key={index}>
-            <View style={styles.itemContent}>
-              <ItemImage 
-                src="https://imgs.search.brave.com/ZyTalHbd6ylc6QNmPc_567ZkdaIA2fOjPirg0xv5rNY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cG5nYWxsLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvMjAxNi8w/NS9DYWJiYWdlLUZy/ZWUtUE5HLUltYWdl/LnBuZw"
-                style={styles.itemImage}
+    <View style={{ flex: 1, backgroundColor: "white" }}>
+      <SafeAreaView style={{ flex: 1 }} edges={[]}>
+        <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
+          {/* Header Section */}
+          <View style={styles.headerSection}>
+            {isEditingName ? (
+              <TextInput
+                style={styles.nameInput}
+                value={listName}
+                onChangeText={setListName}
+                onBlur={() => setIsEditingName(false)}
+                autoFocus
               />
-              <View style={styles.itemDetails}>
-                <IText semiBold size={14}>{item.name}</IText>
-                <View style={styles.quantityRow}>
-                  <QuantitySelector 
-                    state={item.quantity}
-                    maxState={100}
-                    setState={(value) => updateItemQuantity(index, value)}
-                  />
-                  <UnitSelector />
-                </View>
-              </View>
-              <TouchableOpacity 
-                onPress={() => handleDeleteItem(index)}
-                style={styles.menuButton}
+            ) : (
+              <TouchableOpacity
+                style={styles.nameDisplay}
+                onPress={() => setIsEditingName(true)}
               >
-                <Octicons name="trash" size={22} color="#eb000090" />
+                <IText size={24} bold={!!listName} color={listName ? "#000" : "#9CA3AF"}>
+                  {listName || "Enter new list name"}
+                </IText>
+                <Octicons style={{ paddingTop: 8 }} name="pencil" size={18} color="#46982D" />
+              </TouchableOpacity>
+            )}
+
+            <View style={styles.inputGroup}>
+              <IText size={14} semiBold style={{ marginBottom: 8 }}>Description</IText>
+              {isEditingDescription ? (
+                <TextInput
+                  style={styles.descriptionInput}
+                  value={description}
+                  onChangeText={setDescription}
+                  placeholder="Add any notes..."
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                  numberOfLines={2}
+                  textAlignVertical="top"
+                  autoFocus
+                  onBlur={() => setIsEditingDescription(false)}
+                />
+              ) : (
+                <TouchableOpacity
+                  onPress={() => setIsEditingDescription(true)}
+                  style={styles.descriptionDisplay}
+                >
+                  <IText size={14} color={description ? "#000000B4" : "#9CA3AF"}>
+                    {description || "Add any notes"}
+                  </IText>
+                  <Octicons name="pencil" size={14} color="#46982D" />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+
+          {/* Actions Section */}
+          <View style={styles.actionSection}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <IText size={18} semiBold>Items ({items.length})</IText>
+              <TouchableOpacity onPress={handleAddItem}>
+                <IText color="#46982D" semiBold>+ Add Items</IText>
               </TouchableOpacity>
             </View>
-          </ItemCard>
-        ))}
-      </View>
+          </View>
+        </View>
+
+        {/* Items List */}
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingBottom: 16 }}>
+          <View style={{ gap: 12, flex: 1 }}>
+            {items.length === 0 ? (
+              <View style={styles.emptyState}>
+                <View style={styles.emptyStateIcon}>
+                  <Octicons name="list-unordered" size={32} color="#9CA3AF" />
+                </View>
+                <IText color="#6B7280" style={{ textAlign: 'center', marginTop: 8 }}>
+                  No items yet. Start by adding some!
+                </IText>
+                <IButton variant="primary" onPress={handleAddItem} style={{ marginTop: 10, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 }}>
+                  <IText semiBold color="white">Browse Ingredients</IText>
+                </IButton>
+              </View>
+            ) : (
+              items.map((item, index) => (
+                <ItemCard key={index}>
+                  <View style={styles.itemContent}>
+                    <ItemImage
+                      src={item.imageURL || "https://placehold.co/48x48"}
+                      style={styles.itemImage}
+                    />
+                    <View style={styles.itemDetails}>
+                      <IText semiBold size={14}>{item.name}</IText>
+                      <View style={styles.quantityRow}>
+                        <QuantitySelector
+                          state={item.quantity}
+                          maxState={100}
+                          setState={(value) => updateItemQuantity(index, value)}
+                        />
+                        <UnitSelector
+                          value={item.unitId}
+                          onChange={(value) => updateItemUnit(index, value)}
+                        />
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteItem(index)}
+                      style={styles.menuButton}
+                    >
+                      <Octicons name="trash" size={22} color="#eb000090" />
+                    </TouchableOpacity>
+                  </View>
+                </ItemCard>
+              ))
+            )}
+          </View>
+        </ScrollView>
+
+        {/* Fixed Footer */}
+        <View style={styles.footer}>
+          <IButton
+            variant="primary"
+            onPress={handleConfirm}
+            style={styles.createButton}
+          >
+            {createListMutation.isPending ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <IText color="white" bold size={16}>Create Shopping List</IText>
+            )}
+          </IButton>
+        </View>
+      </SafeAreaView>
 
       {/* Add Items Bottom Sheet */}
-      <IBottomSheetModal 
-        ref={bottomSheetRef} 
-        title="Add new items"
-        snapPoints={["43%"]}
+      <ShoppingAddItemModal
+        ref={bottomSheetRef}
         onClose={() => {
           setIsModalOpen(false);
           setSearchText("");
         }}
-        useBackdrop={false}
-      >
-          <SearchBox
-            value={searchText}
-            onChangeText={setSearchText}
-            placeholder="Search for category or items..."      
-            containerStyle={styles.searchBoxContainer}
-          />
-        <BottomSheetScrollView 
-          style={styles.itemsList}
-          contentContainerStyle={styles.itemsListContent}
-          showsVerticalScrollIndicator={false}
-        >
-            {recommendedItems
-              .filter(item => item.name.toLowerCase().includes(searchText.toLowerCase()))
-              .map((item, index) => (
-                <AddItemCard
-                  key={index}
-                  name={item.name}
-                  imageUrl={item.imageUrl}
-                  isRecommended={item.isRecommended}
-                  onPress={() => handleSelectItem(item.name)}
-                />
-              ))}
-
-
-            <View style={styles.redirector}>
-                <IText style={{width: '65%'}}>Don’t see your items? Create it for your own use!</IText>
-                <IButton
-                    variant="primary"
-                    onPress={() => {
-                        // redirect to units management page
-                    }}
-                    style={styles.redirectorButton}
-                >
-                    <IText color="white" semiBold>Create Now!</IText>
-        
-                </IButton>
-            </View>
-        </BottomSheetScrollView>
-      </IBottomSheetModal>
-    </ScrollView>
+        existingIngredientIds={new Set(items.map((i) => i.ingredientId).filter(Boolean) as string[])}
+        onConfirmItem={(newItem) => {
+          setItems((prev) => [newItem, ...prev]);
+          showToast(`Added ${newItem.name}`, "success", 3000, {
+            icon: <Octicons name="trash" size={18} color="#f44336" />,
+            onPress: () => {
+              setItems((prev) => prev.filter((i) => i !== newItem));
+            }
+          });
+        }}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   scrollViewWithModal: {
-    maxHeight: '55%',
+    opacity: 0.5,
   },
-  topRow: {
-    flexDirection: "row",
+  headerSection: {
+    marginBottom: 24,
+  },
+  inputGroup: {
+    marginTop: 16,
+  },
+  descriptionInput: {
+    backgroundColor: "#F3F4F6",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    fontSize: 14,
+    color: "#1F2937",
+    fontFamily: "Inter_Regular",
+    minHeight: 20,
+  },
+  descriptionDisplay: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    minHeight: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 8,
-    alignItems: "center",
   },
   nameInput: {
-    flex: 1,
-    // paddingHorizontal: 16,
     paddingVertical: 4,
-    fontSize: 16,
+    fontSize: 24,
     fontFamily: "Inter_700Bold",
     color: "#000000B4",
     borderBottomWidth: 1,
     borderColor: "#000000B4",
     marginLeft: 2,
   },
+
   nameDisplay: {
-    flex: 1,
     flexDirection: "row",
     gap: 10,
     alignItems: "center",
     paddingVertical: 4,
     fontFamily: "Inter_700Bold",
     borderBottomWidth: 1,
-    borderColor: "#000000B4"
+    borderColor: "#000000B4",
+    fontSize: 24,
   },
-  addButton: {
-    borderRadius: 10,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+
+  actionSection: {
+    marginBottom: 16,
   },
-  addButtonContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-  },
-  plusIcon: {
+  footer: {
+    padding: 10,
     backgroundColor: "white",
-    padding: 5,
-    borderRadius: 4,
   },
+  createButton: {
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+  },
+  emptyStateIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Existing Item Styles
   itemContent: {
     flexDirection: "row",
     alignItems: "center",

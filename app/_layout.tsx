@@ -1,3 +1,4 @@
+import { ToastProvider } from "@/components/IToast";
 import { AuthProvider } from "@/services/auth/auth.context";
 import { SnackBarProvider } from "@/services/auth/snackbar.context";
 import {
@@ -33,12 +34,14 @@ export default function RootLayout() {
     <AuthProvider>
       <QueryClientProvider client={queryClient}>
         <GestureHandlerRootView>
-          <BottomSheetModalProvider>
+          <ToastProvider>
             <SnackBarProvider>
-              <StatusBar />
-              <Slot />
+              <BottomSheetModalProvider>
+                <StatusBar />
+                <Slot />
+              </BottomSheetModalProvider>
             </SnackBarProvider>
-          </BottomSheetModalProvider>
+          </ToastProvider>
         </GestureHandlerRootView>
       </QueryClientProvider>
     </AuthProvider>

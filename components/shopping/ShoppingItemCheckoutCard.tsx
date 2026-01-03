@@ -1,26 +1,16 @@
+import { ShoppingItem } from "@/api/shopping";
 import React, { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
+import QuantitySelector from "../QuantitySelector";
 import { ItemImage, IText } from "../styled";
-import UnitSelector from "../UnitSelector";
-
-export interface CheckoutItem {
-  id: string;
-  name: string;
-  quantity: string;
-  unit: string;
-  isPurchased?: boolean;
-  costPerUnit?: string;
-  total?: string;
-  expiresIn?: string;
-  expiryDays?: number;
-}
 
 interface ShoppingItemCheckoutCardProps {
-  item: CheckoutItem;
-  amount: number;
-  maxAmount?: number;
-  setAmount: React.Dispatch<React.SetStateAction<number>>;
-  onCostChange?: (costPerUnit: string) => void;
+  item: ShoppingItem;
+  // amount: number,
+  maxAmount?: number,
+  onQuantityChange?: (quantity: number) => void;
+  onServingQuantityChange?: (quantity: number) => void;
+  onPriceChange?: (price: string) => void;
   onTotalChange?: (total: string) => void;
   onExpiryChange?: (days: string) => void;
 }
@@ -31,31 +21,52 @@ interface ShoppingItemCheckoutCardProps {
  */
 export const ShoppingItemCheckoutCard: React.FC<ShoppingItemCheckoutCardProps> = ({
   item,
-  amount,
   maxAmount,
-  setAmount,
-  onCostChange,
+  onQuantityChange,
+  onServingQuantityChange,
+  onPriceChange,
   onTotalChange,
   onExpiryChange,
 }) => {
-  const [costPerUnit, setCostPerUnit] = useState(item.costPerUnit || "0");
-  const [total, setTotal] = useState(item.total || "0");
-  const [expiryDays, setExpiryDays] = useState(item.expiryDays?.toString() || "");
+  const initialQuantity = React.useRef(item.quantity);
+  const initialUnit = React.useRef(item.unit);
 
-  const handleInputChange = (text: string) => {
-    setAmount(
-      text === "" ? 0 : Math.min(maxAmount ? maxAmount : Infinity, Math.max(0, parseInt(text)))
-    );
-  };
+  const [price, setPrice] = useState(item.price?.toString() || "0");
+  const [total, setTotal] = useState(((item.price || 0) * (item.quantity || 0)).toString());
+  const [expiryDays, setExpiryDays] = useState("");
+  const [servingQuantity, setServingQuantity] = useState(item.servingQuantity || 0);
 
-  const handleCostChange = (value: string) => {
-    setCostPerUnit(value);
-    onCostChange?.(value);
+
+  // Recalculate total when price or amount changes
+  // Removed useEffect to allow two-way binding
+
+  const handleServingQuantityChange = (newQuantity: number) => {
+    setServingQuantity(newQuantity);
+    onServingQuantityChange?.(newQuantity);
+  }
+
+  const handlePriceChange = (value: string) => {
+    setPrice(value);
+    onPriceChange?.(value);
+    const p = parseFloat(value) || 0;
+    const q = item.quantity || 0;
+    const newTotal = p * q;
+    setTotal(newTotal.toString());
+    onTotalChange?.(newTotal.toString());
   };
 
   const handleTotalChange = (value: string) => {
     setTotal(value);
     onTotalChange?.(value);
+
+    // Update unit price when total changes
+    const t = parseFloat(value) || 0;
+    const q = item.quantity || 1; // Avoid division by zero
+    if (q > 0) {
+      const newPrice = Math.round(t / q);
+      setPrice(newPrice.toString());
+      onPriceChange?.(newPrice.toString());
+    }
   };
 
   const handleExpiryChange = (value: string) => {
@@ -67,25 +78,26 @@ export const ShoppingItemCheckoutCard: React.FC<ShoppingItemCheckoutCardProps> =
     <View style={styles.container}>
       <View style={styles.itemHeader}>
         <View style={styles.itemInfo}>
-          <ItemImage src="https://imgs.search.brave.com/ZyTalHbd6ylc6QNmPc_567ZkdaIA2fOjPirg0xv5rNY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cG5nYWxsLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvMjAxNi8w/NS9DYWJiYWdlLUZy/ZWUtUE5HLUltYWdl/LnBuZw" />
+          <ItemImage src={item.ingredientId?.imageURL} />
           <View>
             <IText bold size={16}>
               {item.name}
             </IText>
             <IText size={11}>
-              {item.quantity} {item.unit}
+              {initialQuantity.current} {initialUnit.current}
             </IText>
           </View>
         </View>
 
         <View style={styles.unitContainer}>
-          <IText size={11}>Save as</IText>
-          <TextInput
-            style={styles.amountInput}
-            keyboardType="numeric"
-            onChangeText={(text) => handleInputChange(text)}
+          <IText size={11}>
+            Serving
+          </IText>
+          <QuantitySelector
+            state={servingQuantity}
+            setState={handleServingQuantityChange}
+            maxState={maxAmount}
           />
-          <UnitSelector />
         </View>
       </View>
 
@@ -93,13 +105,15 @@ export const ShoppingItemCheckoutCard: React.FC<ShoppingItemCheckoutCardProps> =
       <View style={styles.section}>
         <View style={styles.row}>
           <View style={styles.inputGroup}>
-            <IText size={11}>Cost per unit</IText>
+            <IText size={11}>
+              Cost per unit
+            </IText>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
                 placeholder="0"
-                value={costPerUnit}
-                onChangeText={handleCostChange}
+                value={price}
+                onChangeText={handlePriceChange}
                 keyboardType="decimal-pad"
               />
               <IText size={11} color="#999">
@@ -108,7 +122,9 @@ export const ShoppingItemCheckoutCard: React.FC<ShoppingItemCheckoutCardProps> =
             </View>
           </View>
           <View style={[styles.inputGroup, { flex: 1.5 }]}>
-            <IText size={11}>Total</IText>
+            <IText size={11}>
+              Total
+            </IText>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
@@ -123,8 +139,11 @@ export const ShoppingItemCheckoutCard: React.FC<ShoppingItemCheckoutCardProps> =
             </View>
           </View>
 
+
           <View style={[styles.inputGroup, { flex: 0.85, marginLeft: 20 }]}>
-            <IText size={11}>Expires in</IText>
+            <IText size={11}>
+              Expires in
+            </IText>
             <View style={styles.inputContainer}>
               <TextInput
                 style={styles.input}
@@ -139,6 +158,8 @@ export const ShoppingItemCheckoutCard: React.FC<ShoppingItemCheckoutCardProps> =
             </View>
           </View>
         </View>
+
+
       </View>
     </View>
   );

@@ -7,22 +7,17 @@ import { CardGroup, ItemCard, IText } from "@/components/styled";
 import { Octicons } from "@expo/vector-icons";
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import React, { useCallback, useMemo, useRef, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
-const shoppingLists = [
-  { id: "1", name: "Weekly Groceries", active: true },
-  { id: "2", name: "Dinner Party", active: true },
-  { id: "3", name: "Breakfast Items", active: true },
-  { id: "4", name: "Pantry Staples", active: true },
-  { id: "5", name: "Monthly Shopping", active: false },
-  { id: "6", name: "Party Supplies", active: false },
-  { id: "7", name: "Snack Items", active: false },
-  { id: "8", name: "Kitchen Essentials", active: false },
-];
+import { useShoppingLists } from "@/hooks/shopping/useShopping";
+import { useAuth } from "@/services/auth/auth.context";
 
 export default function ShoppingScreen() {
+  const { user } = useAuth();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [searchText, setSearchText] = useState("");
+
+  const { data: shoppingLists = [], isLoading } = useShoppingLists(user?.groupId);
 
   const handleDismissModal = useCallback(() => {
     bottomSheetRef.current?.close();
@@ -36,15 +31,15 @@ export default function ShoppingScreen() {
 
   const filteredActiveLists = useMemo(() => {
     return shoppingLists
-      .filter(list => list.active)
-      .filter(list => list.name.toLowerCase().includes(searchText.toLowerCase()));
-  }, [searchText]);
+      .filter(list => list.status === 'active')
+      .filter(list => list.title.toLowerCase().includes(searchText.toLowerCase()));
+  }, [searchText, shoppingLists]);
 
   const filteredSavedLists = useMemo(() => {
     return shoppingLists
-      .filter(list => !list.active)
-      .filter(list => list.name.toLowerCase().includes(searchText.toLowerCase()));
-  }, [searchText]);
+      .filter(list => list.status !== 'active')
+      .filter(list => list.title.toLowerCase().includes(searchText.toLowerCase()));
+  }, [searchText, shoppingLists]);
 
 
 
@@ -57,7 +52,6 @@ export default function ShoppingScreen() {
       <View style={{
         flexDirection: "row",
         gap: 8,
-        // marginBottom: 10
       }}>
         {/* Search box */}
         <SearchBox
@@ -77,12 +71,13 @@ export default function ShoppingScreen() {
         contentContainerStyle={{ gap: 16 }}
       >
 
+        {isLoading && <ActivityIndicator size="large" />}
 
         {/* Active list */}
         {filteredActiveLists.length > 0 && (
           <CardGroup>
             {filteredActiveLists.map((item) => {
-              return <ItemCard primary key={item.id}><ShoppingListCard id={item.id} name={item.name} active /></ItemCard>
+              return <ItemCard primary key={item._id}><ShoppingListCard id={item._id} name={item.title} itemsCount={item.items?.length || 0} date={item.updatedAt} active /></ItemCard>
             })}
           </CardGroup>
         )}
@@ -91,7 +86,7 @@ export default function ShoppingScreen() {
         {filteredSavedLists.length > 0 && (
           <CardGroup>
             {filteredSavedLists.map((item) => {
-              return <ItemCard key={item.id}><ShoppingListCard id={item.id} name={item.name} /></ItemCard>
+              return <ItemCard key={item._id}><ShoppingListCard id={item._id} name={item.title} itemsCount={item.items?.length || 0} date={item.updatedAt} /></ItemCard>
             })}
           </CardGroup>
         )}

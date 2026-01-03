@@ -13,17 +13,50 @@ interface BottomSheetModalProps {
   onClose?: () => void;
   onChange?: (index: number) => void;
   showCancelButton?: boolean;
-  useBackdrop?: boolean;
+  enablePanDownToClose?: boolean;
 }
 
+
+/**
+ * Component modal xuất hiện từ dưới lên với nền mờ.
+ * 
+ * ---
+ * **Props**
+ * - {React.RefObject<BottomSheet | null>} - **bottomSheetRef** - Ref để điều khiển bottom sheet (mở/đóng).
+ * - {React.ReactNode} - **children** - Nội dung bên trong bottom sheet.
+ * - {string} - **title** - Tiêu đề hiển thị ở phần header của bottom sheet.
+ * - {(string | number)[]} - **[snapPoints]** - Các vị trí dừng của bottom sheet. Mặc định là `["50%"]`.
+ * - {function} - **[onClose]** - Hàm được gọi khi người dùng đóng bottom sheet.
+ * - {boolean} - **[showCancelButton]** - Hiển thị nút Cancel ở header. Mặc định là `true`.
+ * 
+ * ---
+ * **Ví dụ sử dụng**
+ * ```tsx
+ * const sheetRef = useRef<BottomSheet>(null);
+ * 
+ * <IBottomSheet
+ *     bottomSheetRef={sheetRef}
+ *     title="Tạo danh sách"
+ *     snapPoints={[1, "60%"]}
+ *     onClose={() => console.log("Đã đóng")}
+ * >
+ *     <View>
+ *         <IText>Nội dung</IText>
+ *     </View>
+ * </IBottomSheet>
+ * ```
+ */
+
+// eslint-disable-next-line react/display-name
 const IBottomSheetModal = forwardRef<Ref, BottomSheetModalProps>(
   ({
     children,
     title,
     snapPoints = ['50%'],
     onClose,
+    onChange = (index) => { },
     showCancelButton = true,
-    useBackdrop = true
+    enablePanDownToClose = true
   }, ref) => {
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
@@ -47,14 +80,14 @@ const IBottomSheetModal = forwardRef<Ref, BottomSheetModalProps>(
         ref={ref}
         index={0}
         snapPoints={snapPoints}
-        backdropComponent={useBackdrop ? renderBackdrop : undefined}
-        enablePanDownToClose={true}
+        backdropComponent={renderBackdrop}
+        enablePanDownToClose={enablePanDownToClose}
         onDismiss={handleClose}
         enableDynamicSizing={false}
         enableOverDrag={false}
       >
-        <View style={styles.container}>
-          {/* Header - Static */}
+        <View style={styles.contentContainer}>
+          {/* Header */}
           <View style={styles.header}>
             <IText bold size={24}>
               {title}
@@ -68,8 +101,12 @@ const IBottomSheetModal = forwardRef<Ref, BottomSheetModalProps>(
             )}
           </View>
 
-          {/* Content - Scrollable (passed as children) */}
-          {children}
+          {/* Content */}
+          {children && (
+            <View style={styles.contentSection}>
+              {children}
+            </View>
+          )}
         </View>
       </BottomSheetModal>
     );
