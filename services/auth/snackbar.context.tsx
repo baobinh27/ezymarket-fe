@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     },
     icon: {
         color: 'white',
-        alignSelf: "stretch", 
+        alignSelf: "stretch",
         paddingVertical: 7,
         width: 42,
     }

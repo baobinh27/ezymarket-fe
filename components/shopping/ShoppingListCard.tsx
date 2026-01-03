@@ -7,16 +7,34 @@ interface ShoppingListCardProps {
   id: string;
   name: string;
   active?: boolean;
+  itemsCount: number;
+  date: string;
 }
 
-export default function ShoppingListCard({ id, name, active }: ShoppingListCardProps) {
+export default function ShoppingListCard({
+  id,
+  name,
+  active,
+  itemsCount,
+  date
+}: ShoppingListCardProps) {
   const router = useRouter();
   const handleListPress = (listId: string, listName: string) => {
-    router.push({
-      pathname: "/shopping/[id]",
-      params: { id: listId, name: listName },
-    });
+    if (active) {
+      router.push({
+        pathname: "/shopping/[id]",
+        params: { id: listId, name: listName },
+      });
+    } else {
+      router.push({
+        pathname: "/shopping/saved/[id]",
+        params: { id: listId, name: listName },
+      });
+    }
   };
+
+  const formattedDate = new Date(date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+
   return (
     <TouchableOpacity
       onPress={() => handleListPress(id, name)}
@@ -27,38 +45,25 @@ export default function ShoppingListCard({ id, name, active }: ShoppingListCardP
         alignItems: "center",
       }}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 10,
-        }}
-      >
-        <View style={{ backgroundColor: "white", padding: 5, borderRadius: 4 }}>
-          <Octicons size={32} name="checklist" color={active ? "#46982D" : "black"} />
-        </View>
+      <View style={{
+        flexDirection: 'row',
+        alignItems: "center",
+        gap: 10
+      }}>
+        <View style={{ backgroundColor: "white", padding: 5, borderRadius: 4 }}><Octicons size={32} name="checklist" color={active ? "#46982D" : "black"} /></View>
         <View style={{ gap: 4 }}>
-          <View
-            style={{
-              flexDirection: "row",
-            }}
-          >
-            {active && (
-              <View style={styles.indicator}>
-                <IText size={10} color="#46982D">
-                  Active
-                </IText>
-              </View>
-            )}
-            <IText size={16} bold color={active ? "white" : "black"}>
-              {name}
-            </IText>
+          <View style={{
+            flexDirection: 'row',
+
+          }}>
+            {active && (<View style={styles.indicator}><IText size={10} color="#46982D">Active</IText></View>)}
+            <IText size={16} semiBold color={active ? "white" : "#000000B4"}>{name}</IText>
+
           </View>
 
-          <IText size={10} color={active ? "white" : "black"}>
-            18 Items, Oct 23
-          </IText>
+          <IText size={10} color={active ? "white" : "black"}>{itemsCount} Items, {formattedDate}</IText>
         </View>
+
       </View>
 
       <Octicons size={32} name="chevron-right" color={active ? "white" : "black"} />
@@ -74,6 +79,8 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     paddingHorizontal: 8,
     marginRight: 4,
-    alignSelf: "flex-start",
+    alignSelf: 'flex-start',
   },
+
 });
+

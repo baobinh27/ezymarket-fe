@@ -13,24 +13,19 @@ interface IButtonProps {
   style?: ViewStyle | (ViewStyle | undefined)[];
 }
 
-const IBackground = styled(LinearGradient as any).attrs<{
-  variant?: "primary" | "secondary" | "tertiary" | "none";
-}>((props) => ({
-  colors:
-    props.variant === "primary"
-      ? ["#82CD47", "#46982D"]
-      : props.variant === "tertiary"
-        ? ["#EEE", "#EEE"]
-        : ["#FFF", "#FFF"],
-  start: { x: 0, y: 0 },
-  end: { x: 1, y: 1 },
-}))<{ variant?: "primary" | "secondary" | "tertiary" | "none" }>`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-`;
+const IBackground = styled(LinearGradient as any).attrs<{ variant?: "primary" | "secondary" | "tertiary" | "none" }>(
+  (props) => ({
+    colors: props.variant === "primary" ? ["#46982D", "#82CD47"] : props.variant === "tertiary" ? ['#EEE', '#EEE'] : ["#FFF", "#FFF"],
+    start: { x: 0, y: 0 },
+    end: { x: 1, y: 1 },
+  })
+) <{ variant?: "primary" | "secondary" | "tertiary" | "none" }>`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+`
 /**
  * Component nút bấm, với 4 variant và style tuỳ chỉnh.
  *
@@ -53,33 +48,33 @@ const IBackground = styled(LinearGradient as any).attrs<{
  * ```
  */
 export default function IButton({
-    variant = "none",
-    children,
-    onPress,
-    onLongPress,
-    onPressIn,
-    onPressOut,
-    style,
-    ...other
+  variant = "none",
+  children,
+  onPress,
+  onLongPress,
+  onPressIn,
+  onPressOut,
+  style,
+  ...other
 }: IButtonProps & PressableProps) {
-    return (
-        <Pressable
-            onPress={onPress}
-            onLongPress={onLongPress}
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            style={({ pressed }) => [
-                styles.button,
-                style,
-                pressed && styles.pressed,
-                variant === "secondary" && styles.border,
-            ]}
-            {...other}
-        >
-            <IBackground variant={variant} />
-            {children}
-        </Pressable>
-    );
+  return (
+    <Pressable
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onPressIn={onPressIn}
+      onPressOut={onPressOut}
+      style={({ pressed }) => [
+        styles.button,
+        style,
+        pressed && styles.pressed,
+        variant === "secondary" && styles.border,
+      ]}
+      {...other}
+    >
+      <IBackground variant={variant} />
+      {children}
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({

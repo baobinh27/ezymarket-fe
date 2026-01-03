@@ -44,10 +44,10 @@ const isTokenExpired = (token: string): boolean => {
     const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
     // Decode using atob (available in React Native)
     const decoded = JSON.parse(atob(padded));
-    
+
     const expirationTime = decoded.exp * 1000;
     const currentTime = Date.now();
-    
+
     // Consider token expired if it will expire within 5 minutes
     return expirationTime - currentTime < 5 * 60 * 1000;
   } catch (e) {
@@ -102,10 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoggedIn(true);
         // Start periodic token refresh on successful login check
         startTokenRefreshInterval();
-         
+
       } catch (e: any) {
         const status = e?.response?.status;
-        
+
         // Only clear tokens on unauthorized errors (401, 403)
         // Don't clear on network errors or server errors (5xx)
         if (status === 401 || status === 403) {
@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       setUser(user);
       setIsLoggedIn(true);
-      
+
       // Start periodic token refresh on successful login
       startTokenRefreshInterval();
 
@@ -176,15 +176,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setUser(null);
     setIsLoggedIn(false);
-    
+
     // Stop periodic token refresh on logout
     stopTokenRefreshInterval();
   };
 
   const register = async (email: string, username: string, password: string) => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { data } = await registerRequest(email, "000000000000", password);
+      const { data } = await registerRequest(email, "098765432134", password);
 
       return {
         success: true,
