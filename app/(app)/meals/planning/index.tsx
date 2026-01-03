@@ -1,5 +1,6 @@
 import IButton from "@/components/IButton";
 import AddItemModal from "@/components/meals/AddItemModal";
+import ConfirmDeleteModal from "@/components/meals/ConfirmDeleteModal";
 import WeekPicker from "@/components/meals/WeekPicker";
 import {
   CardGroup,
@@ -7,9 +8,11 @@ import {
   ItemImageWithFallback,
   IText,
 } from "@/components/styled";
+import useDeleteMealItem from "@/hooks/meal/useDeleteMealItem";
 import useGetMealByDateRange from "@/hooks/meal/useGetMealByDateRange";
 import { MealItem, MealType } from "@/types/types";
 import { getFridgeItemImage } from "@/utils/getFridgeItemImage";
+import { getDateFormat } from "@/utils/utils";
 import { Entypo, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import dayjs, { Dayjs } from "dayjs";
@@ -95,6 +98,11 @@ const MealPlanning = () => {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [isReady, setIsReady] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    itemId: string;
+    itemName: string;
+    mealType: MealType;
+  } | null>(null);
 
   const {
     data: mealDay,
@@ -102,21 +110,24 @@ const MealPlanning = () => {
     refetch: fetchMealDay,
   } = useGetMealByDateRange({
     params: {
-      startDate: `${selectedDate.year()}-${selectedDate.month() + 1}-${selectedDate.date()}`,
-      endDate: `${selectedDate.year()}-${selectedDate.month() + 1}-${selectedDate.date()}`,
+      startDate: getDateFormat(selectedDate),
+      endDate: getDateFormat(selectedDate),
     },
     enabled: false,
   });
 
-  // useEffect(() => {    
+  const { mutateAsync: deleteMealItem, isPending: isDeleting } =
+    useDeleteMealItem();
+
+  // useEffect(() => {
   //   // console.log("iso:", selectedDate.toISOString());
   //   const date = `${selectedDate.year()}-${selectedDate.month()}-${selectedDate.date()}`;
   //   console.log("date:", date);
-    
+
   // }, [selectedDate])
 
   // useEffect(() => {
-  //   console.log("mealDay =", mealDay);
+  //   if (!isFetching) console.log("mealDay =", mealDay);
   // }, [mealDay]);
 
   useEffect(() => {
@@ -129,9 +140,6 @@ const MealPlanning = () => {
     });
     const timer = setTimeout(async () => {
       await fetchMealDay();
-      // const data = mealDay?.[0];
-      // console.log("fetch:", data);
-      
       setIsReady(true);
     }, 300);
 
@@ -140,10 +148,15 @@ const MealPlanning = () => {
 
   const mealDayUI = useMemo(() => {
     // FUTURE: refine API calls to return the exact date
-    const mealData = mealDay && mealDay.length > 0 ? mealDay.find(d => d.date.split("T")[0] === selectedDate.format("YYYY-MM-DD")) : null;
+    const mealData =
+      mealDay && mealDay.length > 0
+        ? mealDay.find(
+            (d) => d.date.split("T")[0] === selectedDate.format("YYYY-MM-DD")
+          )
+        : null;
 
-    console.log("mealData for", selectedDate.format("YYYY-MM-DD"), ":", mealData);
-    
+    // console.log("mealData for", selectedDate.format("YYYY-MM-DD"), ":", mealData);
+
     const getMealItems = (mealType: MealType) => {
       if (!mealData) return [];
       const meal = mealData.meals.find((m) => m.mealType === mealType);
@@ -180,7 +193,7 @@ const MealPlanning = () => {
         data: getMealItems("snacks"),
       },
     ] as const;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mealDay]);
 
   const handleGoToday = () => {
@@ -207,11 +220,22 @@ const MealPlanning = () => {
     setIsExpanded(updated);
   };
 
-  const handleDeleteFoodItem = (meal: Meals, index: number) => {
-    // setMealDay((prev) => ({
-    //   ...prev,
-    //   [meal]: prev[meal].filter((_, i) => i !== index),
-    // }));
+  const handleDeleteFoodItem = (itemId: string, itemName: string, mealType: MealType) => {
+    setDeleteTarget({ itemId, itemName, mealType });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    await deleteMealItem(deleteTarget.itemId, {
+      onSuccess: async () => {
+        setDeleteTarget(null);
+        await fetchMealDay();
+      },
+      onError: () => {
+        setDeleteTarget(null);
+      },
+    });
   };
 
   const handleOpenModal = useCallback((meal: Meals) => {
@@ -229,9 +253,19 @@ const MealPlanning = () => {
         <AddItemModal
           ref={bottomSheetRef}
           mealType={selectedMealType}
-          selectedDate={`${selectedDate.year()}-${selectedDate.month() + 1}-${selectedDate.date()}`}
+          selectedDate={getDateFormat(selectedDate)}
+          onItemsAdded={fetchMealDay}
         />
       )}
+
+      <ConfirmDeleteModal
+        visible={deleteTarget !== null}
+        itemName={deleteTarget?.itemName || ""}
+        mealType={deleteTarget?.mealType}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+      />
 
       <WeekPicker
         currentDate={selectedDate}
@@ -333,9 +367,13 @@ const MealPlanning = () => {
 
                           <IButton
                             style={[styles.iconButton, styles.placeEnd]}
-                            onPress={() =>
-                              handleDeleteFoodItem(meal.key, index)
-                            }
+                            onPress={() => {
+                              const itemName =
+                                mealItem.itemType === "ingredient"
+                                  ? mealItem.ingredientId?.name || "Item"
+                                  : mealItem.recipeId?.title || "Item";
+                              handleDeleteFoodItem(mealItem._id, itemName, meal.key);
+                            }}
                           >
                             <Feather
                               name="trash-2"
@@ -353,9 +391,7 @@ const MealPlanning = () => {
                         >
                           <Entypo name="plus" size={24} color="#000000B4" />
                         </IButton>
-                        <IText size={12}>
-                          Add a dish or an item
-                        </IText>
+                        <IText size={12}>Add a dish or an item</IText>
                       </View>
                     </View>
                   </ItemCard>
@@ -379,9 +415,9 @@ const styles = StyleSheet.create({
     // padding: 6,
     height: 36,
     width: 36,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "white",
     borderRadius: 6,
     color: "#000000B4",

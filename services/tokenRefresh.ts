@@ -1,6 +1,5 @@
 import { SecureStorage } from "@/utils/secureStorage";
 import Constants from "expo-constants";
-import axiosInstance from "./axios";
 
 type Extra = {
   BASE_API: string;
@@ -61,12 +60,20 @@ export const refreshAccessTokenManually = async (): Promise<boolean> => {
 
   isRefreshing = true;
   try {
-    const response = await axiosInstance.post("/api/user/token/refresh", {
-      refreshToken,
+    const response = await fetch(`${BASE_API}/api/user/token/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ refreshToken }),
     });
 
+    if (!response.ok) {
+      throw new Error(`Token refresh failed with status ${response.status}`);
+    }
+
     const { token: newAccessToken, refreshToken: newRefreshToken } =
-      response as { token: string; refreshToken: string };
+      await response.json();
 
     await SecureStorage.setItem("accessToken", newAccessToken);
     await SecureStorage.setItem("refreshToken", newRefreshToken);

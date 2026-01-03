@@ -18,9 +18,10 @@ type AddItemModalProps = {
   ref: Ref<any>;
   mealType: MealType;
   selectedDate: string;
+  onItemsAdded?: () => Promise<any>;
 };
 
-const AddItemModal = ({ ref, mealType, selectedDate }: AddItemModalProps) => {
+const AddItemModal = ({ ref, mealType, selectedDate, onItemsAdded }: AddItemModalProps) => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [hasModalLoaded, setHasModalLoaded] = useState(false);
   const [selectedItems, setSelectedItems] = useState<Map<string, number>>(
@@ -130,6 +131,14 @@ const AddItemModal = ({ ref, mealType, selectedDate }: AddItemModalProps) => {
         return newMap;
       });
       showSnackBar(`${item.foodId.name} added to ${mealType}!`, "success");
+      
+      // Refetch meal plan data after successful addition
+      if (onItemsAdded) {
+        await onItemsAdded();
+      }
+      
+      // Refetch fridge items to update quantities
+      await fetchItems();
     } catch (error) {
       showSnackBar("Failed to add item: " + error, "error");
     }
@@ -155,6 +164,14 @@ const AddItemModal = ({ ref, mealType, selectedDate }: AddItemModalProps) => {
       setSelectedItems(new Map());
       bottomSheetRef?.current?.close();
       showSnackBar(`All items added to ${mealType}!`, "success");
+      
+      // Refetch meal plan data after successful addition
+      if (onItemsAdded) {
+        await onItemsAdded();
+      }
+      
+      // Refetch fridge items to update quantities
+      await fetchItems();
     } catch (error) {
       showSnackBar("Failed to add items: " + error, "error");
     }
@@ -300,7 +317,7 @@ const AddItemModal = ({ ref, mealType, selectedDate }: AddItemModalProps) => {
                   <IText semiBold color="white">
                     {createMealItemBulkIsPending
                       ? "Adding All..."
-                      : `Add All (${selectedItems.size})`}
+                      : `Add All (${selectedItems.size} items)`}
                   </IText>
                 </IButton>
               )}
@@ -346,7 +363,7 @@ const styles = StyleSheet.create({
   },
   leftGroup: {
     flexDirection: "row",
-    gap: 0,
+    gap: 12,
     alignItems: "center",
   },
   rightGroup: {

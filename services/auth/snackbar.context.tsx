@@ -14,7 +14,7 @@ const SnackBarContext = createContext<SnackBarContextType | null>(null);
 export const SnackBarProvider = ({ children }: { children: ReactNode }) => {
     const [message, setMessage] = useState("");
     const [type, setType] = useState<SnackBarType>("info");
-    const translateY = useRef(new Animated.Value(80)).current;
+    const translateY = useRef(new Animated.Value(-120)).current;
     const visibleRef = useRef(false);
 
     const showSnackBar = (msg: string, t: SnackBarType = "info", duration = 3000) => {
@@ -32,7 +32,7 @@ export const SnackBarProvider = ({ children }: { children: ReactNode }) => {
 
         setTimeout(() => {
             Animated.timing(translateY, {
-                toValue: 80,
+                toValue: -120,
                 duration: 300,
                 useNativeDriver: true
             }).start(() => {
@@ -90,12 +90,13 @@ const SnackBarIcon = ({ type }: { type: SnackBarType }) => {
 const styles = StyleSheet.create({
     container: {
         position: "absolute",
-        bottom: 20,
+        top: 20,
         left: 20,
         right: 20,
         paddingRight: 12,
         borderRadius: 8,
-        elevation: 4,
+        elevation: 9999,
+        zIndex: 9999,
         boxShadow: '0 0 5px rgba(0, 0, 0, 0.3)',
         flexDirection: 'row',
         justifyContent: 'flex-start',

@@ -25,7 +25,7 @@ export type CreateMealItemParams = {
 }
 
 export const createMealItem = async (data: CreateMealItemParams) => {
-    console.log("data: ", data);
+    // console.log("data: ", data);
     
     return axiosInstance.post('/api/meal-plans/items', data);
 }
@@ -44,4 +44,8 @@ export type CreateMealItemBulkParams = {
 
 export const createMealItemBulk = async (data: CreateMealItemBulkParams) => {
     return axiosInstance.post('/api/meal-plans/items/bulk', data)
+}
+
+export const deleteMealItem = async (itemId: string) => {
+    return axiosInstance.delete(`/api/meal-plans/items/${itemId}`);
 }
