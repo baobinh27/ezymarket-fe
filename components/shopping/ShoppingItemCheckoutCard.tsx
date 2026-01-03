@@ -1,4 +1,4 @@
-import { ShoppingItem } from "@/api/shopping";
+import { ShoppingItem } from "@/types/types";
 import React, { useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import QuantitySelector from "../QuantitySelector";
@@ -95,7 +95,13 @@ export const ShoppingItemCheckoutCard: React.FC<ShoppingItemCheckoutCardProps> =
           </IText>
           <QuantitySelector
             state={servingQuantity}
-            setState={handleServingQuantityChange}
+            setState={(value) => {
+              if (typeof value === 'function') {
+                handleServingQuantityChange(value(servingQuantity));
+              } else {
+                handleServingQuantityChange(value);
+              }
+            }}
             maxState={maxAmount}
           />
         </View>
@@ -229,20 +235,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5
-  }
-
-  amountInput: {
-    backgroundColor: "white",
-    paddingVertical: 4,
-    paddingHorizontal: 2,
-    textAlign: "center",
-    fontSize: 11,
-    borderRadius: 5,
-    minWidth: 40,
-  },
-  unitContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
   },
 });

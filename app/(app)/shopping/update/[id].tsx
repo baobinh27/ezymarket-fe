@@ -291,7 +291,13 @@ export default function UpdateShoppingListScreen() {
                                                 <QuantitySelector
                                                     state={item.quantity}
                                                     maxState={100}
-                                                    setState={(value) => updateLocalItemQuantity(index, value)}
+                                                    setState={(value) => {
+                                                        if (typeof value === 'function') {
+                                                            updateLocalItemQuantity(index, value(item.quantity));
+                                                        } else {
+                                                            updateLocalItemQuantity(index, value);
+                                                        }
+                                                    }}
                                                 />
                                                 <UnitSelector
                                                     value={item.unitId}

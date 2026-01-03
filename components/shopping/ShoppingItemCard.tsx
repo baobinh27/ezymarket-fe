@@ -50,31 +50,3 @@ export const ShoppingItemCard: React.FC<ShoppingItemProps> = ({
   )
 }
 
-<View
-  style={{
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-  }}
->
-  <IText size={11}>2 pieces</IText>
-  {item.purchased ? (
-    <View style={{ backgroundColor: "white", borderRadius: 5, padding: 4 }}>
-      <Octicons size={28} name={"checkbox"} color="#46982D" />
-    </View>
-  ) : (
-    <Image
-      source={require("@/assets/images/emptybox.png")}
-      style={{
-        width: 36,
-        height: 36,
-        padding: 6,
-        backgroundColor: "white",
-        borderRadius: 5,
-      }}
-    />
-  )}
-</View>
-    </ItemCard >
-  );
-};

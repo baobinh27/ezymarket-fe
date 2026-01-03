@@ -154,29 +154,24 @@ const ListTab = ({
                             </View>
 
                             <View style={styles.fieldRow}>
-                                <View style={styles.fieldGroup}>
-                                    <IText size={12} color="#666">
-                                        Quantity *
-                                    </IText>
-                                    <QuantitySelector
-                                        state={item.quantity}
-                                        setState={(newQuantity) => {
-                                            handleQuantityChange(item.id, newQuantity as number);
-                                        }}
-                                    />
-                                </View>
+                                <QuantitySelector
 
-                                <View style={[styles.fieldGroup, styles.unitField]}>
-                                    <IText size={12} color="#666">
-                                        Unit *
-                                    </IText>
-                                    <UnitSelector
-                                        value={item.selectedUnit}
-                                        onChange={(unit) => handleUnitChange(item.id, unit)}
-                                        maxModalHeight="40%"
-                                        buttonStyle={{ height: 20 }}
-                                    />
-                                </View>
+                                    state={item.quantity}
+                                    setState={(newQuantity) => {
+                                        if (typeof newQuantity === 'function') {
+                                            handleQuantityChange(item.id, newQuantity(item.quantity));
+                                        } else {
+                                            handleQuantityChange(item.id, newQuantity);
+                                        }
+                                    }}
+
+                                />
+
+                                <UnitSelector
+                                    value={item.selectedUnit}
+                                    onChange={(unit) => handleUnitChange(item.id, unit)}
+                                />
+
                             </View>
                         </ItemCard>
                     );

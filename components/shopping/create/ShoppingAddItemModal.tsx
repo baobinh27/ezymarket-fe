@@ -63,11 +63,14 @@ export default function ShoppingAddItemModal({ ref, onClose, onConfirmItem, exis
     }, []);
 
     const handleCloseModal = useCallback(() => {
+        if (ref && 'current' in ref && ref.current) {
+            (ref.current as any).dismiss();
+        }
         setSelectedIngredients([]);
         setSelectedIngredientIds(new Set());
         setActiveTab("browse");
         onClose?.();
-    }, [onClose]);
+    }, [onClose, ref]);
 
     return (
         <IBottomSheetModal
@@ -113,6 +116,7 @@ export default function ShoppingAddItemModal({ ref, onClose, onConfirmItem, exis
                             onSelectIngredient={handleSelectIngredient}
                             selectedIngredientIds={selectedIngredientIds}
                             existingIngredientIds={existingIngredientIds}
+                            onClose={handleCloseModal}
                         />
                     ) : (
                         <ListTab

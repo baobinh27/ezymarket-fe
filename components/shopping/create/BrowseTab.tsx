@@ -3,6 +3,7 @@ import useGetAllIngredients from "@/hooks/ingredients/useGetAllIngredients";
 import { Ingredient } from "@/types/types";
 import { Entypo } from "@expo/vector-icons";
 import { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from "react-native";
 import IButton from "../../IButton";
@@ -13,9 +14,11 @@ interface BrowseTabProps {
     onSelectIngredient: (ingredient: Ingredient) => void;
     selectedIngredientIds: Set<string>;
     existingIngredientIds?: Set<string>;
+    onClose?: () => void;
 }
 
-const BrowseTab = ({ onSelectIngredient, selectedIngredientIds, existingIngredientIds }: BrowseTabProps) => {
+const BrowseTab = ({ onSelectIngredient, selectedIngredientIds, existingIngredientIds, onClose }: BrowseTabProps) => {
+    const router = useRouter();
     const [searchInput, setSearchInput] = useState("");
     const [isReady, setIsReady] = useState(false);
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -63,8 +66,9 @@ const BrowseTab = ({ onSelectIngredient, selectedIngredientIds, existingIngredie
     }, []);
 
     const handleGoDictionary = useCallback(() => {
-        // TODO: route to dict
-    }, []);
+        onClose?.();
+        router.push("/profile/dictionary/" as any);
+    }, [onClose]);
 
     const handleSelectIngredient = useCallback(
         (ingredient: Ingredient) => {
@@ -102,9 +106,9 @@ const BrowseTab = ({ onSelectIngredient, selectedIngredientIds, existingIngredie
                         size={32}
                     />
                     <IText style={styles.emptyListMessage}>
-                        The list is empty. This could be a result of lacking various items
-                        in our database. You might want to add your own items in your
-                        personal list below.
+                        {searchInput
+                            ? "No results found. Try checking your spelling or looking for something else. You might want to add your own items in your personal list below."
+                            : "The list is empty. This could be a result of lacking various items in our database. You might want to add your own items in your personal list below."}
                     </IText>
                     <IButton
                         variant="secondary"

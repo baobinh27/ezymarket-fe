@@ -27,7 +27,7 @@ export default function ShoppingListCard({
       });
     } else {
       router.push({
-        pathname: "/shopping/saved/[id]",
+        pathname: "/shopping/saved/[id]" as any,
         params: { id: listId, name: listName },
       });
     }

@@ -49,9 +49,7 @@ export default function ShoppingDetailHeader({ navigation, route, items }: Shopp
         <IButton
           variant="secondary"
           style={{ borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14 }}
-          onPress={() => {
-            router.push({ pathname: "/shopping/update/[id]", params: { id: params.id! } });
-          }}
+          onPress={() => router.push({ pathname: "/shopping/update/[id]" as any, params: { id: params.id! } })}
         >
           <IText color="#46982D" semiBold>
             Edit
@@ -68,6 +66,6 @@ export default function ShoppingDetailHeader({ navigation, route, items }: Shopp
           </IText>
         </IButton>
       </View>
-    </View>
+    </View >
   );
 }

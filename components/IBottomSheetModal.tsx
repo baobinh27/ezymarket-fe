@@ -86,7 +86,7 @@ const IBottomSheetModal = forwardRef<Ref, BottomSheetModalProps>(
         enableDynamicSizing={false}
         enableOverDrag={false}
       >
-        <View style={styles.contentContainer}>
+        <View style={styles.container}>
           {/* Header */}
           <View style={styles.header}>
             <IText bold size={24}>
@@ -129,6 +129,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
+  },
+  contentSection: {
+    flex: 1,
   },
 });
 

@@ -1,5 +1,5 @@
-import { ShoppingItem } from "@/api/shopping";
 import { ItemImage, IText } from "@/components/styled";
+import { ShoppingItem } from "@/types/types";
 import { View } from "react-native";
 
 

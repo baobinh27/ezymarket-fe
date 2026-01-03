@@ -7,18 +7,11 @@ import SearchBar from "@/components/SearchBar";
 import { ItemCard, IText } from "@/components/styled";
 import { useGetAllFridgeItems } from "@/hooks/fridge/useGetAllFridgeItems";
 import { FridgeItem } from "@/types/types";
-import { Entypo, Feather, FontAwesome6, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { router } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, SafeAreaView, StyleSheet, View } from "react-native";
 
 type EditingItem = {
   [key: string]: number;
@@ -205,18 +198,6 @@ export default function FridgeScreen() {
                 Use your items in Meals!
               </IText>
               {/* TODO: Style this and make this actually work */}
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => {
-                  // TODO: Implement logic
-                }}
-                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-              >
-                <MaterialCommunityIcons name="checkbox-blank-outline" size={18} color="white" />
-                <IText size={12} color="white" style={{ opacity: 0.9 }}>
-                  Don&apos;t show again
-                </IText>
-              </TouchableOpacity>
               <View style={{ flexDirection: "row" }}>
                 <input type="checkbox" id="options-show-meal-use" style={styles.showTipsCheckbox} />
                 <label htmlFor="options-show-meal-use">
@@ -332,7 +313,10 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
   },
-
+  showTipsCheckbox: {
+    backgroundColor: "black",
+    color: "yellow",
+  },
   editWarning: {
     flexDirection: "row",
     // marginHorizontal: 16,

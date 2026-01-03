@@ -17,7 +17,7 @@ export default function ShoppingScreen() {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [searchText, setSearchText] = useState("");
 
-  const { data: shoppingLists = [], isLoading } = useShoppingLists(user?.groupId);
+  const { data: shoppingLists = [], isLoading } = useShoppingLists(user?.groupId!);
 
   const handleDismissModal = useCallback(() => {
     bottomSheetRef.current?.close();
