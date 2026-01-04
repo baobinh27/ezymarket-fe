@@ -23,9 +23,9 @@ export default function HomeScreen() {
     error,
   } = useGetReportOverview();
 
-  useEffect(() => {
-    console.log("report data:", reportData);
-  }, [reportData]);
+  // useEffect(() => {
+  //   console.log("report data:", reportData);
+  // }, [reportData]);
 
   useEffect(() => {
     if (isError) console.log(error);

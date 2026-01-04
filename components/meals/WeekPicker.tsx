@@ -1,12 +1,13 @@
 import { Entypo } from "@expo/vector-icons";
 import dayjs, { Dayjs } from "dayjs";
-import React, { useState } from "react";
+import React from "react";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import IButton from "../IButton";
 import { IText } from "../styled";
 
 type WeekPickerProps = {
   currentDate: Dayjs;
+  selectedDate: Dayjs;
   onGoToday: () => void;
   onGoPrevWeek: () => void;
   onGoNextWeek: () => void;
@@ -15,32 +16,24 @@ type WeekPickerProps = {
 
 const WeekPicker = ({
   currentDate,
+  selectedDate,
   onGoToday,
   onGoNextWeek,
   onGoPrevWeek,
   onDayPicking,
 }: WeekPickerProps) => {
-  // const [currentDate, setCurrentDate] = useState(dayjs());
-  const [selectedDate, setSelectedDate] = useState(dayjs());
-
-  const startOfWeek = currentDate.startOf("week"); // Sunday
+  const startOfWeek = currentDate.startOf("week");
   const weekDays = [...Array(7)].map((_, i) => startOfWeek.add(i, "day"));
 
-  const isPlanning = React.useMemo(() => selectedDate.isAfter(dayjs()), [selectedDate]);
-
   const goToday = () => {
-    // setCurrentDate(dayjs());
     onGoToday();
-    setSelectedDate(dayjs());
   };
 
   const goPrevWeek = () => {
-    // setCurrentDate(currentDate.subtract(1, "week"));
     onGoPrevWeek();
   };
 
   const goNextWeek = () => {
-    // setCurrentDate(currentDate.add(1, "week"));
     onGoNextWeek();
   };
 
@@ -70,7 +63,6 @@ const WeekPicker = ({
                   <IText size={11} style={styles.weekdayLabel}>
                     {day.format("ddd")}
                   </IText>
-
                   <TouchableOpacity
                     style={[
                       styles.dayButton,
@@ -78,7 +70,6 @@ const WeekPicker = ({
                       isSelected && styles.selectedDayButton,
                     ]}
                     onPress={() => {
-                      setSelectedDate(day);
                       onDayPicking(day);
                     }}
                   >
@@ -114,7 +105,7 @@ const WeekPicker = ({
         <IText semiBold size={14} style={styles.selectedText}>
           {selectedDate.format("MMM DD, YYYY")}
         </IText>
-        {isPlanning && (
+        {selectedDate.isAfter(dayjs()) && (
           <IButton variant="secondary" style={{ borderRadius: 10, paddingHorizontal: 10 }}>
             <IText size={11}>Planning</IText>
           </IButton>

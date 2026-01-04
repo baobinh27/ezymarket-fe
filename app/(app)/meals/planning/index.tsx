@@ -97,6 +97,7 @@ const MealPlanning = () => {
   const [selectedMealType, setSelectedMealType] = useState<Meals | null>(null);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [selectedDate, setSelectedDate] = useState(dayjs());
+  const [viewingWeekDate, setViewingWeekDate] = useState(dayjs());
   const [isReady, setIsReady] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     itemId: string;
@@ -197,19 +198,22 @@ const MealPlanning = () => {
   }, [mealDay]);
 
   const handleGoToday = () => {
-    setSelectedDate(dayjs());
+    const today = dayjs();
+    setSelectedDate(today);
+    setViewingWeekDate(today);
   };
 
   const handleGoPrevWeek = () => {
-    setSelectedDate(selectedDate.subtract(1, "week"));
+    setViewingWeekDate(viewingWeekDate.subtract(1, "week"));
   };
 
   const handleGoNextWeek = () => {
-    setSelectedDate(selectedDate.add(1, "week"));
+    setViewingWeekDate(viewingWeekDate.add(1, "week"));
   };
 
   const handleDayPicking = (day: Dayjs) => {
     setSelectedDate(day);
+    setViewingWeekDate(day);
   };
 
   const handleExpand = (meal: Meals) => {
@@ -268,7 +272,8 @@ const MealPlanning = () => {
       />
 
       <WeekPicker
-        currentDate={selectedDate}
+        currentDate={viewingWeekDate}
+        selectedDate={selectedDate}
         onGoNextWeek={handleGoNextWeek}
         onGoPrevWeek={handleGoPrevWeek}
         onGoToday={handleGoToday}

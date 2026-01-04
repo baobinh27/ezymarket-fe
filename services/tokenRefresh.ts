@@ -55,6 +55,8 @@ export const refreshAccessTokenManually = async (): Promise<boolean> => {
   if (isRefreshing) return false;
 
   const refreshToken = await SecureStorage.getItem("refreshToken");
+  const accessToken = await SecureStorage.getItem("accessToken");
+  
   if (!refreshToken) return false;
 
   isRefreshing = true;
@@ -63,12 +65,25 @@ export const refreshAccessTokenManually = async (): Promise<boolean> => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
       },
       body: JSON.stringify({ refreshToken }),
     });
 
     if (!response.ok) {
-      throw new Error(`Token refresh failed with status ${response.status}`);
+      const status = response.status;
+      
+      // Clear tokens on 401 (Unauthorized) or 403 (Forbidden)
+      if (status === 401 || status === 403) {
+        console.error("✗ Token refresh failed: Unauthorized (clearing tokens)");
+        await SecureStorage.deleteItem("accessToken");
+        await SecureStorage.deleteItem("refreshToken");
+        stopTokenRefreshInterval();
+      } else {
+        console.error(`✗ Token refresh failed with status ${status}`);
+      }
+      
+      return false;
     }
 
     const { token: newAccessToken, refreshToken: newRefreshToken } =
@@ -92,24 +107,26 @@ export const refreshAccessTokenManually = async (): Promise<boolean> => {
  * This proactively refreshes tokens before they expire
  */
 export const startTokenRefreshInterval = () => {
-  if (refreshInterval) return; // Already running
+  if (refreshInterval) return;
 
   console.log("▶ Starting token refresh interval (every 5 minutes)");
 
   refreshInterval = setInterval(async () => {
     const accessToken = await SecureStorage.getItem("accessToken");
+    const refreshToken = await SecureStorage.getItem("refreshToken");
 
-    if (!accessToken) {
+    if (!accessToken || !refreshToken) {
+      console.log("⏹ Tokens not found, stopping refresh interval");
       stopTokenRefreshInterval();
       return;
     }
 
-    // Check if token is expired or about to expire
+    // Check if token is expired or about to expire (within 2 minutes)
     if (isTokenExpired(accessToken)) {
       console.log("⟳ Token expiring soon, refreshing...");
       await refreshAccessTokenManually();
     }
-  }, 5 * 60 * 1000); // Check every 5 minutes
+  }, 5 * 30 * 1000);
 };
 
 /**
