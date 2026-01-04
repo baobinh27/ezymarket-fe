@@ -20,7 +20,8 @@ export const ShoppingItemCard: React.FC<ShoppingItemProps> = ({
     <ItemCard >
       <View style={{
         flexDirection: "row",
-        alignItems: "center"
+        alignItems: "center",
+        gap: 12
       }}>
         <ItemImage src={item.ingredientId?.imageURL} />
         <IText

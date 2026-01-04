@@ -1,6 +1,11 @@
 import { ShoppingItemCard } from "@/components/shopping/ShoppingItemCard";
 import { IText } from "@/components/styled";
-import { useAddShoppingItem, useDeleteItem, useShoppingList, useUpdateItem } from "@/hooks/shopping/useShopping";
+import {
+  useAddShoppingItem,
+  useDeleteItem,
+  useShoppingList,
+  useUpdateItem,
+} from "@/hooks/shopping/useShopping";
 import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from "react-native";
@@ -21,12 +26,15 @@ export default function ShoppingListDetailScreen() {
 
   const navigation = useNavigation();
   // Merge pending updates for display
-  const displayItems = useMemo(() => list?.items.map(item => ({
-    ...item,
-    isPurchased: pendingUpdates[item._id!] !== undefined
-      ? pendingUpdates[item._id!]
-      : item.isPurchased
-  })) || [], [list, pendingUpdates]);
+  const displayItems = useMemo(
+    () =>
+      list?.items.map((item) => ({
+        ...item,
+        isPurchased:
+          pendingUpdates[item._id!] !== undefined ? pendingUpdates[item._id!] : item.isPurchased,
+      })) || [],
+    [list, pendingUpdates]
+  );
 
   useEffect(() => {
     navigation.setParams({ items: displayItems } as any);
@@ -35,7 +43,6 @@ export default function ShoppingListDetailScreen() {
   useEffect(() => {
     updatesRef.current = pendingUpdates;
   }, [pendingUpdates]);
-
 
   useFocusEffect(
     useCallback(() => {
@@ -46,35 +53,36 @@ export default function ShoppingListDetailScreen() {
         if (!currentList || !currentList._id) return;
 
         Object.entries(updates).forEach(([itemId, isPurchased]) => {
-          const originalItem = currentList.items.find(i => i._id === itemId);
+          const originalItem = currentList.items.find((i) => i._id === itemId);
           if (originalItem && originalItem.isPurchased !== isPurchased) {
             updateMutation.mutate({
               listId: currentList._id,
               itemId,
-              data: { isPurchased }
+              data: { isPurchased },
             });
           }
         });
       };
-    }, [list])
+    }, [list, updateMutation])
   );
 
   const handleTogglePurchased = (itemId: string) => {
     // Current state is from pending or original
-    const item = list?.items.find(i => i._id === itemId);
-    const currentStatus = pendingUpdates[itemId] !== undefined ? pendingUpdates[itemId] : item?.isPurchased;
+    const item = list?.items.find((i) => i._id === itemId);
+    const currentStatus =
+      pendingUpdates[itemId] !== undefined ? pendingUpdates[itemId] : item?.isPurchased;
     const newStatus = !currentStatus;
 
-    setPendingUpdates(prev => ({
+    setPendingUpdates((prev) => ({
       ...prev,
-      [itemId]: newStatus
+      [itemId]: newStatus,
     }));
   };
 
   const handleDeleteItem = (itemId: string) => {
     // Also remove from pending updates if present
     if (pendingUpdates[itemId] !== undefined) {
-      setPendingUpdates(prev => {
+      setPendingUpdates((prev) => {
         const next = { ...prev };
         delete next[itemId];
         return next;
@@ -86,18 +94,13 @@ export default function ShoppingListDetailScreen() {
     }
   };
 
-
   if (isLoading) return <ActivityIndicator style={{ marginTop: 20 }} />;
-
-
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: "#fff" }}
       contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
     >
-
-
       <View style={styles.heading}>
         <IText bold size={16}>
           {list?.title}
@@ -115,7 +118,7 @@ export default function ShoppingListDetailScreen() {
         keyExtractor={(item) => item._id || ""}
         scrollEnabled={false}
         contentContainerStyle={{
-          gap: 16
+          gap: 16,
         }}
         renderItem={({ item }) => (
           <ShoppingItemCard
@@ -134,7 +137,6 @@ const styles = StyleSheet.create({
     flex: 1,
     borderBottomWidth: 1,
     marginLeft: 2,
-    paddingVertical: 4
-  }
-
+    paddingVertical: 8,
+  },
 });

@@ -4,6 +4,7 @@ import QuantitySelector from "@/components/QuantitySelector";
 import ShoppingAddItemModal from "@/components/shopping/create/ShoppingAddItemModal";
 import { ItemCard, ItemImage, IText } from "@/components/styled";
 import UnitSelector from "@/components/UnitSelector";
+import useGetMyGroups from "@/hooks/group/useGetMyGroups";
 import { useCreateShoppingList } from "@/hooks/shopping/useShopping";
 import { useAuth } from "@/services/auth/auth.context";
 import { useSnackBar } from "@/services/auth/snackbar.context";
@@ -35,14 +36,18 @@ export default function CreateShoppingListScreen() {
 
   // API Hooks
   const { user } = useAuth();
+  const { data: groupsData, isLoading: groupsLoading } = useGetMyGroups();
   const createListMutation = useCreateShoppingList();
 
   const { showSnackBar } = useSnackBar();
   const { showToast } = useToast();
 
+  // Get the first group ID from user's groups
+  const groupId = groupsData?.groups?.[0]?.id;
+
   const handleConfirm = () => {
     if (!listName.trim()) {
-      showSnackBar("Please enter a list name" + user?.groupId, "error");
+      showSnackBar("Please enter a list name", "error");
       return;
     }
 
@@ -50,10 +55,9 @@ export default function CreateShoppingListScreen() {
       showSnackBar("Please add at least one item", "error");
       return;
     }
-    const groupId = user?.groupId;
 
     if (!groupId) {
-      showSnackBar("No group found", "error");
+      showSnackBar("Please join or create a group first", "error");
       return;
     }
 

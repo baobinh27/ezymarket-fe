@@ -69,8 +69,6 @@ export interface MealPlan {
   meals: MealDetail[];
 }
 
-
-
 export interface ShoppingItem {
   _id?: string;
   ingredientId: {
@@ -90,4 +88,24 @@ export interface ShoppingItem {
   price: number;
   servingQuantity: number;
   expiryDate: string;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  owner: {
+    _id: string;
+    email: string;
+  };
+  memberCount: number;
+  createdAt: string;
+}
+
+export interface GroupDetails extends Group {
+  members?: {
+    _id: string;
+    email: string;
+  }[];
+  updatedAt: string;
 }

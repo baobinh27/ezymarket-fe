@@ -1,11 +1,12 @@
 import IButton from "@/components/IButton";
+import GroupManagementModal from "@/components/home/GroupManagementModal";
 import { ItemCard, IText } from "@/components/styled";
 import useGetReportOverview from "@/hooks/report/useGetReportOverview";
 import { useAuth } from "@/services/auth/auth.context";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -16,6 +17,7 @@ import {
 
 export default function HomeScreen() {
   const auth = useAuth();
+  const [showGroupModal, setShowGroupModal] = useState(false);
   const {
     data: reportData,
     isLoading,
@@ -95,6 +97,11 @@ export default function HomeScreen() {
       contentContainerStyle={styles.scrollContainer}
       showsVerticalScrollIndicator={false}
     >
+      {/* Group Management Modal */}
+      <GroupManagementModal
+        visible={showGroupModal}
+        onClose={() => setShowGroupModal(false)}
+      />
       {/* Hero Section with Image and Gradient */}
       <View style={styles.heroContainer}>
         <Image
@@ -162,6 +169,25 @@ export default function HomeScreen() {
               </IButton>
             ))}
           </View>
+        </View>
+
+        {/* Group Management Section */}
+        <View style={styles.groupSection}>
+          <IButton
+            variant="primary"
+            style={styles.groupButton}
+            onPress={() => setShowGroupModal(true)}
+          >
+            <MaterialCommunityIcons
+              name="account-group-outline"
+              size={20}
+              color="white"
+              style={{ marginRight: 8 }}
+            />
+            <IText semiBold color="white" size={14}>
+              Manage Groups
+            </IText>
+          </IButton>
         </View>
 
         {/* Dashboard Section */}
@@ -381,6 +407,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     // backgroundColor: "#F5F5F5",
+  },
+  groupSection: {
+    marginVertical: 8,
+  },
+  groupButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 8,
   },
   dashboardSection: {
     gap: 8,
