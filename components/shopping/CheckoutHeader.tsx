@@ -6,9 +6,10 @@ import { TouchableOpacity, View } from "react-native";
 interface CheckoutHeaderProps {
   onBack: () => void;
   onSave: () => void;
+  isLoading?: boolean;
 }
 
-export default function CheckoutHeader({ onBack, onSave }: CheckoutHeaderProps) {
+export default function CheckoutHeader({ onBack, onSave, isLoading }: CheckoutHeaderProps) {
   return (
     <View
       style={{

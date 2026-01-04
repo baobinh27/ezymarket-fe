@@ -83,6 +83,7 @@ const IBottomSheetModal = forwardRef<Ref, BottomSheetModalProps>(
         backdropComponent={renderBackdrop}
         enablePanDownToClose={enablePanDownToClose}
         onDismiss={handleClose}
+        onChange={onChange}
         enableDynamicSizing={false}
         enableOverDrag={false}
       >

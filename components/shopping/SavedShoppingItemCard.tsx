@@ -1,4 +1,4 @@
-import { ItemImage, IText } from "@/components/styled";
+import { ItemImageWithFallback, IText } from "@/components/styled";
 import { View } from "react-native";
 
 interface SavedItem {
@@ -23,12 +23,12 @@ export default function SavedShoppingItemCard({ item, isPurchased }: SavedShoppi
         alignItems: "center",
         padding: 10,
         gap: 10,
-        backgroundColor: isPurchased ? "#808080" : "#F5F5F5",
+        backgroundColor: !isPurchased ? "#808080" : "#F5F5F5",
         borderRadius: 10,
       }}
     >
-      <ItemImage
-        src="https://imgs.search.brave.com/ZyTalHbd6ylc6QNmPc_567ZkdaIA2fOjPirg0xv5rNY/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cG5nYWxsLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvMjAxNi8w/NS9DYWJiYWdlLUZy/ZWUtUE5HLUltYWdl/LnBuZw" 
+      <ItemImageWithFallback
+        src={item.imageUrl}
         style={{
           width: 48,
           height: 48,

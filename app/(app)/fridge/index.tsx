@@ -9,7 +9,7 @@ import { useGetAllFridgeItems } from "@/hooks/fridge/useGetAllFridgeItems";
 import { FridgeItem } from "@/types/types";
 import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, SafeAreaView, StyleSheet, View } from "react-native";
 
@@ -65,7 +65,7 @@ export default function FridgeScreen() {
   const [itemsToDelete, setItemsToDelete] = useState<string[]>([]);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
 
-  const { data, isLoading, error } = useGetAllFridgeItems({
+  const { data, isLoading, error, refetch } = useGetAllFridgeItems({
     params: {
       sortBy: "expiryDate_asc",
       search: searchQuery,
@@ -73,6 +73,13 @@ export default function FridgeScreen() {
       page: 1,
     },
   });
+
+  // Refetch fridge data when tab is focused
+  useFocusEffect(
+    useCallback(() => {
+      refetch?.();
+    }, [refetch])
+  );
 
   const items = (data?.items || [...mockFridgeItem]) as FridgeItem[];
 

@@ -24,9 +24,7 @@ type AddItemModalProps = {
 const AddItemModal = ({ ref, mealType, selectedDate, onItemsAdded }: AddItemModalProps) => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [hasModalLoaded, setHasModalLoaded] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<Map<string, number>>(
-    new Map()
-  );
+  const [selectedItems, setSelectedItems] = useState<Map<string, number>>(new Map());
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { showSnackBar } = useSnackBar();
 
@@ -48,17 +46,15 @@ const AddItemModal = ({ ref, mealType, selectedDate, onItemsAdded }: AddItemModa
     enabled: false,
   }) as any;
 
-  const {
-    mutateAsync: createMealItem,
-    isPending: createMealItemIsPending,
-  } = useCreateMealItem();
+  useEffect(() => {
+    console.log("fridge items:", data);
+  }, [data]);
 
-  const {
-    mutateAsync: createMealItemBulk,
-    isPending: createMealItemBulkIsPending,
-  } = useCreateMealItemBulk();
+  const { mutateAsync: createMealItem, isPending: createMealItemIsPending } = useCreateMealItem();
 
-  // TODO: verify that the search function actually works, currently error on BE
+  const { mutateAsync: createMealItemBulk, isPending: createMealItemBulkIsPending } =
+    useCreateMealItemBulk();
+
   useEffect(() => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -113,8 +109,7 @@ const AddItemModal = ({ ref, mealType, selectedDate, onItemsAdded }: AddItemModa
   const handleAddSingleItem = async (item: FridgeItem) => {
     try {
       const quantity = selectedItems.get(item._id) || 1;
-      
-      
+
       await createMealItem({
         itemType: "ingredient",
         quantity,
@@ -131,12 +126,12 @@ const AddItemModal = ({ ref, mealType, selectedDate, onItemsAdded }: AddItemModa
         return newMap;
       });
       showSnackBar(`${item.foodId.name} added to ${mealType}!`, "success");
-      
+
       // Refetch meal plan data after successful addition
       if (onItemsAdded) {
         await onItemsAdded();
       }
-      
+
       // Refetch fridge items to update quantities
       await fetchItems();
     } catch (error) {
@@ -164,12 +159,12 @@ const AddItemModal = ({ ref, mealType, selectedDate, onItemsAdded }: AddItemModa
       setSelectedItems(new Map());
       bottomSheetRef?.current?.close();
       showSnackBar(`All items added to ${mealType}!`, "success");
-      
+
       // Refetch meal plan data after successful addition
       if (onItemsAdded) {
         await onItemsAdded();
       }
-      
+
       // Refetch fridge items to update quantities
       await fetchItems();
     } catch (error) {
@@ -215,10 +210,7 @@ const AddItemModal = ({ ref, mealType, selectedDate, onItemsAdded }: AddItemModa
         </View>
       ) : (
         <View style={styles.content}>
-          <SearchBar
-            value={searchInput}
-            onChangeText={handleChangeSearchInput}
-          />
+          <SearchBar value={searchInput} onChangeText={handleChangeSearchInput} />
           {showRefetchLoading ? (
             <View>
               <ActivityIndicator color="#82CD47" />
@@ -229,11 +221,7 @@ const AddItemModal = ({ ref, mealType, selectedDate, onItemsAdded }: AddItemModa
                 Your fridge is empty. You might want to have something in your fridge before using
                 them.
               </IText>
-              <IButton
-                variant="secondary"
-                onPress={handleGoFridge}
-                style={styles.goToFridgeBtn}
-              >
+              <IButton variant="secondary" onPress={handleGoFridge} style={styles.goToFridgeBtn}>
                 <IText semiBold color="#46982D">
                   Go to Fridge
                 </IText>
@@ -245,10 +233,7 @@ const AddItemModal = ({ ref, mealType, selectedDate, onItemsAdded }: AddItemModa
                 const isSelected = selectedItems.has(item._id);
                 const selectedQuantity = selectedItems.get(item._id) || 1;
                 return (
-                  <ItemCard
-                    key={item._id}
-                    style={isSelected && styles.selectedItem}
-                  >
+                  <ItemCard key={item._id} style={isSelected && styles.selectedItem}>
                     <View style={styles.leftGroup}>
                       <ItemImageWithFallback source={item.foodId.imageURL} />
                       <View>

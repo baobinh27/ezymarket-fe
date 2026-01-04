@@ -329,16 +329,6 @@ export default function HomeScreen() {
           ) : null}
         </View>
 
-        {/* Logout Button */}
-        <IButton
-          variant="secondary"
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
-          <IText semiBold color="white">
-            Log Out
-          </IText>
-        </IButton>
       </View>
     </ScrollView>
   );
@@ -461,10 +451,5 @@ const styles = StyleSheet.create({
   errorCard: {
     padding: 16,
     backgroundColor: "#FFE5E5",
-  },
-  logoutButton: {
-    marginTop: 4,
-    paddingVertical: 12,
-    borderRadius: 8,
   },
 });

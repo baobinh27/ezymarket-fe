@@ -32,7 +32,7 @@ interface RecipeCardProps extends BaseDictionaryItemCardProps {
   icon?: string;
   name: string;
   description?: string;
-  tags?: Array<{ _id: string; name: string } | string>;
+  tags?: ({ _id: string; name: string } | string)[];
   ingredientsCount?: number;
 }
 
@@ -62,7 +62,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
     if (type === "ingredient") {
       const { icon, name, unit, expiryDuration } = props;
       return (
-        <>
+        <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
           {icon ? (
             <ItemImage source={{ uri: icon }} />
           ) : (
@@ -85,7 +85,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
               </IText>
             )}
           </View>
-        </>
+        </View>
       );
     }
 
@@ -108,7 +108,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
             <Octicons name="book" size={20} color="#000000B4" />
           </View>
         )}
-        <View style={dictionaryItemStyles.itemInfo}>
+        <View style={dictionaryItemStyles.itemInfo && { marginLeft: 12 }}>
           <IText size={16} bold>
             {name}
           </IText>
@@ -164,7 +164,9 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
 
   return (
     <>
-      <View style={[dictionaryItemStyles.itemCard, isHidden && dictionaryItemStyles.itemCardHidden]}>
+      <View
+        style={[dictionaryItemStyles.itemCard, isHidden && dictionaryItemStyles.itemCardHidden]}
+      >
         <View style={dictionaryItemStyles.itemLeft}>{renderContent()}</View>
 
         {!isSystem && (onEdit || onHide || onClone) && (

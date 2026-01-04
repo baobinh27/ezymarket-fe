@@ -1,142 +1,232 @@
+import IButton from "@/components/IButton";
 import { ShoppingItemCard } from "@/components/shopping/ShoppingItemCard";
 import { IText } from "@/components/styled";
-import {
-  useAddShoppingItem,
-  useDeleteItem,
-  useShoppingList,
-  useUpdateItem,
-} from "@/hooks/shopping/useShopping";
-import { useFocusEffect, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useDeleteItem, useShoppingList, useUpdateItem } from "@/hooks/shopping/useShopping";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from "react-native";
 
-export default function ShoppingListDetailScreen() {
-  const router = useRouter();
-  const params = useLocalSearchParams();
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+interface PendingUpdate {
+  itemId: string;
+  isPurchased: boolean;
+}
 
-  const { data: list, isLoading } = useShoppingList(id);
-  const addMutation = useAddShoppingItem();
+export default function ShoppingListDetailScreen() {
+  const params = useLocalSearchParams();
+  const listId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const router = useRouter();
+
+  // Data fetching
+  const { data: list, isLoading } = useShoppingList(listId);
   const updateMutation = useUpdateItem();
   const deleteMutation = useDeleteItem();
 
-  const [newItemName, setNewItemName] = useState("");
+  // State management
   const [pendingUpdates, setPendingUpdates] = useState<Record<string, boolean>>({});
-  const updatesRef = useRef<Record<string, boolean>>({});
+  const pendingUpdatesRef = useRef<PendingUpdate[]>([]);
 
-  const navigation = useNavigation();
-  // Merge pending updates for display
-  const displayItems = useMemo(
-    () =>
-      list?.items.map((item) => ({
-        ...item,
-        isPurchased:
-          pendingUpdates[item._id!] !== undefined ? pendingUpdates[item._id!] : item.isPurchased,
-      })) || [],
-    [list, pendingUpdates]
-  );
+  // Display items with optimistic updates
+  const displayItems = useMemo(() => {
+    if (!list?.items) return [];
+    return list.items.map((item) => ({
+      ...item,
+      isPurchased:
+        pendingUpdates[item._id!] !== undefined ? pendingUpdates[item._id!] : item.isPurchased,
+    }));
+  }, [list?.items, pendingUpdates]);
 
-  useEffect(() => {
-    navigation.setParams({ items: displayItems } as any);
+  // Calculate purchased items for checkout
+  const purchasedItems = useMemo(() => {
+    return displayItems.filter((item) => item.isPurchased);
   }, [displayItems]);
 
+  // Track pending updates in ref for cleanup
   useEffect(() => {
-    updatesRef.current = pendingUpdates;
+    pendingUpdatesRef.current = Object.entries(pendingUpdates).map(([itemId, isPurchased]) => ({
+      itemId,
+      isPurchased,
+    }));
   }, [pendingUpdates]);
 
+  // Persist updates when leaving screen
   useFocusEffect(
     useCallback(() => {
       return () => {
-        const updates = updatesRef.current;
-        const currentList = list;
+        if (!list?._id) return;
 
-        if (!currentList || !currentList._id) return;
-
-        Object.entries(updates).forEach(([itemId, isPurchased]) => {
-          const originalItem = currentList.items.find((i) => i._id === itemId);
+        const updates = pendingUpdatesRef.current;
+        updates.forEach(({ itemId, isPurchased }) => {
+          const originalItem = list.items.find((i) => i._id === itemId);
           if (originalItem && originalItem.isPurchased !== isPurchased) {
             updateMutation.mutate({
-              listId: currentList._id,
+              listId: list._id,
               itemId,
               data: { isPurchased },
             });
           }
         });
+
+        // Clear pending updates after submission
+        setPendingUpdates({});
       };
     }, [list, updateMutation])
   );
 
-  const handleTogglePurchased = (itemId: string) => {
-    // Current state is from pending or original
-    const item = list?.items.find((i) => i._id === itemId);
-    const currentStatus =
-      pendingUpdates[itemId] !== undefined ? pendingUpdates[itemId] : item?.isPurchased;
-    const newStatus = !currentStatus;
-
+  // Toggle item purchase status with optimistic update
+  const handleTogglePurchased = useCallback((itemId: string, currentStatus: boolean) => {
     setPendingUpdates((prev) => ({
       ...prev,
-      [itemId]: newStatus,
+      [itemId]: !currentStatus,
     }));
-  };
+  }, []);
 
-  const handleDeleteItem = (itemId: string) => {
-    // Also remove from pending updates if present
-    if (pendingUpdates[itemId] !== undefined) {
+  // Delete item with confirmation
+  const handleDeleteItem = useCallback(
+    (itemId: string) => {
+      if (!list?._id) return;
+
+      // Remove from pending updates first
       setPendingUpdates((prev) => {
         const next = { ...prev };
         delete next[itemId];
         return next;
       });
+
+      // Send delete request
+      deleteMutation.mutate({
+        listId: list._id,
+        itemId,
+      });
+    },
+    [list?._id, deleteMutation]
+  );
+
+  // Navigate to checkout with purchased items
+  const handleCheckout = useCallback(() => {
+    if (purchasedItems.length === 0) {
+      alert("Please select items to checkout");
+      return;
     }
 
-    if (list?._id) {
-      deleteMutation.mutate({ listId: list._id, itemId });
-    }
-  };
+    router.push({
+      pathname: "/shopping/checkout/[id]",
+      params: {
+        id: listId,
+        name: list?.title,
+        items: JSON.stringify(purchasedItems),
+      },
+    });
+  }, [purchasedItems, listId, list?.title, router]);
 
-  if (isLoading) return <ActivityIndicator style={{ marginTop: 20 }} />;
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#0066CC" />
+      </View>
+    );
+  }
 
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: "#fff" }}
-      contentContainerStyle={{ paddingHorizontal: 16, gap: 16 }}
+      contentContainerStyle={{ paddingHorizontal: 16, gap: 16, paddingVertical: 16 }}
     >
+      {/* Header */}
       <View style={styles.heading}>
         <IText bold size={16}>
-          {list?.title}
+          {list?.title || "Shopping List"}
         </IText>
         {list?.description ? (
-          <IText size={12} color="#6B7280" style={{ fontStyle: "italic", marginTop: 2 }}>
+          <IText size={12} color="#6B7280" style={{ fontStyle: "italic", marginTop: 4 }}>
             {list.description}
           </IText>
         ) : null}
       </View>
 
       {/* Items List */}
-      <FlatList
-        data={displayItems}
-        keyExtractor={(item) => item._id || ""}
-        scrollEnabled={false}
-        contentContainerStyle={{
-          gap: 16,
-        }}
-        renderItem={({ item }) => (
-          <ShoppingItemCard
-            item={item}
-            onToggle={() => handleTogglePurchased(item._id!)}
-            onDelete={() => handleDeleteItem(item._id!)}
-          />
-        )}
-      />
+      {displayItems.length > 0 ? (
+        <FlatList
+          data={displayItems}
+          keyExtractor={(item) => item._id || ""}
+          scrollEnabled={false}
+          contentContainerStyle={{ gap: 12 }}
+          renderItem={({ item }) => (
+            <ShoppingItemCard
+              item={item}
+              onToggle={() => handleTogglePurchased(item._id!, item.isPurchased)}
+              onDelete={() => handleDeleteItem(item._id!)}
+            />
+          )}
+        />
+      ) : (
+        <View style={styles.emptyState}>
+          <IText size={14} color="#9CA3AF">
+            No items in this list
+          </IText>
+        </View>
+      )}
+
+      {/* Checkout button - shown when items are selected */}
+      {purchasedItems.length > 0 && (
+        <View style={styles.checkoutFooter}>
+          <IButton
+            variant="primary"
+            onPress={handleCheckout}
+            style={styles.checkoutButton}
+            // backgroundColor="#0066CC"
+          >
+            <IText size={16} semiBold color="white">{`Checkout (${purchasedItems.length})`}</IText>
+          </IButton>
+        </View>
+      )}
+
+      {/* Mutation error handling */}
+      {updateMutation.isError && (
+        <View style={styles.errorBanner}>
+          <IText size={12} color="#DC2626">
+            Failed to update item. Please try again.
+          </IText>
+        </View>
+      )}
+
+      {deleteMutation.isError && (
+        <View style={styles.errorBanner}>
+          <IText size={12} color="#DC2626">
+            Failed to delete item. Please try again.
+          </IText>
+        </View>
+      )}
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   heading: {
-    flex: 1,
     borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
     marginLeft: 2,
+    paddingBottom: 8,
+  },
+  emptyState: {
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  errorBanner: {
+    backgroundColor: "#FEE2E2",
+    borderRadius: 8,
+    paddingHorizontal: 12,
     paddingVertical: 8,
+    marginBottom: 8,
+  },
+  checkoutFooter: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+  },
+  checkoutButton: {
+    paddingVertical: 12,
+    borderRadius: 8,
   },
 });

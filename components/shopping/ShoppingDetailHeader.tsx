@@ -13,16 +13,16 @@ export default function ShoppingDetailHeader({ navigation, route, items }: Shopp
   const router = useRouter();
   const params = route.params as { id?: string; name?: string };
 
-  const handleCheckout = () => {
-    router.push({
-      pathname: "/shopping/checkout/[id]",
-      params: {
-        id: params.id || "",
-        name: params.name,
-        items: JSON.stringify(items || [])
-      }
-    });
-  };
+  // const handleCheckout = () => {
+  //   router.push({
+  //     pathname: "/shopping/checkout/[id]",
+  //     params: {
+  //       id: params.id || "",
+  //       name: params.name,
+  //       items: JSON.stringify(items || [])
+  //     }
+  //   });
+  // };
 
   return (
     <View style={{
@@ -56,7 +56,7 @@ export default function ShoppingDetailHeader({ navigation, route, items }: Shopp
           </IText>
         </IButton>
 
-        <IButton
+        {/* <IButton
           variant="primary"
           style={{ borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14 }}
           onPress={handleCheckout}
@@ -64,7 +64,7 @@ export default function ShoppingDetailHeader({ navigation, route, items }: Shopp
           <IText color="white" semiBold>
             Checkout
           </IText>
-        </IButton>
+        </IButton> */}
       </View>
     </View >
   );
