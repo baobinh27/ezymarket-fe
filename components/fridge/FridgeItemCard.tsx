@@ -1,6 +1,6 @@
 import { FridgeItem } from "@/types/types";
 import { FontAwesome6 } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import QuantitySelector from "../QuantitySelector";
 import UnitSelector from "../UnitSelector";
@@ -13,6 +13,7 @@ export interface FridgeItemCardProps {
   onUnitChange?: (itemId: string, newUnit: string) => void;
   onDelete?: (itemId: string) => void;
   editQuantity?: number;
+  editUnit?: string;
   toBeDeleted: boolean;
 }
 
@@ -23,9 +24,11 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
   onUnitChange,
   onDelete,
   editQuantity,
+  editUnit,
   toBeDeleted,
 }) => {
   const [selectedQuantity, setSelectedQuantity] = useState<number>(editQuantity || item.quantity);
+  const [selectedUnit, setSelectedUnit] = useState<string>(editUnit || item.unitId._id);
   const expiryDate = new Date(item.expiryDate);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -41,24 +44,36 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
     return "#000000B4"; // safe - green
   };
 
+  useEffect(() => {
+    if (onQuantityChange) {
+      onQuantityChange(item._id, selectedQuantity);
+    }
+  }, [selectedQuantity, item._id, onQuantityChange]);
+
+  useEffect(() => {
+    if (onUnitChange) {
+      onUnitChange(item._id, selectedUnit);
+    }
+  }, [selectedUnit, item._id, onUnitChange]);
+
   const getExpiryText = () => {
-    if (daysUntilExpiry < 0) return <strong>Expired</strong>;
+    if (daysUntilExpiry < 0) return <IText semiBold>Expired</IText>;
     if (daysUntilExpiry === 0)
       return (
-        <>
-          Expires <strong>today</strong>
-        </>
+        <IText>
+          Expires <IText semiBold>today</IText>
+        </IText>
       );
     if (daysUntilExpiry === 1)
       return (
-        <>
-          Expires <strong>tomorrow</strong>
-        </>
+        <IText>
+          Expires <IText semiBold>tomorrow</IText>
+        </IText>
       );
     return (
-      <>
-        Expires in <strong>{daysUntilExpiry}</strong> days
-      </>
+      <IText>
+        Expires in <IText semiBold>{daysUntilExpiry}</IText> days
+      </IText>
     );
   };
 
@@ -104,7 +119,12 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
               <View style={styles.editModeControls}>
                 <QuantitySelector state={selectedQuantity} setState={setSelectedQuantity} />
                 <View style={styles.unitSelectorContainer}>
-                  <UnitSelector maxModalHeight="40%" buttonStyle={styles.unitSelectButton} />
+                  <UnitSelector
+                    value={selectedUnit}
+                    onChange={setSelectedUnit}
+                    maxModalHeight="40%"
+                    buttonStyle={styles.unitSelectButton}
+                  />
                 </View>
               </View>
             </View>
@@ -119,13 +139,13 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
             if (onDelete) {
               onDelete(item._id);
             }
-            // Update quantity when done
-            if (selectedQuantity !== item.quantity && onQuantityChange) {
-              onQuantityChange(item._id, selectedQuantity);
-            }
           }}
         >
-          <FontAwesome6 name="trash" size={16} color="#C41E3A" />
+          <FontAwesome6
+            name={toBeDeleted ? "rotate-left" : "trash"}
+            size={16}
+            color={toBeDeleted ? "#46982D" : "#C41E3A"}
+          />
         </Pressable>
       ) : (
         <View style={styles.rightContent}>

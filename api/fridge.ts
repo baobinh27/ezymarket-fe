@@ -6,12 +6,12 @@ export type GetAllFridgeItemsParams = {
   page?: number;
   limit?: number;
   sortBy:
-    | "expiryDate_asc"
-    | "expiryDate_desc"
-    | "purchaseDate_asc"
-    | "purchaseDate_desc"
-    | "createdAt_asc"
-    | "createdAt_desc";
+  | "expiryDate_asc"
+  | "expiryDate_desc"
+  | "purchaseDate_asc"
+  | "purchaseDate_desc"
+  | "createdAt_asc"
+  | "createdAt_desc";
   status?: "in-stock" | "used" | "expired" | "discarded";
   search?: string;
 };
@@ -53,4 +53,20 @@ export const createFridgeItem = ({
     price,
     status,
   });
+};
+
+export type UpdateFridgeItemParams = {
+  unitId?: string;
+  quantity?: number;
+};
+
+export const updateFridgeItem = (
+  itemId: string,
+  params: UpdateFridgeItemParams
+) => {
+  return axiosInstance.patch(`/api/fridge-items/${itemId}`, params);
+};
+
+export const deleteFridgeItem = (itemId: string) => {
+  return axiosInstance.delete(`/api/fridge-items/${itemId}`);
 };

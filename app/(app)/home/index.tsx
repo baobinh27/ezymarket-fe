@@ -160,7 +160,7 @@ export default function HomeScreen() {
                     size={24}
                     // color="#82CD47"
                     color="#00000077"
-                    // color={btn.color}
+                  // color={btn.color}
                   />
                   <IText size={11} semiBold style={{ marginTop: 3 }}>
                     {btn.label}
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   quickAccessButton: {
-    width: "23%",
+    width: "24%",
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: 12,

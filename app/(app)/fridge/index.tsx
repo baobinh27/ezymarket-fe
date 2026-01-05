@@ -1,20 +1,26 @@
-// import AddItemModal from "@/components/fridge/AddItemModal";
+
 import AddItemModal from "@/components/fridge/AddItemModal/index";
 import EmptyFridgeMessage from "@/components/fridge/EmptyFridgeMessage";
 import FridgeItemCard from "@/components/fridge/FridgeItemCard";
 import IButton from "@/components/IButton";
 import SearchBar from "@/components/SearchBar";
 import { ItemCard, IText } from "@/components/styled";
+import { useDeleteFridgeItem } from "@/hooks/fridge/useDeleteFridgeItem";
 import { useGetAllFridgeItems } from "@/hooks/fridge/useGetAllFridgeItems";
+import { useUpdateFridgeItem } from "@/hooks/fridge/useUpdateFridgeItem";
 import { FridgeItem } from "@/types/types";
 import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, SafeAreaView, StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, FlatList, SafeAreaView, StyleSheet, TouchableOpacity, View } from "react-native";
 
-type EditingItem = {
-  [key: string]: number;
+type EditingItemState = {
+  [key: string]: {
+    quantity?: number;
+    unitId?: string;
+  };
 };
 
 const mockFridgeItem: FridgeItem[] = [
@@ -61,9 +67,13 @@ const mockFridgeItem: FridgeItem[] = [
 export default function FridgeScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [editingQuantities, setEditingQuantities] = useState<EditingItem>({});
+  const [editingItems, setEditingItems] = useState<EditingItemState>({});
   const [itemsToDelete, setItemsToDelete] = useState<string[]>([]);
+  const [doNotShowAgain, setDoNotShowAgain] = useState(false);
+  const [shouldHideBanner, setShouldHideBanner] = useState(false);
   const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const updateFridgeItemMutation = useUpdateFridgeItem();
+  const deleteFridgeItemMutation = useDeleteFridgeItem();
 
   const { data, isLoading, error, refetch } = useGetAllFridgeItems({
     params: {
@@ -73,6 +83,15 @@ export default function FridgeScreen() {
       page: 1,
     },
   });
+
+  // Check if banner should be hidden
+  useEffect(() => {
+    AsyncStorage.getItem("fridge_hide_meals_banner").then((value) => {
+      if (value === "true") {
+        setShouldHideBanner(true);
+      }
+    });
+  }, []);
 
   // Refetch fridge data when tab is focused
   useFocusEffect(
@@ -89,38 +108,82 @@ export default function FridgeScreen() {
 
   const handleEdit = useCallback(() => {
     setIsEditing(true);
-    setEditingQuantities({});
+    setEditingItems({});
     setItemsToDelete([]);
   }, []);
 
   const handleCancel = useCallback(() => {
     setIsEditing(false);
-    setEditingQuantities({});
+    setEditingItems({});
     setItemsToDelete([]);
   }, []);
 
-  const handleQuantityChange = useCallback((itemId: string, newQuantity: number) => {
-    setEditingQuantities((prev) => ({
+  const handleUnitChange = useCallback((itemId: string, newUnit: string) => {
+    setEditingItems((prev) => ({
       ...prev,
-      [itemId]: newQuantity,
+      [itemId]: {
+        ...prev[itemId],
+        unitId: newUnit,
+      },
+    }));
+  }, []);
+
+  const handleQuantityChange = useCallback((itemId: string, newQuantity: number) => {
+    setEditingItems((prev) => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        quantity: newQuantity,
+      },
     }));
   }, []);
 
   const handleDeleteItem = useCallback((itemId: string) => {
-    setItemsToDelete((prev) => [...prev, itemId]);
+    setItemsToDelete((prev) => {
+      if (prev.includes(itemId)) {
+        return prev.filter((id) => id !== itemId);
+      }
+      return [...prev, itemId];
+    });
   }, []);
 
   const handleDone = useCallback(async () => {
-    // TODO: Implement API calls to update quantities and delete items
-    // For now, just exit edit mode
-    setIsEditing(false);
-    setEditingQuantities({});
-    setItemsToDelete([]);
-  }, []);
+    try {
+      if (itemsToDelete.length > 0) {
+        await Promise.all(
+          itemsToDelete.map((id) => deleteFridgeItemMutation.mutateAsync(id))
+        );
+      }
 
-  const handleUseInMeals = useCallback(() => {
+      const updatePromises = Object.entries(editingItems)
+        .filter(([id]) => !itemsToDelete.includes(id))
+        .map(([id, changes]) => {
+          return updateFridgeItemMutation.mutateAsync({
+            itemId: id,
+            params: changes,
+          });
+        });
+
+      if (updatePromises.length > 0) {
+        await Promise.all(updatePromises);
+      }
+    } catch (error) {
+      showSnackbar("Failed to update fridge items", "error");
+    } finally {
+      setIsEditing(false);
+      setEditingItems({});
+      setItemsToDelete([]);
+      refetch?.();
+    }
+  }, [itemsToDelete, editingItems, deleteFridgeItemMutation, updateFridgeItemMutation, refetch]);
+
+  const handleUseInMeals = useCallback(async () => {
+    if (doNotShowAgain) {
+      await AsyncStorage.setItem("fridge_hide_meals_banner", "true");
+      setShouldHideBanner(true);
+    }
     router.push("/(app)/meals");
-  }, []);
+  }, [doNotShowAgain]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: FridgeItem; index: number }) => {
@@ -137,8 +200,10 @@ export default function FridgeScreen() {
             item={item}
             isEditing={isEditing}
             onQuantityChange={handleQuantityChange}
+            onUnitChange={handleUnitChange}
             onDelete={handleDeleteItem}
-            editQuantity={editingQuantities[item._id] ?? item.quantity}
+            editQuantity={editingItems[item._id]?.quantity ?? item.quantity}
+            editUnit={editingItems[item._id]?.unitId ?? item.unitId._id}
             toBeDeleted={itemsToDelete.includes(item._id)}
           />
         </View>
@@ -146,7 +211,7 @@ export default function FridgeScreen() {
     },
     [
       isEditing,
-      editingQuantities,
+      editingItems,
       itemsToDelete,
       items.length,
       handleQuantityChange,
@@ -155,7 +220,6 @@ export default function FridgeScreen() {
   );
 
   const filteredItems = items.filter(
-    // (item) => !itemsToDelete.includes(item._id)
     (item) => item
   );
 
@@ -164,7 +228,6 @@ export default function FridgeScreen() {
       <AddItemModal ref={bottomSheetRef} />
       {/* Header */}
       <View style={styles.header}>
-        {/* TODO: implement the search logic */}
         <SearchBar
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -197,81 +260,92 @@ export default function FridgeScreen() {
       </View>
 
       {/* Use in Meals Banner */}
-      {!isEditing && filteredItems.length > 0 && (
+      {!isEditing && filteredItems.length > 0 && !shouldHideBanner && (
         <ItemCard primary style={styles.banner}>
           <View style={styles.bannerContent}>
             <View style={styles.bannerTextContainer}>
               <IText semiBold size={14} color="white">
                 Use your items in Meals!
               </IText>
-              {/* TODO: Style this and make this actually work */}
-              <View style={{ flexDirection: "row" }}>
-                <input type="checkbox" id="options-show-meal-use" style={styles.showTipsCheckbox} />
-                <label htmlFor="options-show-meal-use">
-                  <IText size={12} color="white" style={{ opacity: 0.9 }}>
-                    Don&apos;t show again
-                  </IText>
-                </label>
-              </View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => setDoNotShowAgain(!doNotShowAgain)}
+                style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+              >
+                <Feather
+                  name={doNotShowAgain ? "check-square" : "square"}
+                  size={16}
+                  color="white"
+                  style={{ opacity: 0.9 }}
+                />
+                <IText size={12} color="white" style={{ opacity: 0.9 }}>
+                  Don&apos;t show again
+                </IText>
+              </TouchableOpacity>
             </View>
             <IButton variant="tertiary" onPress={handleUseInMeals} style={styles.mealNavButton}>
               <FontAwesome6 name="arrow-right" size={16} color="#82CD47" />
             </IButton>
           </View>
         </ItemCard>
-      )}
+      )
+      }
 
       {/* Edit Mode Warning */}
-      {isEditing && (
-        <View style={styles.header}>
-          <View style={styles.editWarning}>
-            <Feather name="info" size={16} color="#1370D1" />
-            <IText size={11} color="#1370D1" style={{ flex: 1, marginLeft: 8 }}>
-              This is for adding and removing items without using them in Meals.
-            </IText>
+      {
+        isEditing && (
+          <View style={styles.header}>
+            <View style={styles.editWarning}>
+              <Feather name="info" size={16} color="#1370D1" />
+              <IText size={11} color="#1370D1" style={{ flex: 1, marginLeft: 8 }}>
+                This is for adding and removing items without using them in Meals.
+              </IText>
+            </View>
+            <IButton
+              variant="primary"
+              style={{
+                ...styles.headerButton,
+                flexDirection: "row",
+                gap: 4,
+                alignItems: "center",
+                height: 40,
+              }}
+              onPress={handleAddItem}
+            >
+              <Entypo name="plus" size={16} color="white" />
+              <IText semiBold size={14} color="white">
+                New item
+              </IText>
+            </IButton>
           </View>
-          <IButton
-            variant="primary"
-            style={{
-              ...styles.headerButton,
-              flexDirection: "row",
-              gap: 4,
-              alignItems: "center",
-              height: 40,
-            }}
-            onPress={handleAddItem}
-          >
-            <Entypo name="plus" size={16} color="white" />
-            <IText semiBold size={14} color="white">
-              New item
-            </IText>
-          </IButton>
-        </View>
-      )}
+        )
+      }
 
       {/* Content */}
-      {isLoading ? (
-        <View style={styles.centerContent}>
-          <ActivityIndicator size="large" color="#82CD47" />
-        </View>
-      ) : error ? (
-        <View style={styles.centerContent}>
-          <IText color="#C41E3A" semiBold>
-            Error loading fridge items
-          </IText>
-        </View>
-      ) : filteredItems.length === 0 ? (
-        <EmptyFridgeMessage handleOpenAddItemModal={handleAddItem} />
-      ) : (
-        <FlatList
-          data={filteredItems}
-          renderItem={renderItem}
-          keyExtractor={(item) => item._id}
-          scrollEnabled={true}
-          contentContainerStyle={styles.listContent}
-        />
-      )}
-    </SafeAreaView>
+      {
+        isLoading ? (
+          <View style={styles.centerContent}>
+            <ActivityIndicator size="large" color="#82CD47" />
+          </View>
+        ) : error ? (
+          <View style={styles.centerContent}>
+            <IText color="#C41E3A" semiBold>
+              Error loading fridge items
+            </IText>
+          </View>
+        ) : filteredItems.length === 0 ? (
+          <EmptyFridgeMessage handleOpenAddItemModal={handleAddItem} />
+        ) : (
+          <FlatList
+            data={filteredItems}
+            renderItem={renderItem}
+            keyExtractor={(item) => item._id}
+            scrollEnabled={true}
+            contentContainerStyle={styles.listContent}
+          />
+        )
+      }
+    </SafeAreaView >
   );
 }
 
@@ -320,14 +394,8 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
   },
-  showTipsCheckbox: {
-    backgroundColor: "black",
-    color: "yellow",
-  },
   editWarning: {
     flexDirection: "row",
-    // marginHorizontal: 16,
-    // marginTop: 12,
     paddingHorizontal: 12,
     paddingVertical: 8,
     backgroundColor: "#E3F2FD",
@@ -358,3 +426,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
+
+function showSnackbar(arg0: string, arg1: string) {
+  throw new Error("Function not implemented.");
+}
