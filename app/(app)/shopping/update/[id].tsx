@@ -30,7 +30,6 @@ export default function UpdateShoppingListScreen() {
 
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const [searchText, setSearchText] = useState("");
-    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // List Details State
     const [listName, setListName] = useState("");
@@ -71,7 +70,6 @@ export default function UpdateShoppingListScreen() {
                     imageURL: item.ingredientId?.imageURL || "",
                 })));
             }
-            // setIsInitialized(true);
         }
     }, [list]);
 
@@ -102,7 +100,6 @@ export default function UpdateShoppingListScreen() {
     }
 
     const handleAddItem = () => {
-        setIsModalOpen(true);
         bottomSheetRef.current?.present();
     };
 
@@ -169,8 +166,9 @@ export default function UpdateShoppingListScreen() {
                 onSuccess: () => {
                     showToast(`${item.name} updated`, "success");
                 },
-                onError: () => {
+                onError: (error: any) => {
                     showToast(`Failed to update ${item.name}`, "error");
+                    console.log("Update error:", error);
                 }
             });
         }
@@ -187,7 +185,7 @@ export default function UpdateShoppingListScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: "white" }}>
-            <SafeAreaView style={[{ flex: 1 }, isModalOpen && styles.scrollViewWithModal]} edges={[]}>
+            <SafeAreaView style={{ flex: 1 }} edges={[]}>
                 <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
 
                     {/* Header Section */}
@@ -335,7 +333,6 @@ export default function UpdateShoppingListScreen() {
                 title="Add new items"
                 snapPoints={["75%"]}
                 onClose={() => {
-                    setIsModalOpen(false);
                     setSearchText("");
                 }}
             >

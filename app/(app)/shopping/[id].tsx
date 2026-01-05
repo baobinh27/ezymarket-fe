@@ -2,14 +2,9 @@ import IButton from "@/components/IButton";
 import { ShoppingItemCard } from "@/components/shopping/ShoppingItemCard";
 import { IText } from "@/components/styled";
 import { useDeleteItem, useShoppingList, useUpdateItem } from "@/hooks/shopping/useShopping";
-import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, ScrollView, StyleSheet, View } from "react-native";
-
-interface PendingUpdate {
-  itemId: string;
-  isPurchased: boolean;
-}
 
 export default function ShoppingListDetailScreen() {
   const params = useLocalSearchParams();
@@ -21,87 +16,34 @@ export default function ShoppingListDetailScreen() {
   const updateMutation = useUpdateItem();
   const deleteMutation = useDeleteItem();
 
-  // State management
-  const [pendingUpdates, setPendingUpdates] = useState<Record<string, boolean>>({});
-  const pendingUpdatesRef = useRef<PendingUpdate[]>([]);
+  // 1. Local state to hold the items
+  const [localItems, setLocalItems] = useState<any[]>([]);
 
-  // Display items with optimistic updates
-  const displayItems = useMemo(() => {
-    if (!list?.items) return [];
-    return list.items.map((item) => ({
-      ...item,
-      isPurchased:
-        pendingUpdates[item._id!] !== undefined ? pendingUpdates[item._id!] : item.isPurchased,
-    }));
-  }, [list?.items, pendingUpdates]);
 
-  // Calculate purchased items for checkout
-  const purchasedItems = useMemo(() => {
-    return displayItems.filter((item) => item.isPurchased);
-  }, [displayItems]);
-
-  // Track pending updates in ref for cleanup
   useEffect(() => {
-    pendingUpdatesRef.current = Object.entries(pendingUpdates).map(([itemId, isPurchased]) => ({
-      itemId,
-      isPurchased,
-    }));
-  }, [pendingUpdates]);
+    if (list?.items) {
+      setLocalItems(list.items);
+    }
+  }, [list?.items]);
 
-  // Persist updates when leaving screen
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        if (!list?._id) return;
 
-        const updates = pendingUpdatesRef.current;
-        updates.forEach(({ itemId, isPurchased }) => {
-          const originalItem = list.items.find((i) => i._id === itemId);
-          if (originalItem && originalItem.isPurchased !== isPurchased) {
-            updateMutation.mutate({
-              listId: list._id,
-              itemId,
-              data: { isPurchased },
-            });
-          }
-        });
-
-        // Clear pending updates after submission
-        setPendingUpdates({});
-      };
-    }, [list, updateMutation])
-  );
-
-  // Toggle item purchase status with optimistic update
-  const handleTogglePurchased = useCallback((itemId: string, currentStatus: boolean) => {
-    setPendingUpdates((prev) => ({
-      ...prev,
-      [itemId]: !currentStatus,
-    }));
+  // 3. Simple toggle handler locally
+  const handleTogglePurchased = useCallback((itemId: string) => {
+    setLocalItems((prevItems) => {
+      return prevItems.map(item => {
+        if (item._id === itemId) {
+          return { ...item, isPurchased: !item.isPurchased };
+        }
+        return item;
+      })
+    });
   }, []);
 
-  // Delete item with confirmation
-  const handleDeleteItem = useCallback(
-    (itemId: string) => {
-      if (!list?._id) return;
+  // Navigate to checkout with purchased items*/
+  const purchasedItems = useMemo(() => {
+    return localItems.filter((item) => item.isPurchased);
+  }, [localItems]);
 
-      // Remove from pending updates first
-      setPendingUpdates((prev) => {
-        const next = { ...prev };
-        delete next[itemId];
-        return next;
-      });
-
-      // Send delete request
-      deleteMutation.mutate({
-        listId: list._id,
-        itemId,
-      });
-    },
-    [list?._id, deleteMutation]
-  );
-
-  // Navigate to checkout with purchased items
   const handleCheckout = useCallback(() => {
     if (purchasedItems.length === 0) {
       alert("Please select items to checkout");
@@ -117,6 +59,15 @@ export default function ShoppingListDetailScreen() {
       },
     });
   }, [purchasedItems, listId, list?.title, router]);
+
+  // Stable Render Item
+  const renderItem = useCallback(({ item }: { item: any }) => (
+    <ShoppingItemCard
+      item={item}
+      onToggle={handleTogglePurchased}
+    // onDelete={handleDeleteItem}
+    />
+  ), [handleTogglePurchased]);
 
   if (isLoading) {
     return (
@@ -144,19 +95,13 @@ export default function ShoppingListDetailScreen() {
       </View>
 
       {/* Items List */}
-      {displayItems.length > 0 ? (
+      {localItems.length > 0 ? (
         <FlatList
-          data={displayItems}
+          data={localItems}
           keyExtractor={(item) => item._id || ""}
           scrollEnabled={false}
           contentContainerStyle={{ gap: 12 }}
-          renderItem={({ item }) => (
-            <ShoppingItemCard
-              item={item}
-              onToggle={() => handleTogglePurchased(item._id!, item.isPurchased)}
-              onDelete={() => handleDeleteItem(item._id!)}
-            />
-          )}
+          renderItem={renderItem}
         />
       ) : (
         <View style={styles.emptyState}>
@@ -165,37 +110,18 @@ export default function ShoppingListDetailScreen() {
           </IText>
         </View>
       )}
-
-      {/* Checkout button - shown when items are selected */}
       {purchasedItems.length > 0 && (
         <View style={styles.checkoutFooter}>
           <IButton
             variant="primary"
             onPress={handleCheckout}
             style={styles.checkoutButton}
-            // backgroundColor="#0066CC"
           >
             <IText size={16} semiBold color="white">{`Checkout (${purchasedItems.length})`}</IText>
           </IButton>
         </View>
       )}
 
-      {/* Mutation error handling */}
-      {updateMutation.isError && (
-        <View style={styles.errorBanner}>
-          <IText size={12} color="#DC2626">
-            Failed to update item. Please try again.
-          </IText>
-        </View>
-      )}
-
-      {deleteMutation.isError && (
-        <View style={styles.errorBanner}>
-          <IText size={12} color="#DC2626">
-            Failed to delete item. Please try again.
-          </IText>
-        </View>
-      )}
     </ScrollView>
   );
 }

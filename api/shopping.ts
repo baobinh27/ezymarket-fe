@@ -39,7 +39,7 @@ export const createShoppingList = async (
 export const getShoppingLists = async (
     groupId: string
 ): Promise<ShoppingList[]> => {
-    return axiosInstance.get(`/api/shopping-lists/group/${groupId}`);
+    return axiosInstance.get("/api/shopping-lists", { params: { groupId } });
 };
 
 export const getShoppingListById = async (

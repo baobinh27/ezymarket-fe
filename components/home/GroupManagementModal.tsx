@@ -12,14 +12,14 @@ import { GroupDetails } from "@/types/types";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from "react-native";
 
 type GroupManagementModalProps = {
@@ -91,6 +91,7 @@ const GroupManagementModal: React.FC<GroupManagementModalProps> = ({ visible, on
         },
         onError: (error: any) => {
           showSnackBar(error?.response?.data?.message || "Failed to create group", "error");
+          console.log("error:", error);
         },
       }
     );
@@ -124,7 +125,7 @@ const GroupManagementModal: React.FC<GroupManagementModalProps> = ({ visible, on
 
   const handleRemoveMember = (groupId: string, userId: string) => {
     Alert.alert("Remove Member", "Are you sure you want to remove this member?", [
-      { text: "Cancel", onPress: () => {} },
+      { text: "Cancel", onPress: () => { } },
       {
         text: "Remove",
         onPress: () => {

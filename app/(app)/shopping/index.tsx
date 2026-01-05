@@ -20,7 +20,11 @@ export default function ShoppingScreen() {
 
   const { data: groupsData, isLoading: groupsLoading } = useGetMyGroups();
 
-  const { data: shoppingLists = [], isLoading } = useShoppingLists(groupsData?.groups?.[0]?.id);
+  const groupId = groupsData?.groups?.[0]?.id;
+  console.log("ShoppingScreen - groupsLoading:", groupsLoading, "Groups:", groupsData?.groups?.length, "GroupID:", groupId);
+
+  const { data: shoppingLists = [], isLoading } = useShoppingLists(groupId);
+  console.log("ShoppingScreen - shoppingListsLoading:", isLoading, "Lists:", shoppingLists?.length);
 
   const handleDismissModal = useCallback(() => {
     bottomSheetRef.current?.close();
@@ -57,13 +61,6 @@ export default function ShoppingScreen() {
           gap: 8,
         }}
       >
-        {/* Search box */}
-        {/* <SearchBox
-          value={searchText}
-          onChangeText={setSearchText}
-          placeholder="Search..."
-          containerStyle={{ flex: 1.8 }}
-        /> */}
         <SearchBar
           value={searchText}
           onChangeText={setSearchText}

@@ -105,7 +105,7 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
               </IText>
 
               <IText size={11} semiBold>
-                {`Total \t\t ${item.price.toLocaleString("en-us")}`}đ
+                {`Total \t\t ${(item.price * item.quantity).toLocaleString("en-us")}`}đ
               </IText>
             </View>
           </View>

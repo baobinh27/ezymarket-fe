@@ -50,4 +50,3 @@ export const ShoppingItemCard: React.FC<ShoppingItemProps> = ({
     </ItemCard>
   )
 }
-
