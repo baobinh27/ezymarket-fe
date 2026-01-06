@@ -5,6 +5,7 @@ import useCreateMealItemBulk from "@/hooks/meal/useCreateMealItemBulk";
 import { useMarkMealItemAsEaten } from "@/hooks/meal/useMarkMealItemAsEaten";
 import { useSnackBar } from "@/services/auth/snackbar.context";
 import { FridgeItem, MealType } from "@/types/types";
+import { getFridgeItemImage, getFridgeItemName } from "@/utils/getFridgeItemImage";
 import { Entypo } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Ref, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
@@ -120,10 +121,10 @@ const AddItemModal = ({
       const response = await createMealItem({
         itemType: "ingredient",
         quantity,
-        ingredientId: item.foodId._id,
-        unitId: item.unitId._id,
+        ingredientId: item.foodId?._id,
+        unitId: item.unitId?._id,
+        recipeId: item.recipeId?._id,
         date: selectedDate,
-        recipeId: "",
         mealType,
       });
 
@@ -142,7 +143,7 @@ const AddItemModal = ({
         newMap.delete(item._id);
         return newMap;
       });
-      showSnackBar(`${item.foodId.name} added to ${mealType}!`, "success");
+      showSnackBar(`${getFridgeItemName(item)} added to ${mealType}!`, "success");
 
       if (onItemsAdded) {
         await onItemsAdded();
@@ -263,11 +264,11 @@ const AddItemModal = ({
                 return (
                   <ItemCard key={item._id} style={isSelected && styles.selectedItem}>
                     <View style={styles.leftGroup}>
-                      <ItemImageWithFallback source={item.foodId.imageURL} />
+                      <ItemImageWithFallback source={getFridgeItemImage(item)} />
                       <View>
-                        <IText semiBold>{item.foodId.name}</IText>
+                        <IText semiBold>{getFridgeItemName(item)}</IText>
                         <IText size={11}>
-                          {item.quantity} {item.unitId.abbreviation} available
+                          {item.quantity} {item.unitId?.abbreviation || "servings"} available
                         </IText>
                       </View>
                     </View>

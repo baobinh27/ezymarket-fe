@@ -28,7 +28,12 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
   toBeDeleted,
 }) => {
   const [selectedQuantity, setSelectedQuantity] = useState<number>(editQuantity || item.quantity);
-  const [selectedUnit, setSelectedUnit] = useState<string>(editUnit || item.unitId._id);
+  const [selectedUnit, setSelectedUnit] = useState<string>(editUnit || item.unitId?._id || "");
+  
+  // Get item name and image based on itemType
+  const itemName = item.itemType === "recipe" ? item.recipeId?.title : item.foodId?.name;
+  const itemImage = item.itemType === "recipe" ? item.recipeId?.imageUrl : item.foodId?.imageURL;
+  
   const expiryDate = new Date(item.expiryDate);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -81,19 +86,17 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
     <ItemCard style={toBeDeleted && styles.cardToBeDeleted}>
       <View style={styles.leftContent}>
         <ItemImageWithFallback
-          source={
-            item.foodId.imageURL
-          }
+          source={itemImage}
         />
         {!isEditing ? (
           <View style={styles.infoContainer}>
             <View style={styles.groupInfoContainer}>
               <IText semiBold size={14} color="black" numberOfLines={1}>
-                {item.foodId.name}
+                {itemName}
               </IText>
 
               <IText size={11} color="#000000B4">
-                {item.quantity} {item.unitId.abbreviation}
+                {item.quantity} {item.unitId?.abbreviation || "servings"}
               </IText>
             </View>
 
@@ -111,7 +114,7 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
           <View style={styles.infoContainer}>
             <View style={styles.groupInfoContainer}>
               <IText semiBold size={14} color="black" numberOfLines={1}>
-                {item.foodId.name}
+                {itemName}
               </IText>
 
               <View style={styles.editModeControls}>

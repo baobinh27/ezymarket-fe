@@ -10,7 +10,7 @@ import useGetMealByDateRange from "@/hooks/meal/useGetMealByDateRange";
 import { useMarkMealItemAsEaten } from "@/hooks/meal/useMarkMealItemAsEaten";
 import { useMealPlanningContext } from "@/services/meals/mealPlanning.context";
 import { MealItem, MealType } from "@/types/types";
-import { getFridgeItemImage } from "@/utils/getFridgeItemImage";
+import { getMealItemImage } from "@/utils/getFridgeItemImage";
 import { getDateFormat } from "@/utils/utils";
 import { Entypo, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -79,9 +79,9 @@ const MealPlanning = () => {
 
   // }, [selectedDate])
 
-  useEffect(() => {
-    if (!isFetching) console.log("mealDay =", mealDay);
-  }, [isFetching, mealDay]);
+  // useEffect(() => {
+  //   if (!isFetching) console.log("mealDay =", mealDay);
+  // }, [isFetching, mealDay]);
 
   useEffect(() => {
     setIsReady(false);
@@ -317,7 +317,7 @@ const MealPlanning = () => {
                       <>
                         {meal.data[0] && (
                           <View style={styles.previewItemContainer}>
-                            <ItemImageWithFallback source={getFridgeItemImage(meal.data[0])} />
+                            <ItemImageWithFallback source={getMealItemImage(meal.data[0])} />
                             {meal.data[0].isEaten && (
                               <View style={styles.eatenBadge}>
                                 <Feather name="check" size={12} color="white" />
@@ -327,7 +327,7 @@ const MealPlanning = () => {
                         )}
                         {meal.data[1] && (
                           <View style={styles.previewItemContainer}>
-                            <ItemImageWithFallback source={getFridgeItemImage(meal.data[1])} />
+                            <ItemImageWithFallback source={getMealItemImage(meal.data[1])} />
                             {meal.data[1].isEaten && (
                               <View style={styles.eatenBadge}>
                                 <Feather name="check" size={12} color="white" />
@@ -337,7 +337,7 @@ const MealPlanning = () => {
                         )}
                         {meal.data.length === 3 && (
                           <View style={styles.previewItemContainer}>
-                            <ItemImageWithFallback source={getFridgeItemImage(meal.data[2])} />
+                            <ItemImageWithFallback source={getMealItemImage(meal.data[2])} />
                             {meal.data[2].isEaten && (
                               <View style={styles.eatenBadge}>
                                 <Feather name="check" size={12} color="white" />

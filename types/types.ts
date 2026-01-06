@@ -1,15 +1,21 @@
 export interface FridgeItem {
   _id: string;
-  foodId: {
+  itemType: "recipe" | "ingredient";
+  foodId?: {
     _id: string;
     name: string;
     imageURL: string;
   };
-  unitId: {
+  unitId?: {
     _id: string;
     name: string;
     abbreviation: string;
   };
+  recipeId?: {
+    _id: string;
+    title: string;
+    imageUrl: string;
+  }
   quantity: number;
   expiryDate: string;
   purchaseDate?: string;

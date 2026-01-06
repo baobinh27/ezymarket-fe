@@ -9,7 +9,6 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import SearchBar from "@/components/SearchBar";
-import useGetMyGroups from "@/hooks/group/useGetMyGroups";
 import { useShoppingLists } from "@/hooks/shopping/useShopping";
 // import { useAuth } from "@/services/auth/auth.context";
 
@@ -18,9 +17,11 @@ export default function ShoppingScreen() {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [searchText, setSearchText] = useState("");
 
-  const { data: groupsData, isLoading: groupsLoading } = useGetMyGroups();
+  // const { data: groupsData, isLoading: groupsLoading } = useGetMyGroups();
 
-  const { data: shoppingLists = [], isLoading } = useShoppingLists(groupsData?.groups?.[0]?.id);
+  // const { data: shoppingLists = [], isLoading } = useShoppingLists(groupsData?.groups?.[0]?.id);
+
+  const { data: shoppingLists, isLoading } = useShoppingLists();
 
   const handleDismissModal = useCallback(() => {
     bottomSheetRef.current?.close();
@@ -33,12 +34,14 @@ export default function ShoppingScreen() {
   }, []);
 
   const filteredActiveLists = useMemo(() => {
+    if (!shoppingLists) return [];
     return shoppingLists
       .filter((list) => list.status === "active")
       .filter((list) => list.title.toLowerCase().includes(searchText.toLowerCase()));
   }, [searchText, shoppingLists]);
 
   const filteredSavedLists = useMemo(() => {
+    if (!shoppingLists) return [];
     return shoppingLists
       .filter((list) => list.status !== "active")
       .filter((list) => list.title.toLowerCase().includes(searchText.toLowerCase()));

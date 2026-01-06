@@ -127,7 +127,7 @@ export default function CreateShoppingListScreen() {
   const updateItemUnit = (index: number, unitId: string) => {
     const updated = [...items];
     updated[index].unitId = unitId;
-    console.log("updated", unitId);
+    // console.log("updated", unitId);
     setItems(updated);
   };
 

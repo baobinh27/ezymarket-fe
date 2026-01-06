@@ -67,9 +67,9 @@ export default function FridgeScreen() {
 
   const items = useMemo(() => (data?.items || []) as FridgeItem[], [data]);
 
-  useEffect(() => {
-    console.log("items:", items);
-  }, [items]);
+  // useEffect(() => {
+  //   console.log("items:", items);
+  // }, [items]);
 
   const handleAddItem = useCallback(() => {
     bottomSheetRef.current?.present();
@@ -170,7 +170,7 @@ export default function FridgeScreen() {
             onUnitChange={handleUnitChange}
             onDelete={handleDeleteItem}
             editQuantity={editingItems[item._id]?.quantity ?? item.quantity}
-            editUnit={editingItems[item._id]?.unitId ?? item.unitId._id}
+            editUnit={editingItems[item._id]?.unitId ? item.unitId?._id : "servings"}
             toBeDeleted={itemsToDelete.includes(item._id)}
           />
         </View>

@@ -32,7 +32,7 @@ export default function CheckoutScreen() {
         price: 0,
         isPurchased: true, // All items coming from shopping list are pre-purchased
       }));
-      console.log("Initialized checkout items:", items);
+      // console.log("Initialized checkout items:", items);
       return items;
     } catch (e) {
       console.error("Failed to parse items:", e);
