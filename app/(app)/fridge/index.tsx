@@ -12,7 +12,7 @@ import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -28,47 +28,6 @@ type EditingItemState = {
     unitId?: string;
   };
 };
-
-const mockFridgeItem: FridgeItem[] = [
-  {
-    _id: "1",
-    foodId: {
-      _id: "1",
-      name: "BanAnA",
-      imageURL:
-        "https://static.vecteezy.com/system/resources/thumbnails/012/909/735/small/bunch-of-bananas-free-png.png",
-    },
-    expiryDate: new Date(2025, 11, 30).toDateString(),
-    quantity: 3,
-    status: "in-stock",
-    unitId: {
-      _id: "1",
-      abbreviation: "pcs",
-      name: "piece",
-    },
-    purchaseDate: new Date(2025, 11, 21).toDateString(),
-    price: 12000,
-  },
-  {
-    _id: "2",
-    foodId: {
-      _id: "2",
-      name: "Egg",
-      imageURL:
-        "https://imgs.search.brave.com/diwp7S5Gw9OU3k_BPaE0WgppBr4_5PHHE-0c_BWO-Ps/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wNDEv/Mjc3LzM0OS9zbWFs/bC9haS1nZW5lcmF0/ZWQtY2hpY2tlbi1l/Z2ctaXNvbGF0ZWQt/b24tdHJhbnNwYXJl/bnQtYmFja2dyb3Vu/ZC1wbmcucG5n",
-    },
-    expiryDate: new Date(2025, 11, 28).toDateString(),
-    quantity: 12,
-    status: "in-stock",
-    unitId: {
-      _id: "1",
-      abbreviation: "pcs",
-      name: "piece",
-    },
-    purchaseDate: new Date(2025, 11, 25).toDateString(),
-    price: 36000,
-  },
-];
 
 export default function FridgeScreen() {
   const [isEditing, setIsEditing] = useState(false);
@@ -106,7 +65,7 @@ export default function FridgeScreen() {
     }, [refetch])
   );
 
-  const items = (data?.items || []) as FridgeItem[];
+  const items = useMemo(() => (data?.items || []) as FridgeItem[], [data]);
 
   useEffect(() => {
     console.log("items:", items);
@@ -176,7 +135,7 @@ export default function FridgeScreen() {
         await Promise.all(updatePromises);
       }
     } catch (error) {
-      showSnackbar("Failed to update fridge items", "error");
+      showSnackbar("Failed to update fridge items: " + error, "error");
     } finally {
       setIsEditing(false);
       setEditingItems({});
@@ -217,10 +176,18 @@ export default function FridgeScreen() {
         </View>
       );
     },
-    [isEditing, editingItems, itemsToDelete, items.length, handleQuantityChange, handleDeleteItem]
+    [
+      isEditing,
+      editingItems,
+      itemsToDelete,
+      items.length,
+      handleQuantityChange,
+      handleDeleteItem,
+      handleUnitChange,
+    ]
   );
 
-  const filteredItems = items.filter((item) => item);
+  // const filteredItems = items.filter((item) => item);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -259,7 +226,7 @@ export default function FridgeScreen() {
       </View>
 
       {/* Use in Meals Banner */}
-      {!isEditing && filteredItems.length > 0 && !shouldHideBanner && (
+      {!isEditing && items.length > 0 && !shouldHideBanner && (
         <ItemCard primary style={styles.banner}>
           <View style={styles.bannerContent}>
             <View style={styles.bannerTextContainer}>
@@ -328,11 +295,11 @@ export default function FridgeScreen() {
             Error loading fridge items
           </IText>
         </View>
-      ) : filteredItems.length === 0 ? (
+      ) : items.length === 0 ? (
         <EmptyFridgeMessage handleOpenAddItemModal={handleAddItem} />
       ) : (
         <FlatList
-          data={filteredItems}
+          data={items}
           renderItem={renderItem}
           keyExtractor={(item) => item._id}
           scrollEnabled={true}

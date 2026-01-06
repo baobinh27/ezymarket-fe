@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import QuantitySelector from "../QuantitySelector";
 import UnitSelector from "../UnitSelector";
-import { ItemCard, ItemImage, IText } from "../styled";
+import { ItemCard, ItemImageWithFallback, IText } from "../styled";
 
 export interface FridgeItemCardProps {
   item: FridgeItem;
@@ -80,11 +80,9 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
   return (
     <ItemCard style={toBeDeleted && styles.cardToBeDeleted}>
       <View style={styles.leftContent}>
-        <ItemImage
+        <ItemImageWithFallback
           source={
             item.foodId.imageURL
-              ? { uri: item.foodId.imageURL }
-              : require("@/assets/images/emptybox.png")
           }
         />
         {!isEditing ? (

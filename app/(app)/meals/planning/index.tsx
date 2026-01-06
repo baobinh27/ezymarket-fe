@@ -8,6 +8,7 @@ import { CardGroup, ItemCard, ItemImageWithFallback, IText } from "@/components/
 import useDeleteMealItem from "@/hooks/meal/useDeleteMealItem";
 import useGetMealByDateRange from "@/hooks/meal/useGetMealByDateRange";
 import { useMarkMealItemAsEaten } from "@/hooks/meal/useMarkMealItemAsEaten";
+import { useMealPlanningContext } from "@/services/meals/mealPlanning.context";
 import { MealItem, MealType } from "@/types/types";
 import { getFridgeItemImage } from "@/utils/getFridgeItemImage";
 import { getDateFormat } from "@/utils/utils";
@@ -32,6 +33,7 @@ type MealEditType = {
 };
 
 const MealPlanning = () => {
+  const { selectedDate, setSelectedDate, viewingWeekDate, setViewingWeekDate } = useMealPlanningContext();
   const [isExpanded, setIsExpanded] = useState<MealEditType>({
     breakfast: false,
     lunch: false,
@@ -41,8 +43,6 @@ const MealPlanning = () => {
   const [selectedMealType, setSelectedMealType] = useState<Meals | null>(null);
   const fridgeModalRef = useRef<BottomSheetModal>(null);
   const planningModalRef = useRef<BottomSheetModal>(null);
-  const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [viewingWeekDate, setViewingWeekDate] = useState(dayjs());
   const [isReady, setIsReady] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{
     itemId: string;
@@ -79,9 +79,9 @@ const MealPlanning = () => {
 
   // }, [selectedDate])
 
-  // useEffect(() => {
-  //   if (!isFetching) console.log("mealDay =", mealDay);
-  // }, [isFetching, mealDay]);
+  useEffect(() => {
+    if (!isFetching) console.log("mealDay =", mealDay);
+  }, [isFetching, mealDay]);
 
   useEffect(() => {
     setIsReady(false);
@@ -139,7 +139,7 @@ const MealPlanning = () => {
       {
         key: Meals.Snacks,
         label: "Snacks",
-        icon: <Feather name="sunrise" size={24} />,
+        icon: <MaterialCommunityIcons name="food-apple-outline" size={24} />,
         expandedKey: "snacks",
         data: getMealItems("snacks"),
       },
@@ -402,7 +402,7 @@ const MealPlanning = () => {
                                 </IButton>
                               </View>
                               <IText size={11}>
-                                {mealItem.quantity} {mealItem.unitId.abbreviation}
+                                {mealItem.quantity} {mealItem.unitId?.abbreviation || "pcs"}
                               </IText>
                             </View>
 

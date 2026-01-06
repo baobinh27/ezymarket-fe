@@ -1,4 +1,5 @@
 import TopTabsLayout from "@/components/TopTabsLayout";
+import { MealPlanningProvider } from "@/services/meals/mealPlanning.context";
 
 const MealLayout = () => {
   const tabs = [
@@ -12,7 +13,11 @@ const MealLayout = () => {
     },
   ];
 
-  return <TopTabsLayout tabs={tabs} />;
+  return (
+    <MealPlanningProvider>
+      <TopTabsLayout tabs={tabs} />
+    </MealPlanningProvider>
+  );
 };
 
 export default MealLayout;

@@ -307,7 +307,7 @@ const PlanningAddItemModal = ({
                               }}
                             />
                           </View>
-                          {isIngredient && (
+                          {/* {isIngredient && ( */}
                             <View>
                               <IText size={11}>Unit</IText>
                               <UnitSelector
@@ -316,7 +316,7 @@ const PlanningAddItemModal = ({
                                 placeholder="Select Unit"
                               />
                             </View>
-                          )}
+                          {/* )} */}
                         </View>
                       )}
                       <View style={styles.buttonGroup}>
