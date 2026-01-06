@@ -1,15 +1,13 @@
 import IButton from "@/components/IButton";
 import AddItemModal from "@/components/meals/AddItemModal";
 import ConfirmDeleteModal from "@/components/meals/ConfirmDeleteModal";
+import MissingItemModal from "@/components/meals/MissingItemModal";
+import PlanningAddItemModal from "@/components/meals/PlanningAddItemModal";
 import WeekPicker from "@/components/meals/WeekPicker";
-import {
-  CardGroup,
-  ItemCard,
-  ItemImageWithFallback,
-  IText,
-} from "@/components/styled";
+import { CardGroup, ItemCard, ItemImageWithFallback, IText } from "@/components/styled";
 import useDeleteMealItem from "@/hooks/meal/useDeleteMealItem";
 import useGetMealByDateRange from "@/hooks/meal/useGetMealByDateRange";
+import { useMarkMealItemAsEaten } from "@/hooks/meal/useMarkMealItemAsEaten";
 import { MealItem, MealType } from "@/types/types";
 import { getFridgeItemImage } from "@/utils/getFridgeItemImage";
 import { getDateFormat } from "@/utils/utils";
@@ -33,60 +31,6 @@ type MealEditType = {
   snacks: boolean;
 };
 
-// const mockData: MealDay = {
-//   breakfast: [
-//     {
-//       name: "Apple",
-//       quantity: 1,
-//       unit: "fruit",
-//     },
-//   ],
-//   lunch: [
-//     {
-//       name: "Rice",
-//       quantity: 2,
-//       unit: "bowl",
-//     },
-//     {
-//       name: "Egg",
-//       quantity: 2,
-//       unit: "piece",
-//     },
-//   ],
-//   dinner: [
-//     {
-//       name: "Rice",
-//       quantity: 2,
-//       unit: "bowl",
-//     },
-//     {
-//       name: "Egg",
-//       quantity: 2,
-//       unit: "piece",
-//     },
-//   ],
-//   snacks: [
-//     {
-//       name: "Banana",
-//       quantity: 3,
-//       unit: "piece",
-//     },
-//   ],
-// };
-
-// type Dish = {
-//   name: string;
-//   quantity: number;
-//   unit: string;
-// };
-
-// type MealDay = {
-//   breakfast: Dish[];
-//   lunch: Dish[];
-//   dinner: Dish[];
-//   snacks: Dish[];
-// };
-
 const MealPlanning = () => {
   const [isExpanded, setIsExpanded] = useState<MealEditType>({
     breakfast: false,
@@ -95,7 +39,8 @@ const MealPlanning = () => {
     snacks: false,
   });
   const [selectedMealType, setSelectedMealType] = useState<Meals | null>(null);
-  const bottomSheetRef = useRef<BottomSheetModal>(null);
+  const fridgeModalRef = useRef<BottomSheetModal>(null);
+  const planningModalRef = useRef<BottomSheetModal>(null);
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [viewingWeekDate, setViewingWeekDate] = useState(dayjs());
   const [isReady, setIsReady] = useState(false);
@@ -103,6 +48,11 @@ const MealPlanning = () => {
     itemId: string;
     itemName: string;
     mealType: MealType;
+  } | null>(null);
+  const [missingItemModal, setMissingItemModal] = useState<{
+    visible: boolean;
+    itemId: string;
+    itemName: string;
   } | null>(null);
 
   const {
@@ -117,8 +67,10 @@ const MealPlanning = () => {
     enabled: false,
   });
 
-  const { mutateAsync: deleteMealItem, isPending: isDeleting } =
-    useDeleteMealItem();
+  const { mutateAsync: deleteMealItem, isPending: isDeleting } = useDeleteMealItem();
+
+  const { mutateAsync: markMealItemAsEaten, isPending: isMarkingAsEaten } =
+    useMarkMealItemAsEaten();
 
   // useEffect(() => {
   //   // console.log("iso:", selectedDate.toISOString());
@@ -129,7 +81,7 @@ const MealPlanning = () => {
 
   // useEffect(() => {
   //   if (!isFetching) console.log("mealDay =", mealDay);
-  // }, [mealDay]);
+  // }, [isFetching, mealDay]);
 
   useEffect(() => {
     setIsReady(false);
@@ -151,9 +103,7 @@ const MealPlanning = () => {
     // FUTURE: refine API calls to return the exact date
     const mealData =
       mealDay && mealDay.length > 0
-        ? mealDay.find(
-            (d) => d.date.split("T")[0] === selectedDate.format("YYYY-MM-DD")
-          )
+        ? mealDay.find((d) => d.date.split("T")[0] === selectedDate.format("YYYY-MM-DD"))
         : null;
 
     // console.log("mealData for", selectedDate.format("YYYY-MM-DD"), ":", mealData);
@@ -242,10 +192,42 @@ const MealPlanning = () => {
     });
   };
 
-  const handleOpenModal = useCallback((meal: Meals) => {
-    setSelectedMealType(meal);
-    bottomSheetRef.current?.present();
-  }, []);
+  const handleOpenModal = useCallback(
+    (meal: Meals) => {
+      setSelectedMealType(meal);
+
+      // Determine if the selected date is today or has passed
+      const isFutureDate = selectedDate.isAfter(dayjs());
+
+      if (isFutureDate) {
+        planningModalRef.current?.present();
+      } else {
+        fridgeModalRef.current?.present();
+      }
+    },
+    [selectedDate]
+  );
+
+  const handleUseMealItem = async (mealItem: MealItem) => {
+    try {
+      await markMealItemAsEaten({
+        itemId: mealItem._id,
+        forceEat: false,
+      });
+      await fetchMealDay();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error: any) {
+      const itemName =
+        mealItem.itemType === "ingredient"
+          ? mealItem.ingredientId?.name || "Item"
+          : mealItem.recipeId?.title || "Item";
+      setMissingItemModal({
+        visible: true,
+        itemId: mealItem._id,
+        itemName,
+      });
+    }
+  };
 
   // const handleCloseModal = () => {
   //     setShowAddItemModal(false);
@@ -254,12 +236,21 @@ const MealPlanning = () => {
   return (
     <View style={{ height: "100%" }}>
       {selectedMealType && (
-        <AddItemModal
-          ref={bottomSheetRef}
-          mealType={selectedMealType}
-          selectedDate={getDateFormat(selectedDate)}
-          onItemsAdded={fetchMealDay}
-        />
+        <>
+          <AddItemModal
+            ref={fridgeModalRef}
+            mealType={selectedMealType}
+            selectedDate={getDateFormat(selectedDate)}
+            onItemsAdded={fetchMealDay}
+            isFutureDate={false}
+          />
+          <PlanningAddItemModal
+            ref={planningModalRef}
+            mealType={selectedMealType}
+            selectedDate={getDateFormat(selectedDate)}
+            onItemsAdded={fetchMealDay}
+          />
+        </>
       )}
 
       <ConfirmDeleteModal
@@ -270,6 +261,28 @@ const MealPlanning = () => {
         onConfirm={handleConfirmDelete}
         isLoading={isDeleting}
       />
+
+      {missingItemModal && (
+        <MissingItemModal
+          visible={missingItemModal.visible}
+          itemName={missingItemModal.itemName}
+          onCancel={() => setMissingItemModal(null)}
+          onConfirm={async () => {
+            try {
+              await markMealItemAsEaten({
+                itemId: missingItemModal.itemId,
+                forceEat: true,
+              });
+              setMissingItemModal(null);
+              await fetchMealDay();
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            } catch (error: any) {
+              setMissingItemModal(null);
+            }
+          }}
+          isLoading={isMarkingAsEaten}
+        />
+      )}
 
       <WeekPicker
         currentDate={viewingWeekDate}
@@ -303,25 +316,38 @@ const MealPlanning = () => {
                     {!isExpanded[meal.expandedKey] && (
                       <>
                         {meal.data[0] && (
-                          <ItemImageWithFallback
-                            source={getFridgeItemImage(meal.data[0])}
-                          />
+                          <View style={styles.previewItemContainer}>
+                            <ItemImageWithFallback source={getFridgeItemImage(meal.data[0])} />
+                            {meal.data[0].isEaten && (
+                              <View style={styles.eatenBadge}>
+                                <Feather name="check" size={12} color="white" />
+                              </View>
+                            )}
+                          </View>
                         )}
                         {meal.data[1] && (
-                          <ItemImageWithFallback
-                            source={getFridgeItemImage(meal.data[1])}
-                          />
+                          <View style={styles.previewItemContainer}>
+                            <ItemImageWithFallback source={getFridgeItemImage(meal.data[1])} />
+                            {meal.data[1].isEaten && (
+                              <View style={styles.eatenBadge}>
+                                <Feather name="check" size={12} color="white" />
+                              </View>
+                            )}
+                          </View>
                         )}
                         {meal.data.length === 3 && (
-                          <ItemImageWithFallback
-                            source={getFridgeItemImage(meal.data[2])}
-                          />
+                          <View style={styles.previewItemContainer}>
+                            <ItemImageWithFallback source={getFridgeItemImage(meal.data[2])} />
+                            {meal.data[2].isEaten && (
+                              <View style={styles.eatenBadge}>
+                                <Feather name="check" size={12} color="white" />
+                              </View>
+                            )}
+                          </View>
                         )}
                         {meal.data.length > 3 && (
                           <View style={styles.iconSquare}>
-                            <IText size={12} semiBold>{`+${
-                              meal.data.length - 2
-                            }`}</IText>
+                            <IText size={12} semiBold>{`+${meal.data.length - 2}`}</IText>
                           </View>
                         )}
                       </>
@@ -332,11 +358,7 @@ const MealPlanning = () => {
                       style={styles.iconButton}
                     >
                       {isExpanded[meal.expandedKey] ? (
-                        <MaterialCommunityIcons
-                          name="playlist-check"
-                          size={24}
-                          color="white"
-                        />
+                        <MaterialCommunityIcons name="playlist-check" size={24} color="white" />
                       ) : (
                         <Feather name="edit-3" size={24} color="white" />
                       )}
@@ -346,48 +368,81 @@ const MealPlanning = () => {
 
                 {isExpanded[meal.expandedKey] && (
                   <ItemCard>
-                    <View
-                      style={{ flexDirection: "column", gap: 8, width: "100%" }}
-                    >
-                      {meal.data.map((mealItem: MealItem, index) => (
-                        <View key={mealItem._id} style={styles.foodItem}>
-                          <ItemImageWithFallback
-                            source={
-                              mealItem.ingredientId
-                                ? mealItem.ingredientId.imageURL
-                                : mealItem.recipeId?.imageUrl
-                            }
-                          />
+                    <View style={{ flexDirection: "column", gap: 8, width: "100%" }}>
+                      {meal.data.map((mealItem: MealItem, index) => {
+                        const isFutureDate = selectedDate.isAfter(dayjs());
+                        const isEaten = mealItem.isEaten;
 
-                          <View style={{ flexDirection: "column", gap: 4 }}>
-                            <IText semiBold>
-                              {mealItem.itemType === "ingredient"
-                                ? mealItem.ingredientId?.name
-                                : mealItem.recipeId?.title}
-                            </IText>
-                            <IText size={11}>
-                              {mealItem.quantity} {mealItem.unitId.abbreviation}
-                            </IText>
-                          </View>
-
-                          <IButton
-                            style={[styles.iconButton, styles.placeEnd]}
-                            onPress={() => {
-                              const itemName =
-                                mealItem.itemType === "ingredient"
-                                  ? mealItem.ingredientId?.name || "Item"
-                                  : mealItem.recipeId?.title || "Item";
-                              handleDeleteFoodItem(mealItem._id, itemName, meal.key);
-                            }}
-                          >
-                            <Feather
-                              name="trash-2"
-                              size={24}
-                              color="#000000B4"
+                        return (
+                          <View key={mealItem._id} style={styles.foodItem}>
+                            <ItemImageWithFallback
+                              source={
+                                mealItem.ingredientId
+                                  ? mealItem.ingredientId.imageURL
+                                  : mealItem.recipeId?.imageUrl
+                              }
                             />
-                          </IButton>
-                        </View>
-                      ))}
+
+                            <View style={{ flexDirection: "column", gap: 4 }}>
+                              <View
+                                style={{ flexDirection: "row", gap: 4, alignItems: "flex-end" }}
+                              >
+                                <IText semiBold>
+                                  {mealItem.itemType === "ingredient"
+                                    ? mealItem.ingredientId?.name
+                                    : mealItem.recipeId?.title}
+                                </IText>
+                                <IButton
+                                  variant={isEaten ? "primary" : "secondary"}
+                                  style={styles.chip}
+                                >
+                                  <IText size={10} color={isEaten ? "white" : "#82CD47"}>
+                                    {isEaten ? "Done" : "Not Eaten"}
+                                  </IText>
+                                </IButton>
+                              </View>
+                              <IText size={11}>
+                                {mealItem.quantity} {mealItem.unitId.abbreviation}
+                              </IText>
+                            </View>
+
+                            <View
+                              style={[
+                                styles.placeEnd,
+                                { flexDirection: "row", gap: 8, alignItems: "center" },
+                              ]}
+                            >
+                              {isFutureDate && !isEaten && (
+                                <IButton
+                                  variant="primary"
+                                  style={[
+                                    styles.iconButton,
+                                    { paddingHorizontal: 10, paddingVertical: 6 },
+                                  ]}
+                                  onPress={() => handleUseMealItem(mealItem)}
+                                  disabled={isMarkingAsEaten}
+                                >
+                                  <IText size={11} semiBold color="white">
+                                    {isMarkingAsEaten ? "..." : "Use"}
+                                  </IText>
+                                </IButton>
+                              )}
+                              <IButton
+                                style={[styles.iconButton]}
+                                onPress={() => {
+                                  const itemName =
+                                    mealItem.itemType === "ingredient"
+                                      ? mealItem.ingredientId?.name || "Item"
+                                      : mealItem.recipeId?.title || "Item";
+                                  handleDeleteFoodItem(mealItem._id, itemName, meal.key);
+                                }}
+                              >
+                                <Feather name="trash-2" size={24} color="#000000B4" />
+                              </IButton>
+                            </View>
+                          </View>
+                        );
+                      })}
 
                       <View style={styles.foodItem}>
                         <IButton
@@ -427,6 +482,22 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     color: "#000000B4",
   },
+  previewItemContainer: {
+    position: "relative",
+  },
+  eatenBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    backgroundColor: "#82CD47",
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "white",
+  },
   iconButton: {
     padding: 6,
     borderRadius: 6,
@@ -441,6 +512,11 @@ const styles = StyleSheet.create({
   placeEnd: {
     position: "absolute",
     right: 0,
+  },
+  chip: {
+    borderRadius: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
   },
 });
 

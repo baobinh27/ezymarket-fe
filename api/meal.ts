@@ -25,7 +25,7 @@ export type CreateMealItemParams = {
 }
 
 export const createMealItem = async (data: CreateMealItemParams) => {
-    // console.log("data: ", data);
+    console.log("data: ", data);
     
     return axiosInstance.post('/api/meal-plans/items', data);
 }
@@ -54,6 +54,6 @@ export const cookMealItem = async (itemId: string) => {
     return axiosInstance.post(`/api/meal-plans/items/${itemId}/cook`)
 }
 
-export const markMealItemAsEaten = async (itemId: string) => {
-    return axiosInstance.post(`/api/meal-plans/items/${itemId}/eat`)
+export const markMealItemAsEaten = async (itemId: string, forceEat?: boolean) => {
+    return axiosInstance.post(`/api/meal-plans/items/${itemId}/eat`, { forceEat })
 }
