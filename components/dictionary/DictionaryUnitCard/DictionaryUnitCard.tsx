@@ -1,8 +1,8 @@
-import React, { useRef, useState } from "react";
 import { Octicons } from "@expo/vector-icons";
+import React, { useRef, useState } from "react";
 import { Modal, Pressable, TouchableOpacity, View } from "react-native";
 
-import { IText } from "@/components/styled";
+import { IText, ItemCard } from "@/components/styled";
 import DictionaryItemMenu from "../DictionaryItemMenu/DictionaryItemMenu";
 import styles from "./DictionaryUnitCard.styles";
 
@@ -51,7 +51,7 @@ export default function DictionaryUnitCard({
 
   return (
     <>
-      <View style={[styles.unitCard, isHidden && styles.unitCardHidden]}>
+      <ItemCard style={isHidden && styles.unitCardHidden}>
         <View style={styles.unitLeft}>
           <IText size={16} bold>
             {name}
@@ -83,7 +83,7 @@ export default function DictionaryUnitCard({
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </ItemCard>
 
       <Modal
         visible={menuVisible}

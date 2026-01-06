@@ -129,6 +129,15 @@ export default function ShoppingScreen() {
           </CardGroup>
         )}
 
+        {filteredSavedLists.length === 0 && !isLoading && (
+          <View style={styles.emptyStateContainer}>
+            <Octicons name="inbox" size={48} color="#CCCCCC" />
+            <IText color="#999999" style={styles.emptyStateText}>
+              No saved lists yet
+            </IText>
+          </View>
+        )}
+
         <IBottomSheetModal ref={bottomSheetRef} title="Create">
           <View style={styles.optionsContent}>
             {createOptions.map((option, id) => (
@@ -161,5 +170,14 @@ const styles = StyleSheet.create({
   optionsContent: {
     gap: 12,
     paddingBottom: 24,
+  },
+  emptyStateContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 48,
+    gap: 12,
+  },
+  emptyStateText: {
+    fontSize: 14,
   },
 });

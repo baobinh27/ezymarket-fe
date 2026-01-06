@@ -11,9 +11,9 @@ import EmptyState from "@/components/dictionary/EmptyState/EmptyState";
 import { IText } from "@/components/styled";
 import { useAuth } from "@/services/auth/auth.context";
 import {
-  getHiddenItems,
-  hideItem,
-  unhideItem,
+    getHiddenItems,
+    hideItem,
+    unhideItem,
 } from "@/utils/dictionaryStorage";
 
 interface DictionaryUnitsProps {

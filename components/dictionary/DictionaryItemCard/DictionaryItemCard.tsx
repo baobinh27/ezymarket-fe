@@ -2,7 +2,7 @@ import { Octicons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
 import { Modal, Pressable, TouchableOpacity, View } from "react-native";
 
-import { IText, ItemImage } from "@/components/styled";
+import { IText, ItemCard, ItemImage } from "@/components/styled";
 import DictionaryItemMenu from "../DictionaryItemMenu/DictionaryItemMenu";
 import dictionaryItemStyles from "./dictionary-item.styles";
 
@@ -164,9 +164,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
 
   return (
     <>
-      <View
-        style={[dictionaryItemStyles.itemCard, isHidden && dictionaryItemStyles.itemCardHidden]}
-      >
+      <ItemCard style={isHidden && dictionaryItemStyles.itemCardHidden}>
         <View style={dictionaryItemStyles.itemLeft}>{renderContent()}</View>
 
         {!isSystem && (onEdit || onHide || onClone) && (
@@ -176,7 +174,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
             </TouchableOpacity>
           </View>
         )}
-      </View>
+      </ItemCard>
 
       <Modal
         visible={menuVisible}

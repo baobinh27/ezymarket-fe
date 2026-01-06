@@ -127,9 +127,14 @@ const AddItemModal = ({
         mealType,
       });
 
+      console.log("createMealItem response:", response);
+
       // If not a future date, mark as eaten immediately
-      if (!isFutureDate && response?._id) {
-        await markMealItemAsEaten(response._id);
+      if (!isFutureDate && response) {
+        const mealItemId = response.item._id || response.id;
+        if (mealItemId) {
+          await markMealItemAsEaten({ itemId: mealItemId });
+        }
       }
 
       setSelectedItems((prev) => {
@@ -167,10 +172,18 @@ const AddItemModal = ({
         items,
       });
 
+      console.log("createMealItemBulk response:", response);
+
       // If not a future date, mark all as eaten immediately
-      if (!isFutureDate && response?.items) {
-        for (const item of response.items) {
-          await markMealItemAsEaten(item._id);
+      if (!isFutureDate && response) {
+        const itemsToMark = response.items || response;
+        if (Array.isArray(itemsToMark)) {
+          for (const mealItem of itemsToMark) {
+            const mealItemId = mealItem._id || mealItem.id;
+            if (mealItemId) {
+              await markMealItemAsEaten({ itemId: mealItemId });
+            }
+          }
         }
       }
 

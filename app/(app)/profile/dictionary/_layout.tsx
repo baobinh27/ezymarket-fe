@@ -31,7 +31,7 @@ export default function DictionaryLayout() {
         contentStyle: { backgroundColor: "white" },
         headerShadowVisible: false,
         headerStyle: { backgroundColor: "white" },
-        animation: "default",
+        animation: "slide_from_right",
         presentation: "card",
       }}
     >
@@ -40,7 +40,7 @@ export default function DictionaryLayout() {
         options={{
           headerShown: true,
           headerBackVisible: false,
-          header: () => <DictionaryHeader onBack={() => router.back()} />,
+          header: () => <DictionaryHeader onBack={() => router.navigate("/profile")} />,
         }}
       />
     </Stack>

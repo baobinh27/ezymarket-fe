@@ -1,4 +1,3 @@
-
 import AddItemModal from "@/components/fridge/AddItemModal/index";
 import EmptyFridgeMessage from "@/components/fridge/EmptyFridgeMessage";
 import FridgeItemCard from "@/components/fridge/FridgeItemCard";
@@ -14,7 +13,14 @@ import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, SafeAreaView, StyleSheet, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 type EditingItemState = {
   [key: string]: {
@@ -100,7 +106,11 @@ export default function FridgeScreen() {
     }, [refetch])
   );
 
-  const items = (data?.items || [...mockFridgeItem]) as FridgeItem[];
+  const items = (data?.items || []) as FridgeItem[];
+
+  useEffect(() => {
+    console.log("items:", items);
+  }, [items]);
 
   const handleAddItem = useCallback(() => {
     bottomSheetRef.current?.present();
@@ -150,9 +160,7 @@ export default function FridgeScreen() {
   const handleDone = useCallback(async () => {
     try {
       if (itemsToDelete.length > 0) {
-        await Promise.all(
-          itemsToDelete.map((id) => deleteFridgeItemMutation.mutateAsync(id))
-        );
+        await Promise.all(itemsToDelete.map((id) => deleteFridgeItemMutation.mutateAsync(id)));
       }
 
       const updatePromises = Object.entries(editingItems)
@@ -209,19 +217,10 @@ export default function FridgeScreen() {
         </View>
       );
     },
-    [
-      isEditing,
-      editingItems,
-      itemsToDelete,
-      items.length,
-      handleQuantityChange,
-      handleDeleteItem,
-    ]
+    [isEditing, editingItems, itemsToDelete, items.length, handleQuantityChange, handleDeleteItem]
   );
 
-  const filteredItems = items.filter(
-    (item) => item
-  );
+  const filteredItems = items.filter((item) => item);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -288,64 +287,59 @@ export default function FridgeScreen() {
             </IButton>
           </View>
         </ItemCard>
-      )
-      }
+      )}
 
       {/* Edit Mode Warning */}
-      {
-        isEditing && (
-          <View style={styles.header}>
-            <View style={styles.editWarning}>
-              <Feather name="info" size={16} color="#1370D1" />
-              <IText size={11} color="#1370D1" style={{ flex: 1, marginLeft: 8 }}>
-                This is for adding and removing items without using them in Meals.
-              </IText>
-            </View>
-            <IButton
-              variant="primary"
-              style={{
-                ...styles.headerButton,
-                flexDirection: "row",
-                gap: 4,
-                alignItems: "center",
-                height: 40,
-              }}
-              onPress={handleAddItem}
-            >
-              <Entypo name="plus" size={16} color="white" />
-              <IText semiBold size={14} color="white">
-                New item
-              </IText>
-            </IButton>
-          </View>
-        )
-      }
-
-      {/* Content */}
-      {
-        isLoading ? (
-          <View style={styles.centerContent}>
-            <ActivityIndicator size="large" color="#82CD47" />
-          </View>
-        ) : error ? (
-          <View style={styles.centerContent}>
-            <IText color="#C41E3A" semiBold>
-              Error loading fridge items
+      {isEditing && (
+        <View style={styles.header}>
+          <View style={styles.editWarning}>
+            <Feather name="info" size={16} color="#1370D1" />
+            <IText size={11} color="#1370D1" style={{ flex: 1, marginLeft: 8 }}>
+              This is for adding and removing items without using them in Meals.
             </IText>
           </View>
-        ) : filteredItems.length === 0 ? (
-          <EmptyFridgeMessage handleOpenAddItemModal={handleAddItem} />
-        ) : (
-          <FlatList
-            data={filteredItems}
-            renderItem={renderItem}
-            keyExtractor={(item) => item._id}
-            scrollEnabled={true}
-            contentContainerStyle={styles.listContent}
-          />
-        )
-      }
-    </SafeAreaView >
+          <IButton
+            variant="primary"
+            style={{
+              ...styles.headerButton,
+              flexDirection: "row",
+              gap: 4,
+              alignItems: "center",
+              height: 40,
+            }}
+            onPress={handleAddItem}
+          >
+            <Entypo name="plus" size={16} color="white" />
+            <IText semiBold size={14} color="white">
+              New item
+            </IText>
+          </IButton>
+        </View>
+      )}
+
+      {/* Content */}
+      {isLoading ? (
+        <View style={styles.centerContent}>
+          <ActivityIndicator size="large" color="#82CD47" />
+        </View>
+      ) : error ? (
+        <View style={styles.centerContent}>
+          <IText color="#C41E3A" semiBold>
+            Error loading fridge items
+          </IText>
+        </View>
+      ) : filteredItems.length === 0 ? (
+        <EmptyFridgeMessage handleOpenAddItemModal={handleAddItem} />
+      ) : (
+        <FlatList
+          data={filteredItems}
+          renderItem={renderItem}
+          keyExtractor={(item) => item._id}
+          scrollEnabled={true}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
+    </SafeAreaView>
   );
 }
 
