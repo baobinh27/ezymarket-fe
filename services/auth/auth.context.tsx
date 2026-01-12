@@ -99,8 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await SecureStorage.setItem("refreshToken", newRefreshToken);
         }
 
+        const user = await axiosInstance.get('/api/user/me');
+        setUser(user);
         setIsLoggedIn(true);
-        // Start periodic token refresh on successful login check
         startTokenRefreshInterval();
 
       } catch (e: any) {

@@ -31,8 +31,8 @@ const FridgeItemCard: React.FC<FridgeItemCardProps> = ({
   const [selectedUnit, setSelectedUnit] = useState<string>(editUnit || item.unitId?._id || "");
   
   // Get item name and image based on itemType
-  const itemName = item.itemType === "recipe" ? item.recipeId?.title : item.foodId?.name;
-  const itemImage = item.itemType === "recipe" ? item.recipeId?.imageUrl : item.foodId?.imageURL;
+  const itemName = (item.itemType === "recipe" ? item.recipeId?.title : item.foodId?.name) || "-";
+  const itemImage = (item.itemType === "recipe" ? item.recipeId?.imageUrl : item.foodId?.imageURL) || undefined;
   
   const expiryDate = new Date(item.expiryDate);
   const today = new Date();

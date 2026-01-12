@@ -20,7 +20,7 @@ export default function ShoppingLayout() {
         name="index"
         options={{
           title: "",
-          headerShown: true,
+          headerShown: false,
           headerLeft: () => (
             <Text style={{
               fontFamily: 'Inter_700Bold',

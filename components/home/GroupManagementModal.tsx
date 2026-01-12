@@ -10,16 +10,16 @@ import useRemoveMemberFromGroup from "@/hooks/group/useRemoveMemberFromGroup";
 import { useSnackBar } from "@/services/auth/snackbar.context";
 import { GroupDetails } from "@/types/types";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  View,
 } from "react-native";
 
 type GroupManagementModalProps = {
@@ -69,9 +69,9 @@ const GroupManagementModal: React.FC<GroupManagementModalProps> = ({ visible, on
       updatedAt: "",
     } as GroupDetails);
 
-  useEffect(() => {
-    console.log("groupDetailsData:", groupDetailsData);
-  }, [groupDetailsData]);
+  // useEffect(() => {
+  //   console.log("groupDetailsData:", groupDetailsData);
+  // }, [groupDetailsData]);
 
   const handleCreateGroup = () => {
     if (!groupName.trim()) {

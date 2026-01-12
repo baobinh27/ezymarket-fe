@@ -115,7 +115,7 @@ const MealCooking = () => {
                   variant={item.status === "planned" ? "secondary" : "primary"}
                   style={styles.statusBadge}
                 >
-                  <IText size={10} color={item.status === "planned" ? "#82CD47" : "#22C55E"}>
+                  <IText size={10} color={item.status === "planned" ? "#82CD47" : "white"}>
                     {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                   </IText>
                 </IButton>

@@ -1,18 +1,24 @@
+import IButton from "@/components/IButton";
+import { IText } from "@/components/styled";
 import { useAuth } from "@/services/auth/auth.context";
-import { Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
-import { Redirect, Tabs, usePathname } from "expo-router";
-import { OpaqueColorValue } from "react-native";
+import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons, Octicons } from "@expo/vector-icons";
+import { Redirect, router, Tabs } from "expo-router";
+import { OpaqueColorValue, StyleSheet, View } from "react-native";
 
 export default function AppLayout() {
   const { isLoggedIn, loading } = useAuth();
-  const pathname = usePathname();
-  // loading animation i guess
+
   if (loading) return null;
 
   if (!isLoggedIn) return <Redirect href="/auth/login" />;
 
-  // Kiểm tra nếu đang ở dictionary thì giữ highlight tab Profile
-  const isDictionaryRoute = pathname?.startsWith("/profile/dictionary");
+  const handleGoNotifications = () => {
+    router.push("/notifications");
+  };
+
+  const handleNotificationsBack = () => {
+    router.back();
+  }
 
   const tabs = [
     {
@@ -44,7 +50,7 @@ export default function AppLayout() {
       ),
     },
     {
-      name: "profile/index",
+      name: "profile",
       title: "Profile",
       icon: (color: string | OpaqueColorValue | undefined) => (
         <Octicons name="person" size={20} color={color} />
@@ -77,37 +83,69 @@ export default function AppLayout() {
     >
       {/* href=null: Hidden route */}
       <Tabs.Screen name="index" options={{ href: null }} />
-      {/* Ẩn dictionary route khỏi tab bar và header */}
-      <Tabs.Screen name="profile/dictionary" options={{ href: null, headerShown: false }} />
 
       {tabs.map((tab) => {
-        const isProfileTab = tab.name === "profile/index";
-        const shouldHighlight = isProfileTab && isDictionaryRoute;
-
         return (
-        <Tabs.Screen
-          key={tab.name}
-          name={tab.name}
-          options={{
-            title: tab.title,
-            headerShown: tab.name !== "shopping",
-              tabBarIcon: ({ color, focused }) => {
-                // Nếu đang ở dictionary và là tab Profile, dùng màu trắng
-                const iconColor = shouldHighlight ? "#FFFFFF" : focused ? "#FFFFFF" : "#000000B4";
-                return tab.icon(iconColor);
-              },
-              tabBarLabelStyle: {
-                color: shouldHighlight ? "#FFFFFF" : undefined,
-              },
-              tabBarItemStyle: shouldHighlight
-                ? {
-                    backgroundColor: "#82CD47",
-                  }
-                : undefined,
-          }}
-        />
+          <Tabs.Screen
+            key={tab.name}
+            name={tab.name}
+            options={{
+              title: tab.title,
+              headerShown: true,
+              tabBarIcon: ({ color }) => tab.icon(color),
+              header: () => (
+                <View style={styles.headerContainer}>
+                  <IText bold color="black" size={24}>
+                    {tab.title}
+                  </IText>
+                  <IButton
+                    variant="tertiary"
+                    style={styles.notificationButton}
+                    onPress={handleGoNotifications}
+                  >
+                    <MaterialIcons name="notifications-none" size={24} />
+                  </IButton>
+                </View>
+              ),
+            }}
+          />
         );
       })}
+
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          href: null,
+          header: () => (
+            <View style={styles.headerContainer}>
+              <IText bold color="black" size={24}>
+                Notifications
+              </IText>
+              <IButton
+                variant="tertiary"
+                style={styles.notificationButton}
+                onPress={handleNotificationsBack}
+              >
+                <Feather name="x" size={24} />
+              </IButton>
+            </View>
+          ),
+        }}
+      />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    padding: 18,
+  },
+  notificationButton: {
+    padding: 0,
+    borderRadius: 8,
+    width: 32,
+    height: 32,
+  },
+});

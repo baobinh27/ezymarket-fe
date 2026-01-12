@@ -14,12 +14,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  FlatList,
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    FlatList,
+    SafeAreaView,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 type EditingItemState = {
@@ -67,9 +67,9 @@ export default function FridgeScreen() {
 
   const items = useMemo(() => (data?.items || []) as FridgeItem[], [data]);
 
-  // useEffect(() => {
-  //   console.log("items:", items);
-  // }, [items]);
+  useEffect(() => {
+    console.log("items:", items);
+  }, [items]);
 
   const handleAddItem = useCallback(() => {
     bottomSheetRef.current?.present();
