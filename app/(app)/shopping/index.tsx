@@ -10,18 +10,12 @@ import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 
 import SearchBar from "@/components/SearchBar";
 import { useShoppingLists } from "@/hooks/shopping/useShopping";
-// import { useAuth } from "@/services/auth/auth.context";
 
 export default function ShoppingScreen() {
-  // const { user } = useAuth();
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const [searchText, setSearchText] = useState("");
 
-  // const { data: groupsData, isLoading: groupsLoading } = useGetMyGroups();
-
-  // const { data: shoppingLists = [], isLoading } = useShoppingLists(groupsData?.groups?.[0]?.id);
-
-  const { data: shoppingLists, isLoading } = useShoppingLists();
+  const { data: shoppingLists = [], isLoading } = useShoppingLists();
 
   const handleDismissModal = useCallback(() => {
     bottomSheetRef.current?.close();
@@ -60,13 +54,6 @@ export default function ShoppingScreen() {
           gap: 8,
         }}
       >
-        {/* Search box */}
-        {/* <SearchBox
-          value={searchText}
-          onChangeText={setSearchText}
-          placeholder="Search..."
-          containerStyle={{ flex: 1.8 }}
-        /> */}
         <SearchBar
           value={searchText}
           onChangeText={setSearchText}
@@ -78,7 +65,6 @@ export default function ShoppingScreen() {
           variant="primary"
           style={{
             borderRadius: 10,
-            // paddingVertical: 16,
             flex: 1,
             flexDirection: "row",
             alignItems: "center",
@@ -93,7 +79,7 @@ export default function ShoppingScreen() {
         </IButton>
       </View>
       <ScrollView style={{ paddingTop: 16 }} contentContainerStyle={{ gap: 16 }}>
-        {isLoading && <ActivityIndicator size="large" />}
+        {(isLoading) && <ActivityIndicator size="large" />}
 
         {/* Active list */}
         {filteredActiveLists.length > 0 && (

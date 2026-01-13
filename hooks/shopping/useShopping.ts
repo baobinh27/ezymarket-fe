@@ -12,11 +12,10 @@ import {
 } from "@/api/shopping";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const useShoppingLists = (groupId?: string | undefined) => {
+export const useShoppingLists = () => {
     return useQuery({
-        queryKey: ["shopping-lists", groupId],
-        queryFn: () => getShoppingLists(groupId!),
-        enabled: !!groupId,
+        queryKey: ["shopping-lists"],
+        queryFn: () => getShoppingLists(),
     });
 };
 
