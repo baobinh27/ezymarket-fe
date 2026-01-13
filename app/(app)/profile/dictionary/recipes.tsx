@@ -7,6 +7,7 @@ import { getRecipes } from "@/api/dictionary";
 import dictionaryItemStyles from "@/components/dictionary/DictionaryItemCard/dictionary-item.styles";
 import DictionaryItemCard from "@/components/dictionary/DictionaryItemCard/DictionaryItemCard";
 import EditRecipeModal from "@/components/dictionary/EditRecipeModal/EditRecipeModal";
+import ViewRecipeModal from "@/components/dictionary/ViewRecipeModal/ViewRecipeModal";
 import EmptyState from "@/components/dictionary/EmptyState/EmptyState";
 import { IText } from "@/components/styled";
 import { useAuth } from "@/services/auth/auth.context";
@@ -40,9 +41,11 @@ const normalizeRecipeForClone = (item: any) => {
 
 const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, ref) => {
   const [editRecipeId, setEditRecipeId] = useState<string | null>(null);
+  const [viewRecipeId, setViewRecipeId] = useState<string | null>(null);
   const [initialData, setInitialData] = useState<any>(null);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
   const recipeSheetRef = useRef<BottomSheetModal>(null);
+  const viewRecipeSheetRef = useRef<BottomSheetModal>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -68,10 +71,21 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
     recipeSheetRef.current?.present();
   };
 
+  const handleView = (id: string) => {
+    setViewRecipeId(id);
+    viewRecipeSheetRef.current?.present();
+  };
+
   const handleEdit = (id: string) => {
     setEditRecipeId(id);
     setInitialData(null);
+    viewRecipeSheetRef.current?.dismiss();
     recipeSheetRef.current?.present();
+  };
+
+  const handleCloseViewModal = () => {
+    viewRecipeSheetRef.current?.dismiss();
+    setViewRecipeId(null);
   };
 
   const handleCloseModal = () => {
@@ -154,6 +168,7 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
               ingredientsCount={item.ingredients?.length ?? 0}
               isSystem={!canEdit}
               isHidden={isHidden}
+              onPress={() => handleView(item._id)}
               onEdit={canEdit ? () => handleEdit(item._id) : undefined}
               onHide={canEdit && !isHidden ? () => handleHide(item._id) : undefined}
               onShow={canEdit && isHidden ? () => handleShow(item._id) : undefined}
@@ -163,6 +178,24 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
         })
       )}
 
+      {/* View Modal */}
+      {viewRecipeId && (
+        <ViewRecipeModal
+          ref={viewRecipeSheetRef}
+          recipeId={viewRecipeId}
+          onClose={handleCloseViewModal}
+          onEdit={
+            (() => {
+              const item = recipes.find((r: any) => r._id === viewRecipeId);
+              const creatorId = item?.creatorId?._id ?? item?.creatorId ?? null;
+              const canEdit = isAdmin || creatorId === user?.id;
+              return canEdit ? () => handleEdit(viewRecipeId) : undefined;
+            })()
+          }
+        />
+      )}
+
+      {/* Edit Modal */}
       <EditRecipeModal
         ref={recipeSheetRef}
         recipeId={editRecipeId}
