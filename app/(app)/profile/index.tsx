@@ -111,6 +111,32 @@ export default function Profile() {
         </ItemCard>
       </CardGroup>
 
+      <ItemCard style={{ justifyContent: "center" }}>
+        <TouchableOpacity
+          onPress={() => router.push("/profile/notification-setting")}
+          style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+        >
+          <View
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 12,
+              backgroundColor: "rgba(255, 255, 255, 0.2)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <MaterialCommunityIcons name="bell" size={16} color="#000000B4" />
+          </View>
+          <View style={{ flex: 1, justifyContent: "center", marginLeft: 12 }}>
+            <IText size={16} semiBold>
+              Notification Settings
+            </IText>
+          </View>
+          <Octicons name="chevron-right" size={24} color="#000000B4" />
+        </TouchableOpacity>
+      </ItemCard>
+
       {/* Logout Button */}
       <IButton
         variant="none"

@@ -1,4 +1,3 @@
-import { IText } from "@/components/styled";
 import { Stack } from "expo-router";
 
 export default function ProfileLayout() {
@@ -6,7 +5,8 @@ export default function ProfileLayout() {
     <Stack
       screenOptions={{
         contentStyle: { backgroundColor: "white" },
-        headerTitleAlign: 'left',
+        headerTitleAlign: "left",
+        animation: "simple_push",
       }}
     >
       <Stack.Screen
@@ -20,9 +20,12 @@ export default function ProfileLayout() {
         name="dictionary"
         options={{
           headerShown: false,
-          header: () => (
-            <IText>Dictionary</IText>
-          ),
+        }}
+      />
+      <Stack.Screen
+        name="notification-setting/index"
+        options={{
+          headerShown: false,
         }}
       />
     </Stack>

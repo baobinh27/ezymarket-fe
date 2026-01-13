@@ -7,6 +7,7 @@ import { ItemCard, IText } from "@/components/styled";
 import { useDeleteFridgeItem } from "@/hooks/fridge/useDeleteFridgeItem";
 import { useGetAllFridgeItems } from "@/hooks/fridge/useGetAllFridgeItems";
 import { useUpdateFridgeItem } from "@/hooks/fridge/useUpdateFridgeItem";
+import { notificationService } from "@/services/notifications/notificationService";
 import { FridgeItem } from "@/types/types";
 import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
@@ -67,8 +68,35 @@ export default function FridgeScreen() {
 
   const items = useMemo(() => (data?.items || []) as FridgeItem[], [data]);
 
+  // Check for expiring items and send notifications
   useEffect(() => {
-    console.log("items:", items);
+    const checkExpiryNotifications = async () => {
+      const notifiedItems = await AsyncStorage.getItem("notified_expiry_items");
+      const notifiedSet = new Set(notifiedItems ? JSON.parse(notifiedItems) : []);
+
+      items.forEach((item) => {
+        const expiryDate = new Date(item.expiryDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const daysUntilExpiry = Math.ceil(
+          (expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        // Notify if expiring in next 3 days, expired, or about to expire (and not already notified)
+        if (daysUntilExpiry <= 3 && !notifiedSet.has(item._id)) {
+          const itemName = item.itemType === "recipe" ? item.recipeId?.title : item.foodId?.name;
+          notificationService.sendExpiryNotification(itemName || "Item", daysUntilExpiry);
+          notifiedSet.add(item._id);
+        }
+      });
+
+      if (notifiedSet.size > 0) {
+        await AsyncStorage.setItem("notified_expiry_items", JSON.stringify(Array.from(notifiedSet)));
+      }
+    };
+
+    checkExpiryNotifications();
   }, [items]);
 
   const handleAddItem = useCallback(() => {

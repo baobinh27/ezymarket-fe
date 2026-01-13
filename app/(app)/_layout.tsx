@@ -1,5 +1,6 @@
 import IButton from "@/components/IButton";
 import { IText } from "@/components/styled";
+import { useNotifications } from "@/hooks/notifications/useNotifications";
 import { useAuth } from "@/services/auth/auth.context";
 import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons, Octicons } from "@expo/vector-icons";
 import { Redirect, router, Tabs } from "expo-router";
@@ -7,6 +8,7 @@ import { OpaqueColorValue, StyleSheet, View } from "react-native";
 
 export default function AppLayout() {
   const { isLoggedIn, loading } = useAuth();
+  const { unreadCount } = useNotifications();
 
   if (loading) return null;
 
@@ -104,6 +106,25 @@ export default function AppLayout() {
                     onPress={handleGoNotifications}
                   >
                     <MaterialIcons name="notifications-none" size={24} />
+                    {unreadCount > 0 && (
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: -4,
+                          right: -4,
+                          backgroundColor: "#FF6B6B",
+                          borderRadius: 12,
+                          width: 20,
+                          height: 20,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        <IText color="white" size={10} semiBold>
+                          {unreadCount}
+                        </IText>
+                      </View>
+                    )}
                   </IButton>
                 </View>
               ),
