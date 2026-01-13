@@ -5,12 +5,16 @@ export const loginRequest = async (email: string, password: string): Promise<any
 };
 
 export const registerRequest = async (email: string, username: string, password: string) => {
-  return axiosInstance.post("/api/user/register", { email, phone: username, password });
+  return axiosInstance.post("/api/user/register", { email, userName: username, password });
 };
 
 // export const getAccessToken = async (refreshToken: string) => {
 //     return axiosInstance.post('/api/user/token/refresh', {refreshToken});
 // }
+
+export const registerVerify = async (email: string, otp: string) => {
+  return axiosInstance.post('/api/user/email/verify', {email, otp})
+}
 
 export const forgotPasswordRequest = async (email: string) => {
   return axiosInstance.post("/api/user/password/reset-request", { email });

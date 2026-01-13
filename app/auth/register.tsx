@@ -2,7 +2,7 @@ import IButton from "@/components/IButton";
 import { useAuth } from "@/services/auth/auth.context";
 import { useSnackBar } from "@/services/auth/snackbar.context";
 import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Image, Pressable, Text, TextInput, View } from "react-native";
 import styles from "./auth.styles";
@@ -16,8 +16,8 @@ export default function RegisterScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { register } = useAuth();
   const { showSnackBar } = useSnackBar();
+  const router = useRouter();
 
-  // TODO: Username is used as phone here, revert this after BE change the API
   const handleRegister = async () => {
     if (!email || !username || !password) {
       showSnackBar("Please enter your credentials.", "warning");
@@ -32,6 +32,10 @@ export default function RegisterScreen() {
     const { success, message } = await register(email, username, password);
     if (success) {
       showSnackBar(message, "success", 5000);
+      router.push({
+        pathname: "/auth/register-verify",
+        params: { email: email },
+      });
     } else {
       showSnackBar(message, "error");
     }

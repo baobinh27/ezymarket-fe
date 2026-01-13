@@ -12,7 +12,14 @@ import { Octicons } from "@expo/vector-icons";
 import { BottomSheetModal } from "@gorhom/bottom-sheet";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 interface CreateItem {
@@ -56,14 +63,14 @@ export default function CreateShoppingListScreen() {
       return;
     }
 
-    if (!groupId) {
-      showSnackBar("Please join or create a group first", "error");
-      return;
-    }
+    // if (!groupId) {
+    //   showSnackBar("Please join or create a group first", "error");
+    //   return;
+    // }
 
     createListMutation.mutate(
       {
-        groupId,
+        ...(groupId && { groupId }),
         title: listName,
         description,
         items: items.map((i) => ({
@@ -85,16 +92,13 @@ export default function CreateShoppingListScreen() {
     );
   };
 
-
-
-
   const handleAddItem = () => {
     setIsModalOpen(true);
     bottomSheetRef.current?.present();
   };
 
   const handleDeleteItem = (index: number) => {
-    setItems(prev => prev.filter((_, i) => i !== index));
+    setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSelectItem = (item: any) => {
@@ -111,11 +115,9 @@ export default function CreateShoppingListScreen() {
       icon: <Octicons name="trash" size={18} color="#f44336" />,
       onPress: () => {
         setItems((prev) => prev.filter((i) => i !== newItem));
-      }
+      },
     });
   };
-
-
 
   const updateItemQuantity = (index: number, quantity: number) => {
     const updated = [...items];
@@ -146,10 +148,7 @@ export default function CreateShoppingListScreen() {
                 autoFocus
               />
             ) : (
-              <TouchableOpacity
-                style={styles.nameDisplay}
-                onPress={() => setIsEditingName(true)}
-              >
+              <TouchableOpacity style={styles.nameDisplay} onPress={() => setIsEditingName(true)}>
                 <IText size={24} bold={!!listName} color={listName ? "#000" : "#9CA3AF"}>
                   {listName || "Enter new list name"}
                 </IText>
@@ -158,7 +157,9 @@ export default function CreateShoppingListScreen() {
             )}
 
             <View style={styles.inputGroup}>
-              <IText size={14} semiBold style={{ marginBottom: 8 }}>Description</IText>
+              <IText size={14} semiBold style={{ marginBottom: 8 }}>
+                Description
+              </IText>
               {isEditingDescription ? (
                 <TextInput
                   style={styles.descriptionInput}
@@ -188,28 +189,53 @@ export default function CreateShoppingListScreen() {
 
           {/* Actions Section */}
           <View style={styles.actionSection}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <IText size={18} semiBold>Items ({items.length})</IText>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 12,
+              }}
+            >
+              <IText size={18} semiBold>
+                Items ({items.length})
+              </IText>
               <TouchableOpacity onPress={handleAddItem}>
-                <IText color="#46982D" semiBold>+ Add Items</IText>
+                <IText color="#46982D" semiBold>
+                  + Add Items
+                </IText>
               </TouchableOpacity>
             </View>
           </View>
         </View>
 
         {/* Items List */}
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingBottom: 16 }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingBottom: 16 }}
+        >
           <View style={{ gap: 12, flex: 1 }}>
             {items.length === 0 ? (
               <View style={styles.emptyState}>
                 <View style={styles.emptyStateIcon}>
                   <Octicons name="list-unordered" size={32} color="#9CA3AF" />
                 </View>
-                <IText color="#6B7280" style={{ textAlign: 'center', marginTop: 8 }}>
+                <IText color="#6B7280" style={{ textAlign: "center", marginTop: 8 }}>
                   No items yet. Start by adding some!
                 </IText>
-                <IButton variant="primary" onPress={handleAddItem} style={{ marginTop: 10, paddingVertical: 6, paddingHorizontal: 12, borderRadius: 6 }}>
-                  <IText semiBold color="white">Browse Ingredients</IText>
+                <IButton
+                  variant="primary"
+                  onPress={handleAddItem}
+                  style={{
+                    marginTop: 10,
+                    paddingVertical: 6,
+                    paddingHorizontal: 12,
+                    borderRadius: 6,
+                  }}
+                >
+                  <IText semiBold color="white">
+                    Browse Ingredients
+                  </IText>
                 </IButton>
               </View>
             ) : (
@@ -221,13 +247,15 @@ export default function CreateShoppingListScreen() {
                       style={styles.itemImage}
                     />
                     <View style={styles.itemDetails}>
-                      <IText semiBold size={14}>{item.name}</IText>
+                      <IText semiBold size={14}>
+                        {item.name}
+                      </IText>
                       <View style={styles.quantityRow}>
                         <QuantitySelector
                           state={item.quantity}
                           maxState={100}
                           setState={(value) => {
-                            if (typeof value === 'function') {
+                            if (typeof value === "function") {
                               updateItemQuantity(index, value(item.quantity));
                             } else {
                               updateItemQuantity(index, value);
@@ -255,15 +283,13 @@ export default function CreateShoppingListScreen() {
 
         {/* Fixed Footer */}
         <View style={styles.footer}>
-          <IButton
-            variant="primary"
-            onPress={handleConfirm}
-            style={styles.createButton}
-          >
+          <IButton variant="primary" onPress={handleConfirm} style={styles.createButton}>
             {createListMutation.isPending ? (
               <ActivityIndicator color="white" />
             ) : (
-              <IText color="white" bold size={16}>Create Shopping List</IText>
+              <IText color="white" bold size={16}>
+                Create Shopping List
+              </IText>
             )}
           </IButton>
         </View>
@@ -276,14 +302,16 @@ export default function CreateShoppingListScreen() {
           setIsModalOpen(false);
           setSearchText("");
         }}
-        existingIngredientIds={new Set(items.map((i) => i.ingredientId).filter(Boolean) as string[])}
+        existingIngredientIds={
+          new Set(items.map((i) => i.ingredientId).filter(Boolean) as string[])
+        }
         onConfirmItem={(newItem) => {
           setItems((prev) => [newItem, ...prev]);
           showToast(`Added ${newItem.name}`, "success", 3000, {
             icon: <Octicons name="trash" size={18} color="#f44336" />,
             onPress: () => {
               setItems((prev) => prev.filter((i) => i !== newItem));
-            }
+            },
           });
         }}
       />
@@ -316,8 +344,8 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 12,
     minHeight: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   nameInput: {
@@ -351,25 +379,25 @@ const styles = StyleSheet.create({
   createButton: {
     borderRadius: 12,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   emptyState: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F9FAFB",
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    borderStyle: 'dashed',
+    borderColor: "#E5E7EB",
+    borderStyle: "dashed",
   },
   emptyStateIcon: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#E5E7EB',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#E5E7EB",
+    alignItems: "center",
+    justifyContent: "center",
   },
   // Existing Item Styles
   itemContent: {
@@ -389,14 +417,14 @@ const styles = StyleSheet.create({
   quantityRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6
+    gap: 6,
   },
   menuButton: {
     padding: 8,
   },
   searchBoxContainer: {
     flex: 0,
-    marginBottom: 10
+    marginBottom: 10,
   },
   itemsList: {
     flex: 1,
@@ -411,12 +439,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "white",
     padding: 5,
-    gap: 5
+    gap: 5,
   },
   redirectorButton: {
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundImage: 'linear-gradient(135deg, #46982D, #82CD47)',
-  }
+    backgroundImage: "linear-gradient(135deg, #46982D, #82CD47)",
+  },
 });
