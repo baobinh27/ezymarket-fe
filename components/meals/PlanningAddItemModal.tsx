@@ -37,9 +37,7 @@ const PlanningAddItemModal = ({
 }: PlanningAddItemModalProps) => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [hasModalLoaded, setHasModalLoaded] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<Map<string, SelectedItemEntry>>(
-    new Map()
-  );
+  const [selectedItems, setSelectedItems] = useState<Map<string, SelectedItemEntry>>(new Map());
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { showSnackBar } = useSnackBar();
 
@@ -65,8 +63,7 @@ const PlanningAddItemModal = ({
 
   useEffect(() => {
     if (ingredientsData) console.log("ingredientsData:", ingredientsData);
-    
-  }, [ingredientsData])
+  }, [ingredientsData]);
 
   const { mutateAsync: createMealItem, isPending: createMealItemIsPending } = useCreateMealItem();
   const { mutateAsync: createMealItemBulk, isPending: createMealItemBulkIsPending } =
@@ -150,21 +147,21 @@ const PlanningAddItemModal = ({
 
   const handleAddSingleItem = async (item: SelectableItem, type: "ingredient" | "recipe") => {
     console.log(item);
-    
+
     try {
       const itemKey = type === "ingredient" ? (item as Ingredient)._id : (item as Recipe)._id;
       const selectedEntry = selectedItems.get(itemKey);
       const quantity = selectedEntry?.quantity || 1;
       const unitId = selectedEntry?.unitId;
 
-      if (!unitId) throw Error("Missing unit.")
+      if (!unitId && type === "ingredient") throw Error("Missing unit.");
 
       await createMealItem({
         itemType: type,
         quantity,
         ingredientId: type === "ingredient" ? (item as Ingredient)._id : undefined,
         recipeId: type === "recipe" ? (item as Recipe)._id : undefined,
-        unitId: unitId,
+        ...(unitId && { unitId }),
         date: selectedDate,
         mealType,
       });
@@ -194,8 +191,7 @@ const PlanningAddItemModal = ({
         quantity,
         ingredientId: (item as any).type === "ingredient" ? (item as Ingredient)._id : undefined,
         recipeId: (item as any).type === "recipe" ? (item as Recipe)._id : undefined,
-        unitId:
-          (item as any).type === "ingredient" ? unitId : undefined,
+        unitId: (item as any).type === "ingredient" ? unitId : undefined,
       }));
 
       await createMealItemBulk({
@@ -307,16 +303,16 @@ const PlanningAddItemModal = ({
                               }}
                             />
                           </View>
-                          {/* {isIngredient && ( */}
-                            <View>
-                              <IText size={11}>Unit</IText>
-                              <UnitSelector
-                                value={selectedItems.get(itemKey)?.unitId}
-                                onChange={(unitId) => handleUnitChange(itemKey, unitId)}
-                                placeholder="Select Unit"
-                              />
-                            </View>
-                          {/* )} */}
+                          {isIngredient && (
+                          <View>
+                            <IText size={11}>Unit</IText>
+                            <UnitSelector
+                              value={selectedItems.get(itemKey)?.unitId}
+                              onChange={(unitId) => handleUnitChange(itemKey, unitId)}
+                              placeholder="Select Unit"
+                            />
+                          </View>
+                          )}
                         </View>
                       )}
                       <View style={styles.buttonGroup}>
@@ -324,7 +320,9 @@ const PlanningAddItemModal = ({
                           <IButton
                             variant="primary"
                             style={[styles.addButton, styles.addToMealButton]}
-                            onPress={() => handleAddSingleItem(item, isIngredient ? "ingredient" : "recipe")}
+                            onPress={() =>
+                              handleAddSingleItem(item, isIngredient ? "ingredient" : "recipe")
+                            }
                             disabled={createMealItemIsPending}
                           >
                             <IText semiBold size={11} color="white">

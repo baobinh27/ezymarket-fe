@@ -7,6 +7,7 @@ import { ItemCard, IText } from "@/components/styled";
 import { useDeleteFridgeItem } from "@/hooks/fridge/useDeleteFridgeItem";
 import { useGetAllFridgeItems } from "@/hooks/fridge/useGetAllFridgeItems";
 import { useUpdateFridgeItem } from "@/hooks/fridge/useUpdateFridgeItem";
+import { useSnackBar } from "@/services/auth/snackbar.context";
 import { notificationService } from "@/services/notifications/notificationService";
 import { FridgeItem } from "@/types/types";
 import { Entypo, Feather, FontAwesome6 } from "@expo/vector-icons";
@@ -15,12 +16,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    SafeAreaView,
-    StyleSheet,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  SafeAreaView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 type EditingItemState = {
@@ -40,6 +41,7 @@ export default function FridgeScreen() {
   const bottomSheetRef = useRef<BottomSheetModal>(null);
   const updateFridgeItemMutation = useUpdateFridgeItem();
   const deleteFridgeItemMutation = useDeleteFridgeItem();
+  const { showSnackBar } = useSnackBar();
 
   const { data, isLoading, error, refetch } = useGetAllFridgeItems({
     params: {
@@ -92,7 +94,10 @@ export default function FridgeScreen() {
       });
 
       if (notifiedSet.size > 0) {
-        await AsyncStorage.setItem("notified_expiry_items", JSON.stringify(Array.from(notifiedSet)));
+        await AsyncStorage.setItem(
+          "notified_expiry_items",
+          JSON.stringify(Array.from(notifiedSet))
+        );
       }
     };
 
@@ -163,7 +168,7 @@ export default function FridgeScreen() {
         await Promise.all(updatePromises);
       }
     } catch (error) {
-      showSnackbar("Failed to update fridge items: " + error, "error");
+      // showSnackBar("Failed to update fridge items: " + error, "error");
     } finally {
       setIsEditing(false);
       setEditingItems({});
@@ -415,7 +420,3 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-
-function showSnackbar(arg0: string, arg1: string) {
-  throw new Error("Function not implemented.");
-}

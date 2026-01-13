@@ -18,7 +18,7 @@ export interface ShoppingList {
 }
 
 export interface CreateShoppingListPayload {
-    groupId: string;
+    groupId?: string;
     title: string;
     description?: string;
     items?: {
