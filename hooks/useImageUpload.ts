@@ -10,7 +10,9 @@ interface UseImageUploadResult {
   resetImage: () => void;
 }
 
-export const useImageUpload = (initialUrl: string = ""): UseImageUploadResult => {
+export const useImageUpload = (
+  initialUrl: string = ""
+): UseImageUploadResult => {
   const [imageUrl, setImageUrl] = useState<string>(initialUrl);
   const [isUploading, setIsUploading] = useState<boolean>(false);
 
@@ -24,8 +26,10 @@ export const useImageUpload = (initialUrl: string = ""): UseImageUploadResult =>
       setImageUrl(uploadedUrl);
       Alert.alert("Success", "Image uploaded successfully");
     } catch (error: any) {
-      Alert.alert("Upload Error", error.message || "Failed to upload image. Please try again.");
-
+      Alert.alert(
+        "Upload Error",
+        error.message || "Failed to upload image. Please try again."
+      );
       // Revert to empty if upload fails
       setImageUrl("");
     } finally {
