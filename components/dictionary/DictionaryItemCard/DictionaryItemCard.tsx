@@ -13,6 +13,7 @@ interface BaseDictionaryItemCardProps {
   type: DictionaryItemType;
   isSystem?: boolean;
   isHidden?: boolean;
+  onPress?: () => void;
   onEdit?: () => void;
   onHide?: () => void;
   onShow?: () => void;
@@ -42,7 +43,7 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
   const [menuVisible, setMenuVisible] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<View>(null);
-  const { id, type, isSystem, isHidden, onEdit, onHide, onShow, onClone } = props;
+  const { id, type, isSystem, isHidden, onPress, onEdit, onHide, onShow, onClone } = props;
 
   const handleMenuClose = () => {
     setMenuVisible(false);
@@ -165,15 +166,29 @@ export default function DictionaryItemCard(props: DictionaryItemCardProps) {
   return (
     <>
       <ItemCard style={isHidden && dictionaryItemStyles.itemCardHidden}>
-        <View style={dictionaryItemStyles.itemLeft}>{renderContent()}</View>
+        <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+          <Pressable
+            style={[dictionaryItemStyles.itemLeft, { flex: 1 }]}
+            onPress={onPress}
+            android_ripple={{ color: "#F0F0F0" }}
+          >
+            {renderContent()}
+          </Pressable>
 
-        {!isSystem && (onEdit || onHide || onClone) && (
-          <View ref={buttonRef} collapsable={false}>
-            <TouchableOpacity onPress={handleMenuOpen} style={dictionaryItemStyles.menuButton}>
-              <Octicons name="kebab-horizontal" size={20} color="#000000B4" />
-            </TouchableOpacity>
-          </View>
-        )}
+          {!isSystem && (onEdit || onHide || onClone) && (
+            <View ref={buttonRef} collapsable={false}>
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  handleMenuOpen();
+                }}
+                style={dictionaryItemStyles.menuButton}
+              >
+                <Octicons name="kebab-horizontal" size={20} color="#000000B4" />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </ItemCard>
 
       <Modal

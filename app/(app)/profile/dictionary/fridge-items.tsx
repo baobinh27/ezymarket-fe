@@ -7,6 +7,7 @@ import { getIngredients } from "@/api/dictionary";
 import dictionaryItemStyles from "@/components/dictionary/DictionaryItemCard/dictionary-item.styles";
 import DictionaryItemCard from "@/components/dictionary/DictionaryItemCard/DictionaryItemCard";
 import EditIngredientModal from "@/components/dictionary/EditIngredientModal/EditIngredientModal";
+import ViewIngredientModal from "@/components/dictionary/ViewIngredientModal/ViewIngredientModal";
 import EmptyState from "@/components/dictionary/EmptyState/EmptyState";
 import { IText } from "@/components/styled";
 import { useAuth } from "@/services/auth/auth.context";
@@ -31,9 +32,11 @@ const normalizeIngredientForClone = (item: any) => {
 
 const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItemsProps, ref) => {
   const [editIngredientId, setEditIngredientId] = useState<string | null>(null);
+  const [viewIngredientId, setViewIngredientId] = useState<string | null>(null);
   const [initialData, setInitialData] = useState<any>(null);
   const [hiddenIds, setHiddenIds] = useState<string[]>([]);
   const ingredientSheetRef = useRef<BottomSheetModal>(null);
+  const viewIngredientSheetRef = useRef<BottomSheetModal>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -59,10 +62,21 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
     ingredientSheetRef.current?.present();
   };
 
+  const handleView = (id: string) => {
+    setViewIngredientId(id);
+    viewIngredientSheetRef.current?.present();
+  };
+
   const handleEdit = (id: string) => {
     setEditIngredientId(id);
     setInitialData(null);
+    viewIngredientSheetRef.current?.dismiss();
     ingredientSheetRef.current?.present();
+  };
+
+  const handleCloseViewModal = () => {
+    viewIngredientSheetRef.current?.dismiss();
+    setViewIngredientId(null);
   };
 
   const handleCloseModal = () => {
@@ -144,6 +158,7 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
                 }
                 isSystem={!canEdit}
                 isHidden={isHidden}
+                onPress={() => handleView(item._id)}
                 onEdit={canEdit ? () => handleEdit(item._id) : undefined}
                 onHide={canEdit && !isHidden ? () => handleHide(item._id) : undefined}
                 onShow={canEdit && isHidden ? () => handleShow(item._id) : undefined}
@@ -152,6 +167,23 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
             );
           })}
         </>
+      )}
+
+      {/* View Modal */}
+      {viewIngredientId && (
+        <ViewIngredientModal
+          ref={viewIngredientSheetRef}
+          ingredientId={viewIngredientId}
+          onClose={handleCloseViewModal}
+          onEdit={
+            (() => {
+              const item = ingredients.find((i: any) => i._id === viewIngredientId);
+              const creatorId = item?.creatorId?._id ?? item?.creatorId ?? null;
+              const canEdit = isAdmin || creatorId === user?.id;
+              return canEdit ? () => handleEdit(viewIngredientId) : undefined;
+            })()
+          }
+        />
       )}
 
       {/* Edit Modal */}
