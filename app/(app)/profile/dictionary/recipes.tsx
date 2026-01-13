@@ -62,6 +62,17 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
     loadHidden();
   }, []);
 
+  // Present modal sau khi viewRecipeId được set và modal đã được mount
+  useEffect(() => {
+    if (viewRecipeId) {
+      // Sử dụng setTimeout để đảm bảo modal đã được mount
+      const timer = setTimeout(() => {
+        viewRecipeSheetRef.current?.present();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [viewRecipeId]);
+
   const recipes = data?.recipes ?? [];
   const isAdmin = user?.role === "admin";
 
@@ -73,7 +84,7 @@ const DictionaryRecipes = forwardRef(({ searchQuery }: DictionaryRecipesProps, r
 
   const handleView = (id: string) => {
     setViewRecipeId(id);
-    viewRecipeSheetRef.current?.present();
+    // present() sẽ được gọi trong useEffect sau khi modal mount
   };
 
   const handleEdit = (id: string) => {

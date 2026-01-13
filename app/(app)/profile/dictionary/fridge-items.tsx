@@ -53,6 +53,17 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
     loadHidden();
   }, []);
 
+  // Present modal sau khi viewIngredientId được set và modal đã được mount
+  useEffect(() => {
+    if (viewIngredientId) {
+      // Sử dụng setTimeout để đảm bảo modal đã được mount
+      const timer = setTimeout(() => {
+        viewIngredientSheetRef.current?.present();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [viewIngredientId]);
+
   const ingredients = (data as any)?.ingredients || [];
   const isAdmin = user?.role === "admin";
 
@@ -64,7 +75,7 @@ const DictionaryFridgeItems = forwardRef(({ searchQuery }: DictionaryFridgeItems
 
   const handleView = (id: string) => {
     setViewIngredientId(id);
-    viewIngredientSheetRef.current?.present();
+    // present() sẽ được gọi trong useEffect sau khi modal mount
   };
 
   const handleEdit = (id: string) => {
