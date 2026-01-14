@@ -188,22 +188,25 @@ const GroupManagementModal: React.FC<GroupManagementModalProps> = ({ visible, on
 
         {/* Tabs */}
         <View style={styles.tabContainer}>
-          {(["list", "create", "manage"] as const).map((t) => (
-            <Pressable
-              key={t}
-              style={[styles.tab, tab === t && styles.activeTab]}
-              onPress={() => {
-                setTab(t);
-                if (t === "list") {
-                  setSelectedGroupId(null);
-                }
-              }}
-            >
-              <IText semiBold size={12} color={tab === t ? "#82CD47" : "#999"}>
-                {t === "list" ? "My Groups" : t === "create" ? "Create" : "Manage"}
-              </IText>
-            </Pressable>
-          ))}
+          {(["list", "create", "manage"] as const).map((t) => {
+            if (t === 'create' && groups.length !== 0) return null;
+            return (
+              <Pressable
+                key={t}
+                style={[styles.tab, tab === t && styles.activeTab]}
+                onPress={() => {
+                  setTab(t);
+                  if (t === "list") {
+                    setSelectedGroupId(null);
+                  }
+                }}
+              >
+                <IText semiBold size={12} color={tab === t ? "#82CD47" : "#999"}>
+                  {t === "list" ? "My Groups" : t === "create" ? "Create" : "Manage"}
+                </IText>
+              </Pressable>
+            );
+          })}
         </View>
 
         {/* Content */}

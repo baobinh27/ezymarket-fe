@@ -318,7 +318,7 @@ const EditRecipeModal = forwardRef<BottomSheetModal, EditRecipeModalProps>(
                   )}
                 </TouchableOpacity>
 
-                <IText size={14} color="#000000B4" style={styles.orText}>
+                {/* <IText size={14} color="#000000B4" style={styles.orText}>
                   or
                 </IText>
 
@@ -326,7 +326,7 @@ const EditRecipeModal = forwardRef<BottomSheetModal, EditRecipeModalProps>(
                   <IText size={14} semiBold color="#82CD47">
                     Search online
                   </IText>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
 
               {/* Form Fields */}

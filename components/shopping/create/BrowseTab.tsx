@@ -67,8 +67,8 @@ const BrowseTab = ({ onSelectIngredient, selectedIngredientIds, existingIngredie
 
     const handleGoDictionary = useCallback(() => {
         onClose?.();
-        router.push("/profile/dictionary/" as any);
-    }, [onClose]);
+        router.push("/(app)/profile/dictionary");
+    }, [onClose, router]);
 
     const handleSelectIngredient = useCallback(
         (ingredient: Ingredient) => {

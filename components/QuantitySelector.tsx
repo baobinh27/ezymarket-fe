@@ -93,6 +93,7 @@ const style = StyleSheet.create({
     borderBottomRightRadius: 5,
   },
   input: {
+    color: 'black',
     backgroundColor: "white",
     minWidth: 26,
     maxWidth: 42,
